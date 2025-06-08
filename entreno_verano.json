@@ -1,0 +1,319 @@
+{
+    "usuarios": {
+        "Usuario": {
+            "nombre": "nico",
+            "peso": 45.0,
+            "estatura": 145.0,
+            "meta_km": {
+                "23": 25.0
+            },
+            "km_corridos": {
+                "2025-06-07": 10.0
+            },
+            "ejercicios_completados": {
+                "2025-06-07": {
+                    "12 Abdominales crunch con rodillas dobladas": false,
+                    "12 pesas": true,
+                    "12 Plancha con toques de hombros": true,
+                    "12 Fondos en silla para tríceps": false,
+                    "70 segundos Yoga suave con posturas básicas": true,
+                    "12 Burpees modificados sin flexión": true,
+                    "12 Abdominales bicicleta lentos": true
+                }
+            },
+            "historial_semanal": [
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 20,
+                    "km": 10.0,
+                    "completados": 4,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-05-26",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 20,
+                    "km": 10.0,
+                    "completados": 4,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-09",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-16",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 20,
+                    "km": 10.0,
+                    "completados": 4,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 20,
+                    "km": 10.0,
+                    "completados": 4,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-05-26",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 20,
+                    "km": 10.0,
+                    "completados": 4,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-09",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-16",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 20,
+                    "km": 10.0,
+                    "completados": 4,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 25,
+                    "km": 10.0,
+                    "completados": 5,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-05-26",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 25,
+                    "km": 10.0,
+                    "completados": 5,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-09",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-16",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 25,
+                    "km": 10.0,
+                    "completados": 5,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 25,
+                    "km": 10.0,
+                    "completados": 5,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-05-26",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 25,
+                    "km": 10.0,
+                    "completados": 5,
+                    "totales": 43,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-09",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-16",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 25,
+                    "km": 10.0,
+                    "completados": 5,
+                    "totales": 43,
+                    "ranking": "Looser"
+                }
+            ],
+            "mensaje": "",
+            "ejercicios_personalizados": [
+                "pesas"
+            ],
+            "ejercicios_personalizados_por_fecha": {
+                "2025-06-07": [
+                    "pesas"
+                ]
+            },
+            "record_puntos": 25
+        },
+        "Bernat": {
+            "nombre": "bernat",
+            "peso": 80.0,
+            "estatura": 172.0,
+            "meta_km": {
+                "23": 20.0
+            },
+            "km_corridos": {
+                "2025-06-07": 7.0
+            },
+            "ejercicios_completados": {
+                "2025-06-07": {
+                    "70 segundos Yoga suave con posturas básicas": true,
+                    "12 Plancha con toques de hombros": true,
+                    "12 Burpees modificados sin flexión": true,
+                    "12 Abdominales bicicleta lentos": true,
+                    "12 Abdominales crunch con rodillas dobladas": true,
+                    "12 Fondos en silla para tríceps": true
+                }
+            },
+            "historial_semanal": [
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 30,
+                    "km": 7.0,
+                    "completados": 6,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-05-26",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 30,
+                    "km": 7.0,
+                    "completados": 6,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-09",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-16",
+                    "puntos": 0,
+                    "km": 0.0,
+                    "completados": 0,
+                    "totales": 42,
+                    "ranking": "Looser"
+                },
+                {
+                    "semana": "2025-06-02",
+                    "puntos": 30,
+                    "km": 7.0,
+                    "completados": 6,
+                    "totales": 42,
+                    "ranking": "Looser"
+                }
+            ],
+            "mensaje": "",
+            "ejercicios_personalizados": [],
+            "ejercicios_personalizados_por_fecha": {},
+            "record_puntos": 30
+        },
+        "Nico": {
+            "nombre": "Nico",
+            "peso": 0.0,
+            "estatura": 0.0,
+            "meta_km": {},
+            "km_corridos": {},
+            "ejercicios_completados": {},
+            "historial_semanal": [],
+            "mensaje": "",
+            "ejercicios_personalizados": [],
+            "ejercicios_personalizados_por_fecha": {},
+            "record_puntos": 0
+        }
+    },
+    "usuario_actual": "Bernat"
+}

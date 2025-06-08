@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Kilómetros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .nav-link:hover {
+            color: #e0e0e0 !important;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .stats-table th {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Entreno Verano</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Datos Personales</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/entreno">Entreno</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/correr">Correr</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/progreso">Progreso</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/resumen">Resumen</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title">Registro de Kilómetros</h1>
+                {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+                {% if mensaje %}
+                    <div class="alert alert-success">{{ mensaje }}</div>
+                {% endif %}
+                <form method="POST" action="/correr">
+                    <div class="mb-3">
+                        <label for="fecha" class="form-label">Selecciona una fecha:</label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" value="{{ fecha }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="km" class="form-label">Kilómetros corridos:</label>
+                        <input type="number" step="0.01" class="form-control" id="km" name="km" value="{{ km_dia }}" required>
+                    </div>
+                    <input type="hidden" name="accion" value="registrar">
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </form>
+                <h3 class="mt-4">Estadísticas</h3>
+                <p>Kilómetros esta semana: <strong>{{ km_semanal }}</strong> de <strong>{{ meta_km }}</strong> km</p>
+                <p>Kilómetros hoy ({{ fecha | datetimeformat('%d/%m/%Y') }}): <strong>{{ km_dia }}</strong></p>
+                <h3 class="mt-4">Gráfica de Kilómetros por Semana</h3>
+                {% if semanas %}
+                    <canvas id="kmChart" width="400" height="200"></canvas>
+                {% else %}
+                    <p class="text-muted">No hay datos para la gráfica de kilómetros. Registra kilómetros arriba.</p>
+                {% endif %}
+                <h3 class="mt-4">Registro por Día</h3>
+                {% if km_por_dia %}
+                    <table class="table table-bordered stats-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Kilómetros</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fecha, km in km_por_dia.items() %}
+                                <tr>
+                                    <td>{{ fecha | datetimeformat('%d/%m/%Y') }}</td>
+                                    <td>{{ km }}</td>
+                                    <td>
+                                        <form method="POST" action="/correr" style="display:inline;">
+                                            <input type="hidden" name="fecha" value="{{ fecha }}">
+                                            <input type="hidden" name="fecha_eliminar" value="{{ fecha }}">
+                                            <input type="hidden" name="accion" value="eliminar">
+                                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">No hay kilómetros registrados.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gráfica de kilómetros
+            const semanas = {{ semanas | tojson | safe }};
+            console.log('Semanas en correr:', semanas); // Debug
+            if (semanas && semanas.length > 0) {
+                const ctx_km = document.getElementById('kmChart').getContext('2d');
+                new Chart(ctx_km, {
+                    type: 'bar',
+                    data: {
+                        labels: semanas.map(item => {
+                            const inicio = new Date(item.inicio_semana);
+                            const fin = new Date(item.fin_semana);
+                            return `Semana ${inicio.toLocaleDateString('es-ES', { month: 'numeric', day: 'numeric' })} - ${fin.toLocaleDateString('es-ES', { month: 'numeric', day: 'numeric' })}`;
+                        }),
+                        datasets: [{
+                            label: 'Kilómetros por Semana',
+                            data: semanas.map(item => item.km),
+                            backgroundColor: '#007bff'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
