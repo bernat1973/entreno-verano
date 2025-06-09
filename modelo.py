@@ -10,7 +10,7 @@ class Modelo:
         self.meta_km = {}
         self.km_corridos = {}
         self.ejercicios_completados = {}
-        self.usuarios = {}  # Añadimos el atributo usuarios como diccionario
+        self.usuarios = {}  # Diccionario de usuarios
         self.usuario_actual = ""
         self.historial_semanal = []
         self.mensaje = ""
@@ -45,12 +45,28 @@ class Modelo:
 
     def guardar_datos(self):
         try:
+            # Asegurar que los datos del usuario actual se actualicen en self.usuarios
+            if self.usuario_actual and self.usuario_actual in self.usuarios:
+                self.usuarios[self.usuario_actual] = {
+                    'nombre': self.nombre,
+                    'peso': self.peso,
+                    'estatura': self.estatura,
+                    'meta_km': self.meta_km,
+                    'km_corridos': self.km_corridos,
+                    'ejercicios_completados': self.ejercicios_completados,
+                    'historial_semanal': self.historial_semanal,
+                    'mensaje': self.mensaje,
+                    'ejercicios_personalizados': self.ejercicios_personalizados,
+                    'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
+                    'record_puntos': self.record_puntos
+                }
             datos = {
-                'usuarios': self.usuarios,  # Guardar el diccionario de usuarios
+                'usuarios': self.usuarios,
                 'usuario_actual': self.usuario_actual
             }
             with open(self.archivo, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
+            print(f"Datos guardados correctamente en {self.archivo}: {datos}")
         except Exception as e:
             print(f"Error al guardar datos: {e}")
 
@@ -194,7 +210,7 @@ class Modelo:
                 'progreso_km': round(progreso_km, 1)
             }
 
-            # Guardar en historial semanal
+            # Añadir al historial semanal
             self.historial_semanal.append({
                 'semana': inicio_semana.strftime('%Y-%m-%d'),
                 'puntos': puntos_totales,
