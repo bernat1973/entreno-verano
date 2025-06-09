@@ -83,11 +83,11 @@ def datos_personales():
             modelo.peso = peso
             modelo.estatura = estatura
             modelo.meta_km[semana_ano] = meta_km
-            # Guardar en Firestore
-            modelo.guardar_datos()  # Guardar en archivo local
+            modelo.guardar_datos()
+            print(f"Datos actualizados en modelo: nombre={modelo.nombre}, peso={modelo.peso}, estatura={modelo.estatura}, meta_km={modelo.meta_km}")
             with open('entreno_verano.json', 'r') as f:
                 data = json.load(f)
-            save_json(data)  # Guardar en Firestore
+            save_json(data)
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), mensaje="¡Datos guardados correctamente!", semana_actual=semana_actual, usuarios=usuarios)
         except ValueError:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="Valores inválidos. Revisa los datos.", semana_actual=semana_actual, usuarios=usuarios)
@@ -107,6 +107,7 @@ def nuevo_usuario():
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
         modelo.nuevo_usuario(nuevo_nombre)
         modelo.guardar_datos()
+        print(f"Datos actualizados en modelo.usuarios: {modelo.usuarios}")
         with open('entreno_verano.json', 'r') as f:
             data = json.load(f)
         save_json(data)
@@ -128,6 +129,7 @@ def cambiar_usuario():
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="Selecciona un usuario.", semana_actual=semana_actual, usuarios=usuarios)
         modelo.cambiar_usuario(nombre_usuario)
         modelo.guardar_datos()
+        print(f"Datos actualizados en modelo: nombre={modelo.nombre}, usuarios={modelo.usuarios}")
         with open('entreno_verano.json', 'r') as f:
             data = json.load(f)
         save_json(data)
@@ -151,6 +153,7 @@ def entreno():
                 base_ejercicio = ejercicios.get_base_exercise_name(ejercicio)
                 modelo.ejercicios_completados[fecha_str][base_ejercicio] = ejercicio in ejercicios_seleccionados
             modelo.guardar_datos()
+            print(f"Datos actualizados en modelo.ejercicios_completados: {modelo.ejercicios_completados}")
             with open('entreno_verano.json', 'r') as f:
                 data = json.load(f)
             save_json(data)
@@ -209,6 +212,7 @@ def correr():
                     return render_template('correr.html', error="Los kilómetros deben ser positivos.", fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
                 modelo.km_corridos[fecha_str] = modelo.km_corridos.get(fecha_str, 0.0) + km
                 modelo.guardar_datos()
+                print(f"Datos actualizados en modelo.km_corridos: {modelo.km_corridos}")
                 with open('entreno_verano.json', 'r') as f:
                     data = json.load(f)
                 save_json(data)
@@ -232,6 +236,7 @@ def correr():
                 if fecha_eliminar in modelo.km_corridos:
                     del modelo.km_corridos[fecha_eliminar]
                     modelo.guardar_datos()
+                    print(f"Datos actualizados en modelo.km_corridos después de eliminar: {modelo.km_corridos}")
                     with open('entreno_verano.json', 'r') as f:
                         data = json.load(f)
                     save_json(data)
@@ -266,6 +271,7 @@ def anadir_ejercicio():
                 return render_template('anadir_ejercicio.html', error="El ejercicio no puede estar vacío.", fecha=fecha_str)
             modelo.anadir_ejercicio_personalizado(ejercicio, fecha_str)
             modelo.guardar_datos()
+            print(f"Datos actualizados en modelo.ejercicios_personalizados: {modelo.ejercicios_personalizados}")
             with open('entreno_verano.json', 'r') as f:
                 data = json.load(f)
             save_json(data)
@@ -324,7 +330,3 @@ def resumen():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-    
-     
-               
-                   
