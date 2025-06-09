@@ -4,6 +4,7 @@ from modelo import Modelo
 from ejercicios import Ejercicios
 from firebase_config import save_json, get_json
 import json
+import os
 
 app = Flask(__name__)
 
@@ -15,14 +16,15 @@ try:
         with open('temp_entreno_verano.json', 'w') as f:
             json.dump(data_from_firebase[0], f)
         modelo = Modelo('temp_entreno_verano.json')  # Inicializar con archivo temporal
+        print(f"Datos iniciales cargados desde Firestore: {data_from_firebase[0]}")
     else:
         # Si no hay datos en Firestore, usar el archivo JSON local
         try:
             with open('entreno_verano.json', 'r') as f:
                 data = json.load(f)
-            # Guardar en Firestore
             save_json(data)
             modelo = Modelo('entreno_verano.json')
+            print(f"Datos iniciales cargados desde entreno_verano.json: {data}")
         except FileNotFoundError:
             print("No se encontró entreno_verano.json, inicializando modelo vacío")
             modelo = Modelo('entreno_verano.json')  # Inicializar con archivo por defecto
@@ -88,8 +90,10 @@ def datos_personales():
             with open('entreno_verano.json', 'r') as f:
                 data = json.load(f)
             save_json(data)
+            modelo.cargar_datos()  # Recargar datos para reflejar cambios
+            print(f"Datos recargados en modelo: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), mensaje="¡Datos guardados correctamente!", semana_actual=semana_actual, usuarios=usuarios)
-        except ValueError:
+        except ValueError as e:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="Valores inválidos. Revisa los datos.", semana_actual=semana_actual, usuarios=usuarios)
     return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), semana_actual=semana_actual, usuarios=usuarios)
 
@@ -113,6 +117,8 @@ def nuevo_usuario():
             data = json.load(f)
         print(f"Datos leídos de entreno_verano.json: {data}")  # Depuración antes de save_json
         save_json(data)
+        modelo.cargar_datos()  # Recargar datos para reflejar cambios
+        print(f"Datos recargados en modelo: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), mensaje=f"¡Usuario '{nuevo_nombre}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
         print(f"ValueError en /nuevo_usuario: {str(e)}")  # Depuración de ValueError
@@ -139,6 +145,8 @@ def cambiar_usuario():
         with open('entreno_verano.json', 'r') as f:
             data = json.load(f)
         save_json(data)
+        modelo.cargar_datos()  # Recargar datos para reflejar cambios
+        print(f"Datos recargados en modelo: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error=str(e), semana_actual=semana_actual, usuarios=usuarios)
@@ -163,6 +171,8 @@ def entreno():
             with open('entreno_verano.json', 'r') as f:
                 data = json.load(f)
             save_json(data)
+            modelo.cargar_datos()  # Recargar datos para reflejar cambios
+            print(f"Datos recargados en modelo: ejercicios_completados={modelo.ejercicios_completados}")
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             print(f"Guardado en {fecha_str}: {modelo.ejercicios_completados[fecha_str]}")
             print(f"Puntos calculados: {puntos_totales}")
@@ -222,6 +232,8 @@ def correr():
                 with open('entreno_verano.json', 'r') as f:
                     data = json.load(f)
                 save_json(data)
+                modelo.cargar_datos()  # Recargar datos para reflejar cambios
+                print(f"Datos recargados en modelo: km_corridos={modelo.km_corridos}")
                 km_dia = modelo.km_corridos.get(fecha_str, 0.0)
                 km_por_dia = modelo.km_corridos
                 km_semanal = sum(float(km) for fecha, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha <= fin_semana.strftime('%Y-%m-%d'))
@@ -246,6 +258,8 @@ def correr():
                     with open('entreno_verano.json', 'r') as f:
                         data = json.load(f)
                     save_json(data)
+                modelo.cargar_datos()  # Recargar datos para reflejar cambios
+                print(f"Datos recargados en modelo: km_corridos={modelo.km_corridos}")
                 km_por_dia = modelo.km_corridos
                 km_dia = modelo.km_corridos.get(fecha_str, 0.0)
                 km_semanal = sum(float(km) for fecha, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha <= fin_semana.strftime('%Y-%m-%d'))
@@ -281,6 +295,8 @@ def anadir_ejercicio():
             with open('entreno_verano.json', 'r') as f:
                 data = json.load(f)
             save_json(data)
+            modelo.cargar_datos()  # Recargar datos para reflejar cambios
+            print(f"Datos recargados en modelo: ejercicios_personalizados={modelo.ejercicios_personalizados}")
             return redirect(url_for('entreno', fecha=fecha_str))
         return render_template('anadir_ejercicio.html', fecha=fecha_str)
     except Exception as e:
