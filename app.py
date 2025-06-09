@@ -125,7 +125,7 @@ def cambiar_usuario():
     try:
         nombre_usuario = request.form.get('usuario').strip()
         if not nombre_usuario:
-            return render_template('datos_personales.html', nombre=modelo.nombre, metrue, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="Selecciona un usuario.", semana_actual=semana_actual, usuarios=usuarios)
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="Selecciona un usuario.", semana_actual=semana_actual, usuarios=usuarios)
         modelo.cambiar_usuario(nombre_usuario)
         modelo.guardar_datos()
         with open('entreno_verano.json', 'r') as f:
