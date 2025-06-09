@@ -103,17 +103,23 @@ def nuevo_usuario():
     usuarios = modelo.get_usuarios()
     try:
         nuevo_nombre = request.form.get('nuevo_usuario').strip()
+        print(f"Recibido nuevo_usuario: {nuevo_nombre}")  # Depuración del input
         if not nuevo_nombre:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
         modelo.nuevo_usuario(nuevo_nombre)
         modelo.guardar_datos()
-        print(f"Datos actualizados en modelo.usuarios: {modelo.usuarios}")
+        print(f"Datos actualizados en modelo.usuarios: {modelo.usuarios}")  # Depuración después de guardar
         with open('entreno_verano.json', 'r') as f:
             data = json.load(f)
+        print(f"Datos leídos de entreno_verano.json: {data}")  # Depuración antes de save_json
         save_json(data)
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), mensaje=f"¡Usuario '{nuevo_nombre}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
+        print(f"ValueError en /nuevo_usuario: {str(e)}")  # Depuración de ValueError
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error=str(e), semana_actual=semana_actual, usuarios=usuarios)
+    except Exception as e:
+        print(f"Excepción no manejada en /nuevo_usuario: {str(e)}")  # Captura de otras excepciones
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="Error interno al crear usuario. Revisa los logs.", semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/cambiar_usuario', methods=['POST'])
 def cambiar_usuario():
