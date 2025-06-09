@@ -10,6 +10,8 @@ class Modelo:
         self.meta_km = {}
         self.km_corridos = {}
         self.ejercicios_completados = {}
+        self.usuarios = {}  # Añadimos el atributo usuarios como diccionario
+        self.usuario_actual = ""
         self.historial_semanal = []
         self.mensaje = ""
         self.ejercicios_personalizados = []
@@ -21,8 +23,9 @@ class Modelo:
         try:
             with open(self.archivo, 'r', encoding='utf-8') as f:
                 datos = json.load(f)
+                self.usuarios = datos.get('usuarios', {})  # Cargar todos los usuarios
                 usuario = datos.get('usuario_actual', 'Usuario')
-                usuario_datos = datos['usuarios'].get(usuario, {})
+                usuario_datos = self.usuarios.get(usuario, {})
                 self.nombre = usuario_datos.get('nombre', '')
                 self.peso = float(usuario_datos.get('peso', 0.0))
                 self.estatura = float(usuario_datos.get('estatura', 0.0))
@@ -34,6 +37,7 @@ class Modelo:
                 self.ejercicios_personalizados = usuario_datos.get('ejercicios_personalizados', [])
                 self.ejercicios_personalizados_por_fecha = usuario_datos.get('ejercicios_personalizados_por_fecha', {})
                 self.record_puntos = int(usuario_datos.get('record_puntos', 0))
+                self.usuario_actual = usuario
         except FileNotFoundError:
             self.guardar_datos()
         except Exception as e:
@@ -41,26 +45,9 @@ class Modelo:
 
     def guardar_datos(self):
         try:
-            datos = {}
-            try:
-                with open(self.archivo, 'r', encoding='utf-8') as f:
-                    datos = json.load(f)
-            except FileNotFoundError:
-                datos = {'usuarios': {}, 'usuario_actual': 'Usuario'}
-            
-            usuario = datos.get('usuario_actual', 'Usuario')
-            datos['usuarios'][usuario] = {
-                'nombre': self.nombre,
-                'peso': self.peso,
-                'estatura': self.estatura,
-                'meta_km': self.meta_km,
-                'km_corridos': self.km_corridos,
-                'ejercicios_completados': self.ejercicios_completados,
-                'historial_semanal': self.historial_semanal,
-                'mensaje': self.mensaje,
-                'ejercicios_personalizados': self.ejercicios_personalizados,
-                'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
-                'record_puntos': self.record_puntos
+            datos = {
+                'usuarios': self.usuarios,  # Guardar el diccionario de usuarios
+                'usuario_actual': self.usuario_actual
             }
             with open(self.archivo, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
@@ -68,73 +55,57 @@ class Modelo:
             print(f"Error al guardar datos: {e}")
 
     def nuevo_usuario(self, nombre):
-        try:
-            with open(self.archivo, 'r', encoding='utf-8') as f:
-                datos = json.load(f)
-            if nombre in datos['usuarios']:
-                raise ValueError(f"El usuario '{nombre}' ya existe.")
-            datos['usuarios'][nombre] = {
-                'nombre': nombre,
-                'peso': 0.0,
-                'estatura': 0.0,
-                'meta_km': {},
-                'km_corridos': {},
-                'ejercicios_completados': {},
-                'historial_semanal': [],
-                'mensaje': '',
-                'ejercicios_personalizados': [],
-                'ejercicios_personalizados_por_fecha': {},
-                'record_puntos': 0
-            }
-            datos['usuario_actual'] = nombre
-            with open(self.archivo, 'w', encoding='utf-8') as f:
-                json.dump(datos, f, indent=4, ensure_ascii=False)
-            self.nombre = nombre
-            self.peso = 0.0
-            self.estatura = 0.0
-            self.meta_km = {}
-            self.km_corridos = {}
-            self.ejercicios_completados = {}
-            self.historial_semanal = []
-            self.mensaje = ''
-            self.ejercicios_personalizados = []
-            self.ejercicios_personalizados_por_fecha = {}
-            self.record_puntos = 0
-        except Exception as e:
-            raise ValueError(f"Error al crear usuario: {e}")
+        if not nombre or nombre.strip() == "":
+            raise ValueError("El nombre no puede estar vacío.")
+        if nombre in self.usuarios:
+            raise ValueError(f"El usuario '{nombre}' ya existe.")
+        self.usuarios[nombre] = {
+            'nombre': nombre,
+            'peso': 0.0,
+            'estatura': 0.0,
+            'meta_km': {},
+            'km_corridos': {},
+            'ejercicios_completados': {},
+            'historial_semanal': [],
+            'mensaje': '',
+            'ejercicios_personalizados': [],
+            'ejercicios_personalizados_por_fecha': {},
+            'record_puntos': 0
+        }
+        self.usuario_actual = nombre
+        self.nombre = nombre
+        self.peso = 0.0
+        self.estatura = 0.0
+        self.meta_km = {}
+        self.km_corridos = {}
+        self.ejercicios_completados = {}
+        self.historial_semanal = []
+        self.mensaje = ''
+        self.ejercicios_personalizados = []
+        self.ejercicios_personalizados_por_fecha = {}
+        self.record_puntos = 0
+        self.guardar_datos()
 
     def cambiar_usuario(self, nombre):
-        try:
-            with open(self.archivo, 'r', encoding='utf-8') as f:
-                datos = json.load(f)
-            if nombre not in datos['usuarios']:
-                raise ValueError(f"El usuario '{nombre}' no existe.")
-            datos['usuario_actual'] = nombre
-            with open(self.archivo, 'w', encoding='utf-8') as f:
-                json.dump(datos, f, indent=4, ensure_ascii=False)
-            usuario_datos = datos['usuarios'][nombre]
-            self.nombre = usuario_datos.get('nombre', '')
-            self.peso = float(usuario_datos.get('peso', 0.0))
-            self.estatura = float(usuario_datos.get('estatura', 0.0))
-            self.meta_km = {str(k): float(v) for k, v in usuario_datos.get('meta_km', {}).items()}
-            self.km_corridos = {k: float(v) for k, v in usuario_datos.get('km_corridos', {}).items()}
-            self.ejercicios_completados = usuario_datos.get('ejercicios_completados', {})
-            self.historial_semanal = usuario_datos.get('historial_semanal', [])
-            self.mensaje = usuario_datos.get('mensaje', '')
-            self.ejercicios_personalizados = usuario_datos.get('ejercicios_personalizados', [])
-            self.ejercicios_personalizados_por_fecha = usuario_datos.get('ejercicios_personalizados_por_fecha', {})
-            self.record_puntos = int(usuario_datos.get('record_puntos', 0))
-        except Exception as e:
-            raise ValueError(f"Error al cambiar usuario: {e}")
+        if nombre not in self.usuarios:
+            raise ValueError(f"El usuario '{nombre}' no existe.")
+        self.usuario_actual = nombre
+        usuario_datos = self.usuarios[nombre]
+        self.nombre = usuario_datos.get('nombre', '')
+        self.peso = float(usuario_datos.get('peso', 0.0))
+        self.estatura = float(usuario_datos.get('estatura', 0.0))
+        self.meta_km = {str(k): float(v) for k, v in usuario_datos.get('meta_km', {}).items()}
+        self.km_corridos = {k: float(v) for k, v in usuario_datos.get('km_corridos', {}).items()}
+        self.ejercicios_completados = usuario_datos.get('ejercicios_completados', {})
+        self.historial_semanal = usuario_datos.get('historial_semanal', [])
+        self.mensaje = usuario_datos.get('mensaje', '')
+        self.ejercicios_personalizados = usuario_datos.get('ejercicios_personalizados', [])
+        self.ejercicios_personalizados_por_fecha = usuario_datos.get('ejercicios_personalizados_por_fecha', {})
+        self.record_puntos = int(usuario_datos.get('record_puntos', 0))
+        self.guardar_datos()
 
     def get_usuarios(self):
-        try:
-            with open(self.archivo, 'r', encoding='utf-8') as f:
-                datos = json.load(f)
-            return list(datos['usuarios'].keys())
-        except Exception as e:
-            print(f"Error al obtener usuarios: {e}")
-            return []
+        return list(self.usuarios.keys())
 
     def anadir_ejercicio_personalizado(self, ejercicio, fecha):
         if not ejercicio.strip():
@@ -147,7 +118,7 @@ class Modelo:
             self.ejercicios_personalizados_por_fecha[fecha].append(ejercicio)
             if ejercicio not in self.ejercicios_personalizados:
                 self.ejercicios_personalizados.append(ejercicio)
-            self.guardar_datos()
+        self.guardar_datos()
 
     def evaluar_semana(self, get_ejercicios_dia, fecha, get_puntos):
         try:
@@ -234,7 +205,7 @@ class Modelo:
             })
             self.guardar_datos()
 
-            print(f"Evaluando semana {semana_ano} desde {inicio_semana}: Puntos={puntos_totales}, Completados={ejercicios_completados}/{ejercicios_totales}, Ranking={ranking}, Estadísticas={estadisticas}")  # Debug
+            print(f"Evaluando semana {semana_ano} desde {inicio_semana}: Puntos={puntos_totales}, Completados={ejercicios_completados}/{ejercicios_totales}, Ranking={ranking}, Estadísticas={estadisticas}")
             return puntos_totales, km_totales, ejercicios_completados, ejercicios_totales, recompensas, ranking, imagen_ranking, self.record_puntos, estadisticas
         except Exception as e:
             print(f"Error en evaluar_semana: {e}")
