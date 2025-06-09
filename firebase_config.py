@@ -18,8 +18,10 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 def save_json(data):
-    doc_ref = db.collection('entreno_verano').add(data)
-    return doc_ref[1].id
+    doc_id = data.get('nombre', 'default_user')  # Usa el nombre como ID único
+    print(f"Datos enviados a Firestore para {doc_id}: {data}")
+    db.collection('entreno_verano').document(doc_id).set(data)  # Actualiza o crea el documento
+    return doc_id
 
 def get_json():
     docs = db.collection('entreno_verano').get()
