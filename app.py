@@ -8,27 +8,30 @@ import os
 
 app = Flask(__name__)
 
+# Definir la ruta del archivo en /tmp/
+ARCHIVO_JSON = '/tmp/entreno_verano.json'
+
 # Cargar datos desde Firestore o archivo local al iniciar la aplicación
 try:
     data_from_firebase = get_json()
     if data_from_firebase:
-        with open('temp_entreno_verano.json', 'w', encoding='utf-8') as f:
+        with open(ARCHIVO_JSON, 'w', encoding='utf-8') as f:
             json.dump(data_from_firebase[0], f, indent=4, ensure_ascii=False)
-        modelo = Modelo('temp_entreno_verano.json')
+        modelo = Modelo(ARCHIVO_JSON)
         print(f"Datos iniciales cargados desde Firestore: {data_from_firebase[0]}")
     else:
         try:
-            with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+            with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             save_json(data)
-            modelo = Modelo('entreno_verano.json')
-            print(f"Datos iniciales cargados desde entreno_verano.json: {data}")
+            modelo = Modelo(ARCHIVO_JSON)
+            print(f"Datos iniciales cargados desde {ARCHIVO_JSON}: {data}")
         except FileNotFoundError:
-            print("No se encontró entreno_verano.json, inicializando modelo vacío")
-            modelo = Modelo('entreno_verano.json')
+            print(f"No se encontró {ARCHIVO_JSON}, inicializando modelo vacío")
+            modelo = Modelo(ARCHIVO_JSON)
 except Exception as e:
     print(f"Error al cargar datos desde Firestore: {str(e)}")
-    modelo = Modelo('entreno_verano.json')
+    modelo = Modelo(ARCHIVO_JSON)
 
 ejercicios = Ejercicios(modelo)
 
@@ -72,9 +75,9 @@ def datos_personales():
     if request.method == 'POST':
         try:
             nombre = request.form['nombre'].strip()
-            peso = float(request.form.get('peso', 0))  # Capturar valor del formulario
-            estatura = float(request.form.get('estatura', 0))  # Capturar valor del formulario
-            meta_km = float(request.form['meta_km'])  # Capturar valor del formulario
+            peso = float(request.form.get('peso', 0))
+            estatura = float(request.form.get('estatura', 0))
+            meta_km = float(request.form['meta_km'])
             if not nombre:
                 return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
             if peso < 0 or estatura < 0 or meta_km < 0:
@@ -89,9 +92,9 @@ def datos_personales():
             print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}, peso={modelo.peso}, estatura={modelo.estatura}, meta_km={modelo.meta_km}")
             modelo.guardar_datos()
             print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
-            with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+            with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            print(f"Datos escritos en entreno_verano.json: {data}")
+            print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
             if not save_json(data):
                 raise Exception("Fallo al sincronizar con Firestore")
             modelo.cargar_datos()
@@ -123,9 +126,9 @@ def nuevo_usuario():
         print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         modelo.guardar_datos()
         print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
-        with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+        with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        print(f"Datos escritos en entreno_verano.json: {data}")
+        print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
         if not save_json(data):
             raise Exception("Fallo al sincronizar con Firestore")
         modelo.cargar_datos()
@@ -154,9 +157,9 @@ def cambiar_usuario():
         print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         modelo.guardar_datos()
         print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
-        with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+        with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        print(f"Datos escritos en entreno_verano.json: {data}")
+        print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
         if not save_json(data):
             raise Exception("Fallo al sincronizar con Firestore")
         modelo.cargar_datos()
@@ -183,9 +186,9 @@ def entreno():
             print(f"Antes de guardar_datos: ejercicios_completados={modelo.ejercicios_completados}")
             modelo.guardar_datos()
             print(f"Después de guardar_datos: ejercicios_completados={modelo.ejercicios_completados}")
-            with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+            with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            print(f"Datos escritos en entreno_verano.json: {data}")
+            print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
             if not save_json(data):
                 raise Exception("Fallo al sincronizar con Firestore")
             modelo.cargar_datos()
@@ -247,9 +250,9 @@ def correr():
                 print(f"Antes de guardar_datos: km_corridos={modelo.km_corridos}")
                 modelo.guardar_datos()
                 print(f"Después de guardar_datos: km_corridos={modelo.km_corridos}")
-                with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+                with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                print(f"Datos escritos en entreno_verano.json: {data}")
+                print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
                 if not save_json(data):
                     raise Exception("Fallo al sincronizar con Firestore")
                 modelo.cargar_datos()
@@ -276,9 +279,9 @@ def correr():
                     print(f"Antes de guardar_datos: km_corridos={modelo.km_corridos}")
                     modelo.guardar_datos()
                     print(f"Después de guardar_datos: km_corridos={modelo.km_corridos}")
-                    with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+                    with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                    print(f"Datos escritos en entreno_verano.json: {data}")
+                    print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
                     if not save_json(data):
                         raise Exception("Fallo al sincronizar con Firestore")
                 modelo.cargar_datos()
@@ -317,9 +320,9 @@ def anadir_ejercicio():
             print(f"Después de anadir_ejercicio_personalizado: ejercicios_personalizados={modelo.ejercicios_personalizados}")
             modelo.guardar_datos()
             print(f"Después de guardar_datos: ejercicios_personalizados={modelo.ejercicios_personalizados}")
-            with open('entreno_verano.json', 'r', encoding='utf-8') as f:
+            with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            print(f"Datos escritos en entreno_verano.json: {data}")
+            print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
             if not save_json(data):
                 raise Exception("Fallo al sincronizar con Firestore")
             modelo.cargar_datos()
