@@ -4,8 +4,8 @@ from datetime import datetime, date, timedelta
 
 class Modelo:
     def __init__(self, archivo):
-        # Ruta absoluta basada en el directorio del proyecto en Render
-        self.archivo = os.path.join(os.path.dirname(__file__) or '/opt/render/project/src', archivo)
+        # Usar una ruta absoluta explícita para Render
+        self.archivo = '/opt/render/project/src/entreno_verano.json'  # Ruta fija para Render
         print(f"Inicializando con archivo: {self.archivo}")
         self.nombre = ""
         self.peso = 0.0
@@ -71,6 +71,7 @@ class Modelo:
                 'usuarios': self.usuarios,
                 'usuario_actual': self.usuario_actual
             }
+            # Crear el directorio si no existe
             os.makedirs(os.path.dirname(self.archivo) or '.', exist_ok=True)
             with open(self.archivo, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
@@ -81,9 +82,9 @@ class Modelo:
                     print(f"Advertencia: Datos escritos ({verificados}) no coinciden con datos esperados ({datos})")
                 print(f"Datos guardados correctamente en {self.archivo}: {verificados}")
         except PermissionError as e:
-            print(f"Error de permisos al guardar {self.archivo}: {e}. Verifica los permisos en Render.")
+            print(f"Error de permisos al guardar {self.archivo}: {e}. Asegúrate de que Render tenga permisos de escritura.")
         except Exception as e:
-            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta: {self.archivo}")
+            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta y los permisos: {self.archivo}")
 
     def nuevo_usuario(self, nombre):
         if not nombre or nombre.strip() == "":
