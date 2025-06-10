@@ -4,8 +4,8 @@ from datetime import datetime, date, timedelta
 
 class Modelo:
     def __init__(self, archivo):
-        # Usar la ruta en /tmp/
-        self.archivo = '/tmp/entreno_verano.json'  # Forzar esta ruta
+        # Usar la ruta en /tmp/ como caché
+        self.archivo = '/tmp/entreno_verano.json'
         print(f"Inicializando con archivo: {self.archivo}")
         self.nombre = ""
         self.peso = 0.0
