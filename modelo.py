@@ -1,16 +1,18 @@
 import json
+import os
 from datetime import datetime, date, timedelta
 
 class Modelo:
     def __init__(self, archivo):
-        self.archivo = archivo
+        # Usar una ruta absoluta basada en el directorio del proyecto en Render
+        self.archivo = os.path.join(os.path.dirname(__file__), archivo) if os.path.dirname(__file__) else archivo
         self.nombre = ""
         self.peso = 0.0
         self.estatura = 0.0
         self.meta_km = {}
         self.km_corridos = {}
         self.ejercicios_completados = {}
-        self.usuarios = {}  # Diccionario de usuarios
+        self.usuarios = {}
         self.usuario_actual = ""
         self.historial_semanal = []
         self.mensaje = ""
@@ -23,7 +25,7 @@ class Modelo:
         try:
             with open(self.archivo, 'r', encoding='utf-8') as f:
                 datos = json.load(f)
-                self.usuarios = datos.get('usuarios', {})  # Cargar todos los usuarios
+                self.usuarios = datos.get('usuarios', {})
                 usuario = datos.get('usuario_actual', 'Usuario')
                 usuario_datos = self.usuarios.get(usuario, {})
                 self.nombre = usuario_datos.get('nombre', '')
@@ -39,15 +41,19 @@ class Modelo:
                 self.record_puntos = int(usuario_datos.get('record_puntos', 0))
                 self.usuario_actual = usuario
         except FileNotFoundError:
+            print(f"Archivo {self.archivo} no encontrado, inicializando vacío")
             self.guardar_datos()
+        except json.JSONDecodeError as e:
+            print(f"Error al decodificar JSON en {self.archivo}: {e}")
+            self.guardar_datos()  # Sobrescribir con datos vacíos si el archivo está corrupto
         except Exception as e:
-            print(f"Error al cargar datos: {e}")
+            print(f"Error al cargar datos desde {self.archivo}: {e}")
 
     def guardar_datos(self):
         try:
             # Asegurar que los datos del usuario actual se actualicen en self.usuarios
             if self.usuario_actual and self.usuario_actual in self.usuarios:
-                self.usuarios[self.usuario_actual] = {
+                self.usuarios[self.usuario_actual].update({
                     'nombre': self.nombre,
                     'peso': self.peso,
                     'estatura': self.estatura,
@@ -59,16 +65,23 @@ class Modelo:
                     'ejercicios_personalizados': self.ejercicios_personalizados,
                     'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
                     'record_puntos': self.record_puntos
-                }
+                })
             datos = {
                 'usuarios': self.usuarios,
                 'usuario_actual': self.usuario_actual
             }
+            # Crear directorio si no existe y escribir archivo
+            os.makedirs(os.path.dirname(self.archivo) or '.', exist_ok=True)
             with open(self.archivo, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
-            print(f"Datos guardados correctamente en {self.archivo}: {datos}")
+            # Verificar que el archivo se escribió correctamente
+            with open(self.archivo, 'r', encoding='utf-8') as f:
+                verificados = json.load(f)
+                print(f"Datos guardados correctamente en {self.archivo}: {verificados}")
+        except PermissionError as e:
+            print(f"Error de permisos al guardar {self.archivo}: {e}. Asegúrate de que Render tenga permisos de escritura.")
         except Exception as e:
-            print(f"Error al guardar datos: {e}")
+            print(f"Error al guardar datos en {self.archivo}: {e}. Verifica la ruta y los permisos.")
 
     def nuevo_usuario(self, nombre):
         if not nombre or nombre.strip() == "":
@@ -171,13 +184,11 @@ class Modelo:
                     dia_mas_activo = (dia, puntos_dia)
                 km_totales += float(self.km_corridos.get(dia_str, 0.0))
 
-            # Estadísticas adicionales
             promedio_puntos = puntos_totales / 7 if puntos_totales > 0 else 0
             dia_mas_activo_str = dia_mas_activo[0].strftime("%d/%m/%Y") if dia_mas_activo[1] > 0 else "Ninguno"
             meta_km = float(self.meta_km.get(str(semana_ano), 0.0))
             progreso_km = (km_totales / meta_km * 100) if meta_km > 0 else 0
 
-            # Determinar ranking y recompensa
             if puntos_totales < 50:
                 ranking = "Looser"
                 recompensas = ["Tarea doméstica: Lavar los platos"]
@@ -195,12 +206,10 @@ class Modelo:
                 recompensas = ["Premio: Actividad que te apetezca"]
                 imagen_ranking = "🏆"
 
-            # Actualizar récord de puntos
             if puntos_totales > self.record_puntos:
                 self.record_puntos = puntos_totales
                 self.guardar_datos()
 
-            # Añadir recompensa por meta de kilómetros
             if km_totales >= meta_km and meta_km > 0:
                 recompensas.append("¡Meta de kilómetros alcanzada!")
 
@@ -210,7 +219,6 @@ class Modelo:
                 'progreso_km': round(progreso_km, 1)
             }
 
-            # Añadir al historial semanal
             self.historial_semanal.append({
                 'semana': inicio_semana.strftime('%Y-%m-%d'),
                 'puntos': puntos_totales,
@@ -233,7 +241,6 @@ class Modelo:
             texto = f"¡Hola, {self.nombre}!\n\n"
             es_nuevo_record = puntos >= record_puntos and puntos > 0
 
-            # Mensaje personalizado según ranking
             if ranking == "Looser":
                 texto += "Esta semana no fue tu mejor momento, pero ¡tú puedes con esto! 😔\n"
                 texto += f"Lograste {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
@@ -255,11 +262,9 @@ class Modelo:
                 texto += "🎉 **Sigue así**: Elige una actividad divertida como premio.\n"
                 texto += "Consejo: Mantén la variedad con nuevos ejercicios personalizados.\n\n"
 
-            # Celebración de récord
             if es_nuevo_record:
                 texto += f"🎊 **¡Nuevo récord!** Has superado tu mejor marca con {puntos} puntos.\n\n"
 
-            # Recompensas
             if recompensas:
                 texto += "🎁 **Recompensas**:\n"
                 for recompensa in recompensas:
@@ -267,7 +272,6 @@ class Modelo:
             else:
                 texto += "😢 No obtuviste recompensas esta semana, pero ¡sigue dándole duro!\n"
 
-            # Desafío semanal
             if km < meta_km and meta_km > 0:
                 texto += f"\n🏃 **Desafío semanal**: Corre {round(meta_km - km, 2)} km más para alcanzar tu meta de {meta_km} km.\n"
             else:
