@@ -5,7 +5,7 @@ from datetime import datetime, date, timedelta
 class Modelo:
     def __init__(self, archivo):
         # Ruta absoluta basada en el directorio del proyecto en Render
-        self.archivo = os.path.join(os.path.dirname(__file__) or '.', archivo)
+        self.archivo = os.path.join(os.path.dirname(__file__) or '/opt/render/project/src', archivo)
         print(f"Inicializando con archivo: {self.archivo}")
         self.nombre = ""
         self.peso = 0.0
