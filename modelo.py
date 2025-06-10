@@ -4,8 +4,8 @@ from datetime import datetime, date, timedelta
 
 class Modelo:
     def __init__(self, archivo):
-        # Usar una ruta absoluta explícita para Render
-        self.archivo = '/opt/render/project/src/entreno_verano.json'  # Ruta fija para Render
+        # Usar una ruta relativa desde la raíz del proyecto
+        self.archivo = os.path.join(os.path.dirname(__file__) or '.', archivo)
         print(f"Inicializando con archivo: {self.archivo}")
         self.nombre = ""
         self.peso = 0.0
@@ -82,9 +82,9 @@ class Modelo:
                     print(f"Advertencia: Datos escritos ({verificados}) no coinciden con datos esperados ({datos})")
                 print(f"Datos guardados correctamente en {self.archivo}: {verificados}")
         except PermissionError as e:
-            print(f"Error de permisos al guardar {self.archivo}: {e}. Asegúrate de que Render tenga permisos de escritura.")
+            print(f"Error de permisos al guardar {self.archivo}: {e}. Contacta al soporte de Render para permisos de escritura.")
         except Exception as e:
-            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta y los permisos: {self.archivo}")
+            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta: {self.archivo}")
 
     def nuevo_usuario(self, nombre):
         if not nombre or nombre.strip() == "":
