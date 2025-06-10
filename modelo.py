@@ -4,8 +4,9 @@ from datetime import datetime, date, timedelta
 
 class Modelo:
     def __init__(self, archivo):
-        # Usar una ruta absoluta basada en el directorio del proyecto en Render
-        self.archivo = os.path.join(os.path.dirname(__file__), archivo) if os.path.dirname(__file__) else archivo
+        # Ruta absoluta basada en el directorio del proyecto en Render
+        self.archivo = os.path.join(os.path.dirname(__file__) or '.', archivo)
+        print(f"Inicializando con archivo: {self.archivo}")
         self.nombre = ""
         self.peso = 0.0
         self.estatura = 0.0
@@ -40,18 +41,18 @@ class Modelo:
                 self.ejercicios_personalizados_por_fecha = usuario_datos.get('ejercicios_personalizados_por_fecha', {})
                 self.record_puntos = int(usuario_datos.get('record_puntos', 0))
                 self.usuario_actual = usuario
+                print(f"Datos cargados desde {self.archivo}: {datos}")
         except FileNotFoundError:
             print(f"Archivo {self.archivo} no encontrado, inicializando vacío")
             self.guardar_datos()
         except json.JSONDecodeError as e:
             print(f"Error al decodificar JSON en {self.archivo}: {e}")
-            self.guardar_datos()  # Sobrescribir con datos vacíos si el archivo está corrupto
+            self.guardar_datos()
         except Exception as e:
             print(f"Error al cargar datos desde {self.archivo}: {e}")
 
     def guardar_datos(self):
         try:
-            # Asegurar que los datos del usuario actual se actualicen en self.usuarios
             if self.usuario_actual and self.usuario_actual in self.usuarios:
                 self.usuarios[self.usuario_actual].update({
                     'nombre': self.nombre,
@@ -70,18 +71,19 @@ class Modelo:
                 'usuarios': self.usuarios,
                 'usuario_actual': self.usuario_actual
             }
-            # Crear directorio si no existe y escribir archivo
             os.makedirs(os.path.dirname(self.archivo) or '.', exist_ok=True)
             with open(self.archivo, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
-            # Verificar que el archivo se escribió correctamente
+            # Verificar que se escribió correctamente
             with open(self.archivo, 'r', encoding='utf-8') as f:
                 verificados = json.load(f)
+                if verificados != datos:
+                    print(f"Advertencia: Datos escritos ({verificados}) no coinciden con datos esperados ({datos})")
                 print(f"Datos guardados correctamente en {self.archivo}: {verificados}")
         except PermissionError as e:
-            print(f"Error de permisos al guardar {self.archivo}: {e}. Asegúrate de que Render tenga permisos de escritura.")
+            print(f"Error de permisos al guardar {self.archivo}: {e}. Verifica los permisos en Render.")
         except Exception as e:
-            print(f"Error al guardar datos en {self.archivo}: {e}. Verifica la ruta y los permisos.")
+            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta: {self.archivo}")
 
     def nuevo_usuario(self, nombre):
         if not nombre or nombre.strip() == "":
