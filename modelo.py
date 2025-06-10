@@ -4,8 +4,8 @@ from datetime import datetime, date, timedelta
 
 class Modelo:
     def __init__(self, archivo):
-        # Usar una ruta relativa desde la raíz del proyecto
-        self.archivo = os.path.join(os.path.dirname(__file__) or '.', archivo)
+        # Usar la ruta en /tmp/
+        self.archivo = '/tmp/entreno_verano.json'  # Forzar esta ruta
         print(f"Inicializando con archivo: {self.archivo}")
         self.nombre = ""
         self.peso = 0.0
@@ -71,15 +71,11 @@ class Modelo:
                 'usuarios': self.usuarios,
                 'usuario_actual': self.usuario_actual
             }
-            # Asegurar que el directorio existe
             os.makedirs(os.path.dirname(self.archivo) or '.', exist_ok=True)
-            # Intentar escribir en un archivo temporal primero
             temp_file = self.archivo + '.tmp'
             with open(temp_file, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
-            # Reemplazar el archivo original
             os.replace(temp_file, self.archivo)
-            # Verificar que se escribió correctamente
             with open(self.archivo, 'r', encoding='utf-8') as f:
                 verificados = json.load(f)
                 if verificados != datos:
