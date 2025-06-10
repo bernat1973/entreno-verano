@@ -91,9 +91,10 @@ def datos_personales():
             print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
             modelo.guardar_datos()
             print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
+            # Verificar que el archivo se escribió correctamente
             with open('entreno_verano.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            print(f"Datos leídos de entreno_verano.json: {data}")
+            print(f"Datos escritos en entreno_verano.json: {data}")
             if not save_json(data):
                 raise Exception("Fallo al sincronizar con Firestore")
             modelo.cargar_datos()  # Recargar datos para reflejar cambios
@@ -127,7 +128,7 @@ def nuevo_usuario():
         print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         with open('entreno_verano.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
-        print(f"Datos leídos de entreno_verano.json: {data}")  # Depuración antes de save_json
+        print(f"Datos escritos en entreno_verano.json: {data}")  # Depuración antes de save_json
         if not save_json(data):
             raise Exception("Fallo al sincronizar con Firestore")
         modelo.cargar_datos()  # Recargar datos para reflejar cambios
@@ -158,7 +159,7 @@ def cambiar_usuario():
         print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         with open('entreno_verano.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
-        print(f"Datos leídos de entreno_verano.json: {data}")
+        print(f"Datos escritos en entreno_verano.json: {data}")
         if not save_json(data):
             raise Exception("Fallo al sincronizar con Firestore")
         modelo.cargar_datos()  # Recargar datos para reflejar cambios
@@ -187,7 +188,7 @@ def entreno():
             print(f"Después de guardar_datos: ejercicios_completados={modelo.ejercicios_completados}")
             with open('entreno_verano.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            print(f"Datos leídos de entreno_verano.json: {data}")
+            print(f"Datos escritos en entreno_verano.json: {data}")
             if not save_json(data):
                 raise Exception("Fallo al sincronizar con Firestore")
             modelo.cargar_datos()  # Recargar datos para reflejar cambios
@@ -251,7 +252,7 @@ def correr():
                 print(f"Después de guardar_datos: km_corridos={modelo.km_corridos}")
                 with open('entreno_verano.json', 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                print(f"Datos leídos de entreno_verano.json: {data}")
+                print(f"Datos escritos en entreno_verano.json: {data}")
                 if not save_json(data):
                     raise Exception("Fallo al sincronizar con Firestore")
                 modelo.cargar_datos()  # Recargar datos para reflejar cambios
@@ -280,7 +281,7 @@ def correr():
                     print(f"Después de guardar_datos: km_corridos={modelo.km_corridos}")
                     with open('entreno_verano.json', 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                    print(f"Datos leídos de entreno_verano.json: {data}")
+                    print(f"Datos escritos en entreno_verano.json: {data}")
                     if not save_json(data):
                         raise Exception("Fallo al sincronizar con Firestore")
                 modelo.cargar_datos()  # Recargar datos para reflejar cambios
@@ -321,7 +322,7 @@ def anadir_ejercicio():
             print(f"Después de guardar_datos: ejercicios_personalizados={modelo.ejercicios_personalizados}")
             with open('entreno_verano.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            print(f"Datos leídos de entreno_verano.json: {data}")
+            print(f"Datos escritos en entreno_verano.json: {data}")
             if not save_json(data):
                 raise Exception("Fallo al sincronizar con Firestore")
             modelo.cargar_datos()  # Recargar datos para reflejar cambios
