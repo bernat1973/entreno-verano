@@ -74,9 +74,9 @@ def datos_personales():
     if request.method == 'POST':
         try:
             nombre = request.form['nombre'].strip()
-            peso = float(request.form.get('peso', 0))
-            estatura = float(request.form.get('estatura', 0))
-            meta_km = float(request.form['meta_km'])
+            peso = float(request.form.get('peso', 0))  # Asegurarse de capturar el valor del formulario
+            estatura = float(request.form.get('estatura', 0))  # Asegurarse de capturar el valor del formulario
+            meta_km = float(request.form['meta_km'])  # Asegurarse de capturar el valor del formulario
             if not nombre:
                 return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
             if peso < 0 or estatura < 0 or meta_km < 0:
@@ -84,11 +84,11 @@ def datos_personales():
             if nombre not in modelo.usuarios:
                 modelo.nuevo_usuario(nombre)
             modelo.nombre = nombre
-            modelo.peso = peso
-            modelo.estatura = estatura
-            modelo.meta_km[semana_ano] = meta_km
+            modelo.peso = peso  # Actualizar peso explícitamente
+            modelo.estatura = estatura  # Actualizar estatura explícitamente
+            modelo.meta_km[semana_ano] = meta_km  # Actualizar meta_km explícitamente
             modelo.usuario_actual = nombre
-            print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
+            print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}, peso={modelo.peso}, estatura={modelo.estatura}, meta_km={modelo.meta_km}")
             modelo.guardar_datos()
             print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
             # Verificar que el archivo se escribió correctamente
