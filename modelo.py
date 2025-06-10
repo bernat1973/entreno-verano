@@ -4,7 +4,7 @@ from datetime import datetime, date, timedelta
 
 class Modelo:
     def __init__(self, archivo):
-        # Usar la ruta en /tmp/ como caché
+        # Usar la ruta en /tmp/ como caché temporal
         self.archivo = '/tmp/entreno_verano.json'
         print(f"Inicializando con archivo: {self.archivo}")
         self.nombre = ""
@@ -82,9 +82,16 @@ class Modelo:
                     print(f"Advertencia: Datos escritos ({verificados}) no coinciden con datos esperados ({datos})")
                 print(f"Datos guardados correctamente en {self.archivo}: {verificados}")
         except PermissionError as e:
-            print(f"Error de permisos al guardar {self.archivo}: {e}. Contacta al soporte de Render.")
+            print(f"Error de permisos al guardar {self.archivo}: {e}. Intentando sincronizar solo con Firestore.")
         except Exception as e:
-            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta y permisos.")
+            print(f"Error al guardar datos en {self.archivo}: {e}. Intentando sincronizar solo con Firestore.")
+        # Sincronizar con Firestore siempre, incluso si falla la escritura local
+        try:
+            from firebase_config import save_json
+            if not save_json(datos):
+                print("Fallo al sincronizar con Firestore a pesar del intento.")
+        except Exception as e:
+            print(f"Error al sincronizar con Firestore: {e}")
 
     def nuevo_usuario(self, nombre):
         if not nombre or nombre.strip() == "":
