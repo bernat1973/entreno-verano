@@ -8,27 +8,22 @@ import os
 
 app = Flask(__name__)
 
-# Definir la ruta del archivo en /tmp/
+# Definir la ruta del archivo en /tmp/ como caché temporal
 ARCHIVO_JSON = '/tmp/entreno_verano.json'
 
-# Cargar datos desde Firestore o archivo local al iniciar la aplicación
+# Cargar datos desde Firestore como fuente principal
 try:
     data_from_firebase = get_json()
     if data_from_firebase:
+        # Usar datos de Firestore para inicializar el modelo
         with open(ARCHIVO_JSON, 'w', encoding='utf-8') as f:
             json.dump(data_from_firebase[0], f, indent=4, ensure_ascii=False)
         modelo = Modelo(ARCHIVO_JSON)
         print(f"Datos iniciales cargados desde Firestore: {data_from_firebase[0]}")
     else:
-        try:
-            with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            save_json(data)
-            modelo = Modelo(ARCHIVO_JSON)
-            print(f"Datos iniciales cargados desde {ARCHIVO_JSON}: {data}")
-        except FileNotFoundError:
-            print(f"No se encontró {ARCHIVO_JSON}, inicializando modelo vacío")
-            modelo = Modelo(ARCHIVO_JSON)
+        # Si no hay datos en Firestore, inicializar vacío
+        print("No se encontraron datos en Firestore, inicializando modelo vacío")
+        modelo = Modelo(ARCHIVO_JSON)
 except Exception as e:
     print(f"Error al cargar datos desde Firestore: {str(e)}")
     modelo = Modelo(ARCHIVO_JSON)
@@ -91,7 +86,6 @@ def datos_personales():
             modelo.usuario_actual = nombre
             print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}, peso={modelo.peso}, estatura={modelo.estatura}, meta_km={modelo.meta_km}")
             modelo.guardar_datos()
-            print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
             with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
@@ -125,7 +119,6 @@ def nuevo_usuario():
         modelo.nuevo_usuario(nuevo_nombre)
         print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         modelo.guardar_datos()
-        print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
             data = json.load(f)
         print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
@@ -156,7 +149,6 @@ def cambiar_usuario():
         modelo.cambiar_usuario(nombre_usuario)
         print(f"Antes de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         modelo.guardar_datos()
-        print(f"Después de guardar_datos: usuarios={modelo.usuarios}, usuario_actual={modelo.usuario_actual}")
         with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
             data = json.load(f)
         print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
@@ -185,7 +177,6 @@ def entreno():
                 modelo.ejercicios_completados[fecha_str][base_ejercicio] = ejercicio in ejercicios_seleccionados
             print(f"Antes de guardar_datos: ejercicios_completados={modelo.ejercicios_completados}")
             modelo.guardar_datos()
-            print(f"Después de guardar_datos: ejercicios_completados={modelo.ejercicios_completados}")
             with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
@@ -249,7 +240,6 @@ def correr():
                 modelo.km_corridos[fecha_str] = modelo.km_corridos.get(fecha_str, 0.0) + km
                 print(f"Antes de guardar_datos: km_corridos={modelo.km_corridos}")
                 modelo.guardar_datos()
-                print(f"Después de guardar_datos: km_corridos={modelo.km_corridos}")
                 with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
@@ -278,7 +268,6 @@ def correr():
                     del modelo.km_corridos[fecha_eliminar]
                     print(f"Antes de guardar_datos: km_corridos={modelo.km_corridos}")
                     modelo.guardar_datos()
-                    print(f"Después de guardar_datos: km_corridos={modelo.km_corridos}")
                     with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                         data = json.load(f)
                     print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
@@ -319,7 +308,6 @@ def anadir_ejercicio():
             modelo.anadir_ejercicio_personalizado(ejercicio, fecha_str)
             print(f"Después de anadir_ejercicio_personalizado: ejercicios_personalizados={modelo.ejercicios_personalizados}")
             modelo.guardar_datos()
-            print(f"Después de guardar_datos: ejercicios_personalizados={modelo.ejercicios_personalizados}")
             with open(ARCHIVO_JSON, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             print(f"Datos escritos en {ARCHIVO_JSON}: {data}")
