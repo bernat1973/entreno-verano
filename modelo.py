@@ -71,10 +71,14 @@ class Modelo:
                 'usuarios': self.usuarios,
                 'usuario_actual': self.usuario_actual
             }
-            # Crear el directorio si no existe
+            # Asegurar que el directorio existe
             os.makedirs(os.path.dirname(self.archivo) or '.', exist_ok=True)
-            with open(self.archivo, 'w', encoding='utf-8') as f:
+            # Intentar escribir en un archivo temporal primero
+            temp_file = self.archivo + '.tmp'
+            with open(temp_file, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
+            # Reemplazar el archivo original
+            os.replace(temp_file, self.archivo)
             # Verificar que se escribió correctamente
             with open(self.archivo, 'r', encoding='utf-8') as f:
                 verificados = json.load(f)
@@ -82,9 +86,9 @@ class Modelo:
                     print(f"Advertencia: Datos escritos ({verificados}) no coinciden con datos esperados ({datos})")
                 print(f"Datos guardados correctamente en {self.archivo}: {verificados}")
         except PermissionError as e:
-            print(f"Error de permisos al guardar {self.archivo}: {e}. Contacta al soporte de Render para permisos de escritura.")
+            print(f"Error de permisos al guardar {self.archivo}: {e}. Contacta al soporte de Render.")
         except Exception as e:
-            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta: {self.archivo}")
+            print(f"Error al guardar datos en {self.archivo}: {e}. Revisa la ruta y permisos.")
 
     def nuevo_usuario(self, nombre):
         if not nombre or nombre.strip() == "":
