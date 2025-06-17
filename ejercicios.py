@@ -7,72 +7,72 @@ class Ejercicios:
         # Cambia esta fecha por la de tu primer día de entreno (formato 'YYYY-MM-DD')
         self.fecha_inicio = "2025-06-16"
 
-        self.base_ejercicios = [
-    # Lunes: pliométricos + core + estiramiento
-    [
-        "Saltos en estrella",
-        "Jumping lunges",
-        "Plancha frontal en antebrazos",
-        "Plancha lateral derecha",
-        "Dead bug",
-        "Gato-vaca"
-    ],
-    # Martes: core + flexiones + movilidad
-    [
-        "Plancha con toque de hombros",
-        "Flexiones estándar",
-        "Flexiones inclinadas",
-        "Hollow hold",
-        "Superman",
-        "Estiramiento psoas"
-    ],
-    # Miércoles: pliométricos + abdominales + movilidad
-    [
-        "Saltos rodilla al pecho",
-        "Skipping alto rápido",
-        "Crunch inverso",
-        "Crunch bicicleta",
-        "Postura del niño",
-        "Cobra"
-    ],
-    # Jueves: core dinámico + flexiones + estiramiento
-    [
-        "Plancha dinámica",
-        "Flexiones diamante",
-        "Flexiones tocando hombro",
-        "Abdominales isométricos",
-        "Inclinaciones pélvicas tumbado",
-        "Movilidad lumbar en L"
-    ],
-    # Viernes: pliométricos + abdominales + movilidad
-    [
-        "Saltos laterales sobre línea",
-        "Burpee con salto",
-        "Elevaciones de piernas tumbado",
-        "Ab roll",
-        "Estiramiento glúteo piriforme",
-        "Gato-vaca"
-    ],
-    # Sábado: movilidad y recuperación
-    [
-        "Gato-vaca",
-        "Postura del niño",
-        "Cobra",
-        "Estiramiento psoas",
-        "Movilidad lumbar en L",
-        "Estiramiento glúteo piriforme"
-    ],
-    # Domingo: descanso activo o repetir favoritos
-    [
-        "Saltos patinador",
-        "Plancha lateral izquierda",
-        "Plancha lateral derecha",
-        "Superman",
-        "Crunch inverso",
-        "Gato-vaca"
-    ]
-]
-
+                self.base_ejercicios = [
+            # Lunes: Pliometría + core + estiramiento lumbar
+            [
+                "Saltos en estrella",
+                "Jumping lunges",
+                "Plancha frontal en antebrazos",
+                "Dead bug",
+                "Flexiones estándar",
+                "Estiramiento de cadena posterior (tumbado, rodillas al pecho)"
+            ],
+            # Martes: Core + pectorales + abdominales
+            [
+                "Plancha con toque de hombros",
+                "Flexiones diamante",
+                "Hollow hold",
+                "Crunch inverso",
+                "Superman",
+                "Estiramiento psoas"
+            ],
+            # Miércoles: Pliometría + abdomen + estiramiento lumbar
+            [
+                "Saltos rodilla al pecho",
+                "Skipping alto rápido",
+                "Crunch bicicleta",
+                "Plancha lateral derecha",
+                "Plancha lateral izquierda",
+                "Ab roll",
+                "Movilidad lumbar en L"
+            ],
+            # Jueves: Core dinámico + flexiones variadas + estiramiento glúteo/piriforme
+            [
+                "Plancha dinámica",
+                "Flexiones tocando hombro",
+                "Flexiones inclinadas",
+                "Abdominales isométricos",
+                "Dead bug",
+                "Estiramiento glúteo piriforme"
+            ],
+            # Viernes: Pliometría + abdominales + pectoral
+            [
+                "Saltos laterales sobre línea",
+                "Burpee con salto",
+                "Plancha frontal en antebrazos",
+                "Elevaciones de piernas tumbado",
+                "Flexiones estándar",
+                "Cobra"
+            ],
+            # Sábado: Estiramientos y movilidad (anti-hiperlordosis)
+            [
+                "Gato-vaca",
+                "Postura del niño",
+                "Inclinaciones pélvicas tumbado",
+                "Estiramiento psoas",
+                "Movilidad lumbar en L",
+                "Estiramiento glúteo piriforme"
+            ],
+            # Domingo: Descanso activo o repetir favoritos
+            [
+                "Saltos patinador",
+                "Plancha lateral izquierda",
+                "Plancha lateral derecha",
+                "Superman",
+                "Crunch inverso",
+                "Gato-vaca"
+            ]
+        ]
     def get_base_exercise_name(self, ejercicio):
         try:
             for prefix in [" series de ", " segundos "]:
