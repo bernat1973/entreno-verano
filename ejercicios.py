@@ -58,7 +58,7 @@ class Ejercicios:
             # --- PROGRESIÓN DESDE FECHA DE INICIO ---
             fecha_inicio_dt = datetime.strptime(self.fecha_inicio, "%Y-%m-%d").date()
             semanas_desde_inicio = max(0, (fecha - fecha_inicio_dt).days // 7)
-            ciclo = semanas_desde_inicio % 16
+            ciclo = semanas_desde_inicio % 24
             # -----------------------------------------
 
             if ciclo < 4:
