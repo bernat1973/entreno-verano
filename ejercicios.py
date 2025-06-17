@@ -8,21 +8,70 @@ class Ejercicios:
         self.fecha_inicio = "2025-06-16"
 
         self.base_ejercicios = [
-            # Lunes
-            ["Abdominales crunch con rodillas dobladas", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con aterrizaje controlado", "Puente de glúteos con rodillas dobladas"],
-            # Martes
-            ["Abdominales bicicleta lentos", "Elevaciones de piernas suaves", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Estiramientos dinámicos de cuerpo completo"],
-            # Miércoles
-            ["Plancha lateral con apoyo en antebrazo", "Abdominales crunch con rodillas dobladas", "Flexiones diamante para tríceps", "Rotaciones de hombros con brazos en L", "Escaladores pliométricos lentos", "Gato-vaca para movilidad espinal"],
-            # Jueves
-            ["Abdominales bicicleta lentos", "Plancha frontal en antebrazos", "Aperturas de pecho con brazos en T", "Elevaciones laterales de hombros sin peso", "Saltos laterales suaves sobre línea", "Respiración diafragmática profunda"],
-            # Viernes
-            ["Elevaciones de piernas suaves", "Plancha lateral con apoyo en antebrazo", "Flexiones estándar con manos anchas", "Flexiones pica para hombros", "Saltos patinador con cambio lento", "Abdominales isométricos de contracción"],
-            # Sábado
-            ["Abdominales crunch con rodillas dobladas", "Abdominales bicicleta lentos", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Yoga suave con posturas básicas"],
-            # Domingo
-            ["Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Flexiones diamante para tríceps", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con fuerza", "Movilidad articular de cadera"]
-        ]
+    # Lunes: pliométricos + core + estiramiento
+    [
+        "Saltos en estrella",
+        "Jumping lunges",
+        "Plancha frontal en antebrazos",
+        "Plancha lateral derecha",
+        "Dead bug",
+        "Gato-vaca"
+    ],
+    # Martes: core + flexiones + movilidad
+    [
+        "Plancha con toque de hombros",
+        "Flexiones estándar",
+        "Flexiones inclinadas",
+        "Hollow hold",
+        "Superman",
+        "Estiramiento psoas"
+    ],
+    # Miércoles: pliométricos + abdominales + movilidad
+    [
+        "Saltos rodilla al pecho",
+        "Skipping alto rápido",
+        "Crunch inverso",
+        "Crunch bicicleta",
+        "Postura del niño",
+        "Cobra"
+    ],
+    # Jueves: core dinámico + flexiones + estiramiento
+    [
+        "Plancha dinámica",
+        "Flexiones diamante",
+        "Flexiones tocando hombro",
+        "Abdominales isométricos",
+        "Inclinaciones pélvicas tumbado",
+        "Movilidad lumbar en L"
+    ],
+    # Viernes: pliométricos + abdominales + movilidad
+    [
+        "Saltos laterales sobre línea",
+        "Burpee con salto",
+        "Elevaciones de piernas tumbado",
+        "Ab roll",
+        "Estiramiento glúteo piriforme",
+        "Gato-vaca"
+    ],
+    # Sábado: movilidad y recuperación
+    [
+        "Gato-vaca",
+        "Postura del niño",
+        "Cobra",
+        "Estiramiento psoas",
+        "Movilidad lumbar en L",
+        "Estiramiento glúteo piriforme"
+    ],
+    # Domingo: descanso activo o repetir favoritos
+    [
+        "Saltos patinador",
+        "Plancha lateral izquierda",
+        "Plancha lateral derecha",
+        "Superman",
+        "Crunch inverso",
+        "Gato-vaca"
+    ]
+]
 
     def get_base_exercise_name(self, ejercicio):
         try:
