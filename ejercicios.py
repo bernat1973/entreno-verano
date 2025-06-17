@@ -4,6 +4,9 @@ import random
 class Ejercicios:
     def __init__(self, modelo=None):
         self.modelo = modelo
+        # Cambia esta fecha por la de tu primer día de entreno (formato 'YYYY-MM-DD')
+        self.fecha_inicio = "2025-06-16"
+
         self.base_ejercicios = [
             # Lunes
             ["Abdominales crunch con rodillas dobladas", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con aterrizaje controlado", "Puente de glúteos con rodillas dobladas"],
@@ -45,7 +48,6 @@ class Ejercicios:
                     raise ValueError(f"Formato de fecha no válido: {fecha}")
             
             dia_semana = fecha.weekday()
-            semana_ano = fecha.isocalendar()[1]
             ejercicios_base = self.base_ejercicios[dia_semana].copy()
 
             # Añadir ejercicios personalizados para la fecha especificada
@@ -53,7 +55,12 @@ class Ejercicios:
             if self.modelo and self.modelo.ejercicios_personalizados_por_fecha.get(fecha_str):
                 ejercicios_base.extend(self.modelo.ejercicios_personalizados_por_fecha[fecha_str])
 
-            ciclo = (semana_ano - 1) % 16
+            # --- PROGRESIÓN DESDE FECHA DE INICIO ---
+            fecha_inicio_dt = datetime.strptime(self.fecha_inicio, "%Y-%m-%d").date()
+            semanas_desde_inicio = max(0, (fecha - fecha_inicio_dt).days // 7)
+            ciclo = semanas_desde_inicio % 16
+            # -----------------------------------------
+
             if ciclo < 4:
                 series, repeticiones, segundos = 3, 10, 60
             elif ciclo < 8:
