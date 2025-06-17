@@ -6,8 +6,7 @@ class Ejercicios:
         self.modelo = modelo
         # Cambia esta fecha por la de tu primer día de entreno (formato 'YYYY-MM-DD')
         self.fecha_inicio = "2025-06-16"
-
-                self.base_ejercicios = [
+        self.base_ejercicios = [
             # Lunes: Pliometría + core + estiramiento lumbar
             [
                 "Saltos en estrella",
