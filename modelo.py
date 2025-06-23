@@ -1,6 +1,57 @@
 import json
 import os
+import random
 from datetime import datetime, date, timedelta
+
+RECOMPENSAS = {
+    "Looser": [
+        "Tarea doméstica: Lavar los platos",
+        "Tarea doméstica: Sacar la basura",
+        "Tarea doméstica: Ordenar tu habitación",
+        "Tarea doméstica: Barrer el salón",
+        "Tarea doméstica: Limpiar el baño"
+    ],
+    "Noob": [
+        "Penalización: 30 min menos de Play",
+        "Penalización: Una tarde sin Instagram",
+        "Penalización: 15 min de lectura adicional",
+        "Penalización: 15 flexiones extra",
+        "Penalización: 20 sentadillas extra"
+    ],
+    "Chill": [
+        "Premio: 30 min más de Play",
+        "Premio: Elige la película de la noche",
+        "Premio: Elige el postre del domingo",
+        "Premio: 1 snack extra",
+        "Premio: Puedes poner tu música en el coche hoy"
+    ],
+    "Crack": [
+        "Premio: Cena especial",
+        "Premio: Elige la actividad familiar",
+        "Premio: 1 hora de videojuegos extra",
+        "Premio: Helado doble",
+        "Premio: Vale por un capricho pequeño"
+    ],
+    "Semi Dios": [
+        "Premio: Día libre de tareas domésticas",
+        "Premio: Actividad que tú elijas",
+        "Premio: Cena a domicilio",
+        "Premio: Película + palomitas",
+        "Premio: Reto personalizado para la próxima semana (tú propones)"
+    ]
+}
+
+def recompensa_aleatoria(nivel, usuario=None):
+    opciones = RECOMPENSAS[nivel][:]
+    recompensa = random.choice(opciones)
+    # Pequeñas variaciones si quieres, ejemplo:
+    if "snack" in recompensa and usuario:
+        snack = random.choice(["galleta", "fruta", "barrita", "yogur"])
+        recompensa = recompensa.replace("snack", snack)
+    if "flexiones" in recompensa or "sentadillas" in recompensa:
+        extra = random.choice([10, 15, 20, 25])
+        recompensa = recompensa.replace("15", str(extra)).replace("20", str(extra))
+    return recompensa
 
 class Modelo:
     def __init__(self, archivo):
@@ -201,20 +252,24 @@ class Modelo:
 
             if puntos_totales < 50:
                 ranking = "Looser"
-                recompensas = ["Tarea doméstica: Lavar los platos"]
+                recompensas = [recompensa_aleatoria("Looser", self.nombre)]
                 imagen_ranking = "😣"
             elif puntos_totales < 100:
                 ranking = "Noob"
-                recompensas = ["Penalización: 30 min menos de Play"]
+                recompensas = [recompensa_aleatoria("Noob", self.nombre)]
                 imagen_ranking = "😐"
             elif puntos_totales < 150:
                 ranking = "Chill"
-                recompensas = ["Premio: 30 min más de Play"]
+                recompensas = [recompensa_aleatoria("Chill", self.nombre)]
                 imagen_ranking = "😎"
+            elif puntos_totales < 200:
+                ranking = "Crack"
+                recompensas = [recompensa_aleatoria("Crack", self.nombre)]
+                imagen_ranking = "🏅"
             else:
-                ranking = "Mega Crack"
-                recompensas = ["Premio: Actividad que te apetezca"]
-                imagen_ranking = "🏆"
+                ranking = "Semi Dios"
+                recompensas = [recompensa_aleatoria("Semi Dios", self.nombre)]
+                imagen_ranking = "🦸"
 
             if puntos_totales > self.record_puntos:
                 self.record_puntos = puntos_totales
@@ -264,13 +319,17 @@ class Modelo:
             elif ranking == "Chill":
                 texto += "¡Estás en la onda, Chill! 😎 ¡Gran trabajo!\n"
                 texto += f"Sumaste {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
-                texto += "🏅 **Desafío**: Apunta a 150 puntos para ser Mega Crack.\n"
+                texto += "🏅 **Desafío**: Apunta a 150 puntos para ser Crack.\n"
                 texto += "Consejo: Si corriste mucho, incluye estiramientos para evitar lesiones.\n\n"
-            else:  # Mega Crack
-                texto += "¡Eres un Mega Crack! 🏆 ¡Impresionante!\n"
-                texto += f"Arrasaste con {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
-                texto += "🎉 **Sigue así**: Elige una actividad divertida como premio.\n"
-                texto += "Consejo: Mantén la variedad con nuevos ejercicios personalizados.\n\n"
+            elif ranking == "Crack":
+                texto += "¡Nivel Crack! Eres una máquina. 🏅\n"
+                texto += f"Conseguiste {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
+                texto += "🎯 **Desafío**: ¡Supera los 200 puntos y conviértete en Semi Dios!\n"
+                texto += "Consejo: Prueba ejercicios nuevos para no aburrirte.\n\n"
+            elif ranking == "Semi Dios":
+                texto += "¡Nivel legendario! Eres un Semi Dios del entrenamiento. 🔱\n"
+                texto += f"Conseguiste {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
+                texto += "Disfruta de tu recompensa especial y proponte un reto creativo para la próxima semana.\n\n"
 
             if es_nuevo_record:
                 texto += f"🎊 **¡Nuevo récord!** Has superado tu mejor marca con {puntos} puntos.\n\n"
