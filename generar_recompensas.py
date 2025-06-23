@@ -29,6 +29,9 @@ def generar_imagen_recompensa(recompensa, output_path):
         elif recompensa == "Noob":
             draw.ellipse((70, 50, 130, 110), fill=(220, 220, 220))  # Calavera gris
             draw.text((10, 140), "¡Noob!", font=font, fill="#555")
+        elif recompensa == "Semi Dios":
+            draw.ellipse((60, 40, 140, 120), fill=(138, 43, 226))  # Elipse púrpura
+            draw.text((10, 140), "¡Semi Dios!", font=font, fill="#fff")
         img = img.resize((100, 100), Image.LANCZOS)
         img.save(output_path)
     except Exception as e:
@@ -36,5 +39,5 @@ def generar_imagen_recompensa(recompensa, output_path):
 
 if __name__ == "__main__":
     os.makedirs("static/recompensas", exist_ok=True)
-    for recompensa in ["Crack", "Chill", "Looser", "Noob"]:
-        generar_imagen_recompensa(recompensa, f"static/recompensas/{recompensa.lower()}.png")
+    for recompensa in ["Crack", "Chill", "Looser", "Noob", "Semi Dios"]:
+        generar_imagen_recompensa(recompensa, f"static/recompensas/{recompensa.lower().replace(' ', '_')}.png")
