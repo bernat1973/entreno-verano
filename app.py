@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_file
 from datetime import datetime, date, timedelta
 from modelo import Modelo
 from ejercicios import Ejercicios
 from firebase_config import save_json, get_json
+from generar_pdf import generar_pdf_progreso  # Nuevo import para PDF
 import json
 import os
 
@@ -15,13 +16,11 @@ ARCHIVO_JSON = '/tmp/entreno_verano.json'
 try:
     data_from_firebase = get_json()
     if data_from_firebase:
-        # Usar datos de Firestore para inicializar el modelo
         with open(ARCHIVO_JSON, 'w', encoding='utf-8') as f:
             json.dump(data_from_firebase[0], f, indent=4, ensure_ascii=False)
         modelo = Modelo(ARCHIVO_JSON)
         print(f"Datos iniciales cargados desde Firestore: {data_from_firebase[0]}")
     else:
-        # Si no hay datos en Firestore, inicializar vacío
         print("No se encontraron datos en Firestore, inicializando modelo vacío")
         modelo = Modelo(ARCHIVO_JSON)
 except Exception as e:
@@ -367,6 +366,22 @@ def resumen():
     except Exception as e:
         print(f"Error en resumen: {str(e)}")
         return render_template('resumen.html', error=f"Error: {str(e)}", texto_resumen="Error al generar el resumen.", fecha=date.today().strftime('%Y-%m-%d'), puntos=0, ranking="Sin ranking", imagen_ranking="", record_puntos=0, recompensas=[])
+
+# NUEVA RUTA PARA PDF DE PROGRESO
+@app.route('/informe_pdf', methods=['GET', 'POST'])
+def informe_pdf():
+    mensaje = None
+    if request.method == 'POST':
+        fecha_inicio = request.form.get('fecha_inicio')
+        fecha_fin = request.form.get('fecha_fin')
+        output_path = f"/tmp/progreso_{modelo.nombre}.pdf"
+        try:
+            generar_pdf_progreso(modelo, fecha_inicio, fecha_fin, output_path)
+            mensaje = "PDF generado correctamente."
+            return send_file(output_path, as_attachment=True)
+        except Exception as e:
+            mensaje = f"Error al generar PDF: {e}"
+    return render_template('informe_pdf.html', mensaje=mensaje)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
