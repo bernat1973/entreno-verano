@@ -3,7 +3,7 @@ from datetime import datetime, date, timedelta
 from modelo import Modelo
 from ejercicios import Ejercicios
 from firebase_config import save_json, get_json
-from generar_pdf import generar_pdf_progreso  # Nuevo import para PDF
+from generar_pdf import generar_pdf_progreso 
 import json
 import os
 
