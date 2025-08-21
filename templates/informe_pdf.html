@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Informe PDF</title>
+</head>
+<body>
+    <h2>Generar informe PDF de progreso</h2>
+    <form method="post">
+        <label>Fecha inicio (YYYY-MM-DD):</label>
+        <input type="date" name="fecha_inicio" required>
+        <br>
+        <label>Fecha fin (YYYY-MM-DD):</label>
+        <input type="date" name="fecha_fin" required>
+        <br>
+        <button type="submit">Generar PDF</button>
+    </form>
+    {% if mensaje %}
+        <p>{{ mensaje }}</p>
+    {% endif %}
+</body>
+</html>
