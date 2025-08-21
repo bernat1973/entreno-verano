@@ -1,59 +1,53 @@
 from fpdf import FPDF
-from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+import io
+import datetime
 
-class InformePDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 16)
-        self.cell(0, 10, 'Informe de Progreso', 0, 1, 'C')
-        self.ln(5)
+def generar_pdf_progreso(entrenos):
+    # Procesar datos por semana
+    semanas = {}
+    total = 0
+    for e in entrenos:
+        fecha = datetime.datetime.strptime(e["fecha"], "%Y-%m-%d")
+        semana = fecha.strftime("%Y-%U")  # Año-Semana
+        semanas[semana] = semanas.get(semana, 0) + e["cantidad"]
+        total += e["cantidad"]
 
-    def add_resumen(self, nombre, fecha_inicio, fecha_fin, porcentaje, puntos_totales, ejercicios_totales, completados_totales):
-        self.set_font('Arial', '', 12)
-        self.cell(0, 10, f'Usuario: {nombre}', 0, 1)
-        self.cell(0, 10, f'Rango: {fecha_inicio} al {fecha_fin}', 0, 1)
-        self.cell(0, 10, f'Porcentaje de ejercicios completados: {porcentaje:.1f}%', 0, 1)
-        self.cell(0, 10, f'Puntos totales: {puntos_totales}', 0, 1)
-        self.cell(0, 10, f'Ejercicios completados: {completados_totales} de {ejercicios_totales}', 0, 1)
-        self.ln(10)
+    # Crear gráfica
+    labels = list(semanas.keys())
+    values = list(semanas.values())
+    plt.figure(figsize=(8,4))
+    plt.bar(labels, values)
+    plt.xlabel('Semana')
+    plt.ylabel('Cantidad')
+    plt.title('Comparativa semanal')
+    plt.tight_layout()
 
-    def add_semana(self, semana, puntos, completados, totales):
-        self.set_font('Arial', 'B', 11)
-        self.cell(0, 8, f'Semana: {semana}', 0, 1)
-        self.set_font('Arial', '', 10)
-        self.cell(0, 6, f'Puntos: {puntos} | Ejercicios completados: {completados}/{totales}', 0, 1)
-        self.ln(2)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close()
+    buf.seek(0)
 
-def generar_pdf_progreso(modelo, fecha_inicio, fecha_fin, output_path):
-    pdf = InformePDF()
+    # Generar PDF
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    # Página de total
     pdf.add_page()
+    pdf.set_font("Arial", size=18)
+    pdf.cell(200, 10, txt="Informe de Progreso", ln=True, align='C')
+    pdf.set_font("Arial", size=14)
+    pdf.cell(200, 10, txt=f"Total de actividad: {total}", ln=True)
 
-    # Calcular resumen global
-    fecha_ini = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
-    fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-    semanas = []
-    completados_totales = 0
-    ejercicios_totales = 0
-    puntos_totales = 0
+    # Insertar gráfica
+    pdf.image(buf, x=10, y=30, w=180)  # Ajusta posición/tamaño según prefieras
 
-    for semana_dict in modelo.historial_semanal:
-        semana_fecha = datetime.strptime(semana_dict['semana'], "%Y-%m-%d").date()
-        if fecha_ini <= semana_fecha <= fecha_fin:
-            semanas.append(semana_dict)
-            completados_totales += semana_dict.get('completados', 0)
-            ejercicios_totales += semana_dict.get('totales', 0)
-            puntos_totales += semana_dict.get('puntos', 0)
+    # Listado de entrenos (fechas únicas)
+    fechas_unicas = sorted(set([e["fecha"] for e in entrenos]))
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Fechas de entrenamientos realizados:", ln=True)
+    for fecha in fechas_unicas:
+        pdf.cell(200, 10, txt=f"- {fecha}", ln=True)
 
-    porcentaje = (completados_totales / ejercicios_totales * 100) if ejercicios_totales > 0 else 0
-
-    pdf.add_resumen(modelo.nombre, fecha_inicio, fecha_fin, porcentaje, puntos_totales, ejercicios_totales, completados_totales)
-
-    # Detalle por semana
-    for semana_dict in semanas:
-        pdf.add_semana(
-            semana=semana_dict.get('semana', ''),
-            puntos=semana_dict.get('puntos', 0),
-            completados=semana_dict.get('completados', 0),
-            totales=semana_dict.get('totales', 0)
-        )
-
-    pdf.output(output_path)
+    return pdf.output(dest="S").encode("latin1")
