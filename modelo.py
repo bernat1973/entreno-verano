@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime, date, timedelta
 import os
+import json
 
 class Modelo:
     def __init__(self, archivo=None, use_auth=False):
@@ -24,7 +25,6 @@ class Modelo:
                 firebase_admin.initialize_app(cred)
                 print("[DEBUG] Firebase inicializado correctamente para proyecto: entreno-verano")
             self.db = firestore.client()
-            # Verificar que el proyecto sea el correcto
             if self.db._firestore_client.project != 'entreno-verano':
                 raise ValueError(f"Conectado al proyecto incorrecto: {self.db._firestore_client.project}")
             print("[DEBUG] Conectado a Firestore en proyecto: entreno-verano")
@@ -92,7 +92,6 @@ class Modelo:
             if not self.nombre:
                 print("[DEBUG] No se puede guardar: nombre de usuario vacío")
                 return
-            # Usar UID si usas Authentication, o nombre como ID
             user_id = self.uid if self.use_auth and self.uid else self.nombre
             usuario_ref = self.db.collection('usuarios').document(user_id)
             usuario_ref.set({
@@ -109,7 +108,6 @@ class Modelo:
                 'record_puntos': self.record_puntos,
                 'ejercicios_type': self.ejercicios_type
             })
-            # Actualizar usuario_actual
             self.db.collection('config').document('app').set({
                 'usuario_actual': user_id
             }, merge=True)
