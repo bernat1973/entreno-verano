@@ -21,20 +21,20 @@ class Ejercicios:
             ["Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Flexiones diamante para tríceps", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con fuerza", "Movilidad articular de cadera"]
         ]
         self.base_ejercicios_weights = [
-            # Lunes: Foco en pectorales y hombros
-            ["Press de banca con barra", "Aperturas con mancuernas en banco", "Press militar con mancuernas", "Elevaciones laterales con mancuernas", "Elevaciones frontales con mancuernas", "Extensiones de tríceps con mancuerna por encima de la cabeza"],
-            # Martes: Foco en espalda y brazos
-            ["Remo con barra inclinado", "Remo con mancuernas", "Curl de bíceps con mancuernas", "Curl martillo con mancuernas", "Dominadas asistidas en barra", "Extensiones de tríceps en banco"],
-            # Miércoles: Foco en pectorales y espalda
-            ["Press inclinado con barra", "Fondos en banco con peso", "Remo invertido en barra", "Elevaciones traseras para deltoides con mancuernas", "Curl concentrado con mancuerna", "Press francés con barra"],
-            # Jueves: Foco en hombros y brazos
-            ["Press de hombros con barra", "Elevaciones laterales con mancuernas", "Remo alto con mancuernas", "Curl de bíceps con barra", "Extensiones de tríceps con mancuerna", "Elevaciones frontales con barra"],
-            # Viernes: Foco en pectorales y hombros
-            ["Press de banca con mancuernas", "Aperturas en banco inclinado con mancuernas", "Press Arnold con mancuernas", "Elevaciones laterales en banco", "Curl de bíceps alterno con mancuernas", "Patadas de tríceps con mancuerna"],
-            # Sábado: Foco en espalda y brazos
-            ["Remo con barra T", "Remo sentado con mancuernas", "Curl de bíceps en banco predicador", "Extensiones de tríceps por encima de la cabeza con barra", "Dominadas en barra con peso asistido", "Curl concentrado alterno"],
-            # Domingo: Foco mixto (recuperación activa con pesas ligeras)
-            ["Press de banca ligero con barra", "Elevaciones frontales con mancuernas ligeras", "Remo con mancuernas ligero", "Curl de bíceps ligero con mancuernas", "Extensiones de tríceps ligero", "Elevaciones laterales ligeras con mancuernas"]
+            # Lunes: Pectorales y hombros
+            ["Press de banca con barra", "Press inclinado con mancuernas", "Press militar con barra", "Elevaciones laterales con mancuernas", "Aperturas con mancuernas en banco plano", "Face pulls con polea"],
+            # Martes: Espalda y brazos
+            ["Remo con barra inclinado", "Dominadas con peso asistido", "Curl de bíceps con mancuernas", "Extensiones de tríceps por encima de la cabeza con mancuerna", "Remo con mancuerna a una mano", "Curl martillo con mancuernas"],
+            # Miércoles: Pectorales y hombros
+            ["Press de banca declinado con barra", "Aperturas en banco inclinado con mancuernas", "Press Arnold con mancuernas", "Elevaciones frontales con barra", "Fondos en paralelas con peso", "Elevaciones traseras para deltoides con mancuernas"],
+            # Jueves: Espalda y brazos
+            ["Remo sentado en polea baja", "Pull-over con mancuerna", "Curl de bíceps en banco predicador", "Press francés con barra EZ", "Remo invertido con barra", "Extensiones de tríceps en polea alta"],
+            # Viernes: Pectorales y hombros
+            ["Press de banca con mancuernas", "Cruces en polea para pecho", "Press de hombros con mancuernas", "Elevaciones laterales en banco inclinado", "Fondos en banco con peso", "Elevaciones frontales con disco"],
+            # Sábado: Espalda y brazos
+            ["Peso muerto con barra", "Remo con barra T", "Curl de bíceps con barra recta", "Extensiones de tríceps con mancuerna a una mano", "Dominadas supinas con peso", "Curl concentrado con mancuerna"],
+            # Domingo: Recuperación activa (pectorales, hombros, espalda, brazos con pesas ligeras)
+            ["Press de banca ligero con mancuernas", "Elevaciones laterales ligeras con mancuernas", "Remo ligero con mancuernas", "Curl de bíceps ligero con mancuernas", "Extensiones de tríceps ligero en polea", "Face pulls ligeros con polea"]
         ]
         if self.modelo and self.modelo.ejercicios_type == 'weights':
             self.base_ejercicios = self.base_ejercicios_weights
