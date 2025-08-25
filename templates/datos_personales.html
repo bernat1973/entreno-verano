@@ -77,6 +77,13 @@
                         <label for="meta_km" class="form-label">Meta de Kilómetros Semanal</label>
                         <input type="number" name="meta_km" id="meta_km" class="form-control" value="{{ meta_km }}" step="0.1" min="0" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="ejercicios_type" class="form-label">Tipo de Ejercicios</label>
+                        <select name="ejercicios_type" id="ejercicios_type" class="form-select" required>
+                            <option value="bodyweight" {% if ejercicios_type == 'bodyweight' %}selected{% endif %}>Sin Pesas (Bodyweight)</option>
+                            <option value="weights" {% if ejercicios_type == 'weights' %}selected{% endif %}>Con Pesas (Weights)</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">Guardar Datos</button>
                 </form>
 
