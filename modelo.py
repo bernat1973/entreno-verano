@@ -1,334 +1,211 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 import os
-import json
 
 class Modelo:
-    def __init__(self, archivo=None, use_auth=False):
-        self.use_auth = use_auth  # True si usas Firebase Authentication
-        # Inicializar Firebase
+    def __init__(self, use_auth=False):
         try:
-            if not firebase_admin._apps:
-                if os.getenv('FIREBASE_PROJECT_ID'):
-                    if os.getenv('FIREBASE_PROJECT_ID') != 'entreno-verano':
-                        raise ValueError(f"Proyecto incorrecto: esperado 'entreno-verano', recibido {os.getenv('FIREBASE_PROJECT_ID')}")
-                    cred = credentials.Certificate({
-                        "type": "service_account",
-                        "project_id": "entreno-verano",
-                        "private_key": os.getenv('FIREBASE_PRIVATE_KEY').replace('\\n', '\n'),
-                        "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
-                        "token_uri": "https://oauth2.googleapis.com/token"
-                    })
-                else:
-                    cred = credentials.Certificate('firebase-adminsdk.json')
-                firebase_admin.initialize_app(cred)
-                print("[DEBUG] Firebase inicializado correctamente para proyecto: entreno-verano")
+            # Inicializar Firebase
+            cred = credentials.Certificate({
+                "type": "service_account",
+                "project_id": os.getenv("FIREBASE_PROJECT_ID"),
+                "private_key": os.getenv("FIREBASE_PRIVATE_KEY").replace('\\n', '\n'),
+                "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
+                "token_uri": "https://oauth2.googleapis.com/token"
+            })
+            firebase_admin.initialize_app(cred)
             self.db = firestore.client()
-            if self.db._firestore_client.project != 'entreno-verano':
-                raise ValueError(f"Conectado al proyecto incorrecto: {self.db._firestore_client.project}")
-            print("[DEBUG] Conectado a Firestore en proyecto: entreno-verano")
+            # Verificar ID del proyecto
+            project_id = firebase_admin.get_app().options.get('projectId')
+            if project_id != 'entreno-verano':
+                raise ValueError(f"Proyecto Firebase incorrecto: {project_id}. Se esperaba 'entreno-verano'.")
+            print(f"[DEBUG] Firebase inicializado correctamente para proyecto: {project_id}")
+            self.use_auth = use_auth
+            self.nombre = ""
+            self.peso = 0.0
+            self.estatura = 0.0
+            self.meta_km = {}
+            self.ejercicios_type = "bodyweight"
+            self.km_corridos = {}
+            self.ejercicios_completados = {}
+            self.ejercicios_personalizados = []
+            self.ejercicios_personalizados_por_fecha = {}
+            self.historial_semanal = []
+            self.record_puntos = 0
+            self.mensaje = ""
+            self.user_id = None
+            self.cargar_datos()
         except Exception as e:
             print(f"[DEBUG] Error al inicializar Firebase: {str(e)}")
             raise
-        self.nombre = ""
-        self.uid = None  # Para Firebase Authentication
-        self.peso = 0.0
-        self.estatura = 0.0
-        self.meta_km = {}
-        self.km_corridos = {}
-        self.ejercicios_completados = {}
-        self.historial_semanal = []
-        self.mensaje = ""
-        self.ejercicios_personalizados = []
-        self.ejercicios_personalizados_por_fecha = {}
-        self.record_puntos = 0
-        self.ejercicios_type = "bodyweight"
-        self.cargar_datos()
 
     def cargar_datos(self):
         try:
-            # Obtener usuario_actual desde Firestore
+            # Cargar usuario actual desde config/app
             config_ref = self.db.collection('config').document('app')
-            config = config_ref.get()
-            if not config.exists:
-                print("[DEBUG] Documento config/app no existe. Creando con usuario por defecto.")
-                self.guardar_datos()
+            config = config_ref.get().to_dict() or {}
+            self.user_id = config.get('usuario_actual', None)
+            if not self.user_id:
+                print("[DEBUG] No hay usuario actual en config/app")
                 return
-            config_data = config.to_dict() or {'usuario_actual': 'Usuario'}
-            usuario_id = config_data.get('usuario_actual', 'Usuario')
-            print(f"[DEBUG] usuario_actual desde Firestore: {usuario_id}")
-            
             # Cargar datos del usuario
-            usuario_ref = self.db.collection('usuarios').document(usuario_id)
-            usuario_doc = usuario_ref.get()
-            if not usuario_doc.exists:
-                print(f"[DEBUG] No se encontraron datos para {usuario_id}. Inicializando.")
-                self.guardar_datos()
-                return
-            
-            usuario_datos = usuario_doc.to_dict()
-            self.nombre = usuario_datos.get('nombre', '')
-            if self.use_auth:
-                self.uid = usuario_id
-            self.peso = float(usuario_datos.get('peso', 0.0))
-            self.estatura = float(usuario_datos.get('estatura', 0.0))
-            self.meta_km = {str(k): float(v) for k, v in usuario_datos.get('meta_km', {}).items()}
-            self.km_corridos = {k: float(v) for k, v in usuario_datos.get('km_corridos', {}).items()}
-            self.ejercicios_completados = usuario_datos.get('ejercicios_completados', {})
-            self.historial_semanal = usuario_datos.get('historial_semanal', [])
-            self.mensaje = usuario_datos.get('mensaje', '')
-            self.ejercicios_personalizados = usuario_datos.get('ejercicios_personalizados', [])
-            self.ejercicios_personalizados_por_fecha = usuario_datos.get('ejercicios_personalizados_por_fecha', {})
-            self.record_puntos = int(usuario_datos.get('record_puntos', 0))
-            self.ejercicios_type = usuario_datos.get('ejercicios_type', 'bodyweight')
-            print(f"[DEBUG] Datos cargados para usuario: {self.nombre} (ID: {usuario_id})")
+            user_ref = self.db.collection('usuarios').document(self.user_id)
+            user_data = user_ref.get().to_dict() or {}
+            self.nombre = user_data.get('nombre', '')
+            self.peso = user_data.get('peso', 0.0)
+            self.estatura = user_data.get('estatura', 0.0)
+            self.meta_km = user_data.get('meta_km', {})
+            self.ejercicios_type = user_data.get('ejercicios_type', 'bodyweight')
+            self.km_corridos = user_data.get('km_corridos', {})
+            self.ejercicios_completados = user_data.get('ejercicios_completados', {})
+            self.ejercicios_personalizados = user_data.get('ejercicios_personalizados', [])
+            self.ejercicios_personalizados_por_fecha = user_data.get('ejercicios_personalizados_por_fecha', {})
+            self.historial_semanal = user_data.get('historial_semanal', [])
+            self.record_puntos = user_data.get('record_puntos', 0)
+            self.mensaje = user_data.get('mensaje', '')
+            print(f"[DEBUG] Datos cargados para usuario {self.user_id}: ejercicios_type={self.ejercicios_type}")
         except Exception as e:
             print(f"[DEBUG] Error al cargar datos: {str(e)}")
-            self.guardar_datos()
 
     def guardar_datos(self):
         try:
-            if not self.nombre:
-                print("[DEBUG] No se puede guardar: nombre de usuario vacío")
-                return
-            user_id = self.uid if self.use_auth and self.uid else self.nombre
-            usuario_ref = self.db.collection('usuarios').document(user_id)
-            usuario_ref.set({
+            user_ref = self.db.collection('usuarios').document(self.user_id)
+            user_ref.set({
                 'nombre': self.nombre,
                 'peso': self.peso,
                 'estatura': self.estatura,
                 'meta_km': self.meta_km,
+                'ejercicios_type': self.ejercicios_type,
                 'km_corridos': self.km_corridos,
                 'ejercicios_completados': self.ejercicios_completados,
-                'historial_semanal': self.historial_semanal,
-                'mensaje': self.mensaje,
                 'ejercicios_personalizados': self.ejercicios_personalizados,
                 'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
+                'historial_semanal': self.historial_semanal,
                 'record_puntos': self.record_puntos,
-                'ejercicios_type': self.ejercicios_type
+                'mensaje': self.mensaje
             })
-            self.db.collection('config').document('app').set({
-                'usuario_actual': user_id
-            }, merge=True)
-            print(f"[DEBUG] Datos guardados para usuario: {self.nombre} (ID: {user_id})")
+            # Actualizar usuario actual
+            config_ref = self.db.collection('config').document('app')
+            config_ref.set({'usuario_actual': self.user_id}, merge=True)
+            print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
         except Exception as e:
             print(f"[DEBUG] Error al guardar datos: {str(e)}")
 
     def nuevo_usuario(self, nombre, uid=None):
-        try:
-            if not nombre:
-                raise ValueError("El nombre no puede estar vacío.")
-            user_id = uid if self.use_auth and uid else nombre
-            usuario_ref = self.db.collection('usuarios').document(user_id)
-            if usuario_ref.get().exists:
-                raise ValueError(f"El usuario '{nombre}' ya existe.")
-            self.nombre = nombre
-            if self.use_auth:
-                self.uid = uid
-            self.peso = 0.0
-            self.estatura = 0.0
-            self.meta_km = {}
-            self.km_corridos = {}
-            self.ejercicios_completados = {}
-            self.historial_semanal = []
-            self.mensaje = ""
-            self.ejercicios_personalizados = []
-            self.ejercicios_personalizados_por_fecha = {}
-            self.record_puntos = 0
-            self.ejercicios_type = "bodyweight"
-            self.guardar_datos()
-            print(f"[DEBUG] Nuevo usuario creado: {nombre} (ID: {user_id})")
-        except Exception as e:
-            print(f"[DEBUG] Error al crear usuario: {str(e)}")
-            raise
+        self.user_id = nombre if not self.use_auth else uid
+        if not self.user_id:
+            raise ValueError("El ID de usuario no puede estar vacío")
+        self.nombre = nombre
+        self.peso = 0.0
+        self.estatura = 0.0
+        self.meta_km = {}
+        self.ejercicios_type = "bodyweight"
+        self.km_corridos = {}
+        self.ejercicios_completados = {}
+        self.ejercicios_personalizados = []
+        self.ejercicios_personalizados_por_fecha = {}
+        self.historial_semanal = []
+        self.record_puntos = 0
+        self.mensaje = ""
+        self.guardar_datos()
 
     def cambiar_usuario(self, user_id):
-        try:
-            usuario_ref = self.db.collection('usuarios').document(user_id)
-            if not usuario_ref.get().exists:
-                raise ValueError(f"El usuario con ID '{user_id}' no existe.")
-            self.db.collection('config').document('app').set({
-                'usuario_actual': user_id
-            }, merge=True)
-            self.cargar_datos()
-            print(f"[DEBUG] Cambiado a usuario: {self.nombre} (ID: {user_id})")
-        except Exception as e:
-            print(f"[DEBUG] Error al cambiar usuario: {str(e)}")
-            raise
+        self.user_id = user_id
+        self.cargar_datos()
+
+    def registrar_km(self, fecha, km):
+        self.km_corridos[fecha] = km
+        self.guardar_datos()
+
+    def eliminar_km(self, fecha):
+        if fecha in self.km_corridos:
+            del self.km_corridos[fecha]
+            self.guardar_datos()
+
+    def registrar_ejercicios(self, fecha, ejercicios_dict):
+        fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
+        self.ejercicios_completados[fecha_str] = ejercicios_dict
+        self.guardar_datos()
+
+    def anadir_ejercicio_personalizado(self, fecha, ejercicio):
+        fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
+        if fecha_str not in self.ejercicios_personalizados_por_fecha:
+            self.ejercicios_personalizados_por_fecha[fecha_str] = []
+        if ejercicio not in self.ejercicios_personalizados_por_fecha[fecha_str]:
+            self.ejercicios_personalizados_por_fecha[fecha_str].append(ejercicio)
+            self.ejercicios_personalizados.append(ejercicio)
+            self.guardar_datos()
 
     def get_usuarios(self):
         try:
-            usuarios = []
-            for doc in self.db.collection('usuarios').stream():
-                data = doc.to_dict()
-                usuarios.append({'id': doc.id, 'nombre': data.get('nombre', doc.id)})
-            print(f"[DEBUG] Usuarios recuperados: {usuarios}")
-            if not usuarios:
-                print("[DEBUG] No se encontraron usuarios en Firestore. Verifica la colección 'usuarios'.")
+            usuarios = [doc.id for doc in self.db.collection('usuarios').stream()]
+            print(f"[DEBUG] Usuarios obtenidos: {usuarios}")
             return usuarios
         except Exception as e:
             print(f"[DEBUG] Error al obtener usuarios: {str(e)}")
             return []
 
-    def registrar_ejercicios(self, fecha, ejercicios):
-        try:
-            fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
-            if fecha_str not in self.ejercicios_completados:
-                self.ejercicios_completados[fecha_str] = {}
-            for ejercicio, completado in ejercicios.items():
-                self.ejercicios_completados[fecha_str][ejercicio] = completado
-            self.guardar_datos()
-        except Exception as e:
-            print(f"[DEBUG] Error al registrar ejercicios: {str(e)}")
-
-    def registrar_km(self, fecha, km):
-        try:
-            fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
-            self.km_corridos[fecha_str] = float(km)
-            self.guardar_datos()
-        except Exception as e:
-            print(f"[DEBUG] Error al registrar km: {str(e)}")
-
-    def eliminar_km(self, fecha):
-        try:
-            fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
-            if fecha_str in self.km_corridos:
-                del self.km_corridos[fecha_str]
-                self.guardar_datos()
-        except Exception as e:
-            print(f"[DEBUG] Error al eliminar km: {str(e)}")
-
-    def anadir_ejercicio_personalizado(self, fecha, ejercicio):
-        try:
-            fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
-            if fecha_str not in self.ejercicios_personalizados_por_fecha:
-                self.ejercicios_personalizados_por_fecha[fecha_str] = []
-            if ejercicio not in self.ejercicios_personalizados_por_fecha[fecha_str]:
-                self.ejercicios_personalizados_por_fecha[fecha_str].append(ejercicio)
-                if ejercicio not in self.ejercicios_personalizados:
-                    self.ejercicios_personalizados.append(ejercicio)
-                self.guardar_datos()
-        except Exception as e:
-            print(f"[DEBUG] Error al añadir ejercicio personalizado: {str(e)}")
-
     def evaluar_semana(self, get_ejercicios_dia, fecha, get_puntos):
         try:
-            fecha = fecha if isinstance(fecha, date) else datetime.strptime(fecha, '%Y-%m-%d').date()
-            semana_ano = str(fecha.isocalendar()[1])
             inicio_semana = fecha - timedelta(days=fecha.weekday())
-            puntos_totales = 0
-            km_totales = 0
-            ejercicios_completados = 0
-            ejercicios_totales = 0
-            estadisticas = {
-                'promedio_puntos': 0,
-                'dia_mas_activo': '',
-                'progreso_km': 0
-            }
-            max_puntos_dia = 0
-            recompensas = []
-
+            fin_semana = inicio_semana + timedelta(days=6)
+            puntos = 0
+            km = 0.0
+            completados = 0
+            totales = 0
             for i in range(7):
-                dia = inicio_semana + timedelta(days=i)
-                dia_str = dia.strftime('%Y-%m-%d')
-                ejercicios_dia = get_ejercicios_dia(dia)
-                ejercicios_totales += len(ejercicios_dia)
-                puntos_dia = 0
-                completados_dia = 0
-
-                if dia_str in self.ejercicios_completados:
-                    for ejercicio, completado in self.ejercicios_completados[dia_str].items():
+                dia = (inicio_semana + timedelta(days=i)).strftime('%Y-%m-%d')
+                ejercicios_dia = get_ejercicios_dia(dia, self.historial_semanal)
+                totales += len(ejercicios_dia)
+                if dia in self.ejercicios_completados:
+                    for ejercicio, completado in self.ejercicios_completados[dia].items():
                         if completado:
-                            puntos_dia += get_puntos(ejercicio)
-                            completados_dia += 1
-                if dia_str in self.km_corridos:
-                    km_totales += self.km_corridos[dia_str]
-                puntos_totales += puntos_dia
-                ejercicios_completados += completados_dia
-                if puntos_dia > max_puntos_dia:
-                    max_puntos_dia = puntos_dia
-                    estadisticas['dia_mas_activo'] = dia_str
-
-            estadisticas['promedio_puntos'] = round(puntos_totales / 7, 1) if puntos_totales > 0 else 0
-            meta_km = self.meta_km.get(semana_ano, 0)
-            estadisticas['progreso_km'] = round((km_totales / meta_km * 100), 1) if meta_km > 0 else 0
-
-            if puntos_totales >= 150:
+                            puntos += get_puntos(ejercicio)
+                            completados += 1
+                if dia in self.km_corridos:
+                    km += float(self.km_corridos[dia])
+            semana_ano = fecha.isocalendar()[1]
+            meta_km = self.meta_km.get(str(semana_ano), 0.0)
+            recompensas = []
+            if km >= meta_km and meta_km > 0:
+                recompensas.append("¡Cumpliste tu meta de km!")
+            if puntos > self.record_puntos:
+                self.record_puntos = puntos
+                self.guardar_datos()
+                recompensas.append("¡Nuevo récord de puntos!")
+            if puntos >= 150:
                 ranking = "Mega Crack"
-                recompensas.append("Crack")
-            elif puntos_totales >= 100:
+                imagen_ranking = "/static/mega_crack.png"
+            elif puntos >= 100:
                 ranking = "Chill"
-                recompensas.append("Chill")
-            elif puntos_totales >= 50:
+                imagen_ranking = "/static/chill.png"
+            elif puntos >= 50:
                 ranking = "Noob"
-                recompensas.append("Noob")
+                imagen_ranking = "/static/noob.png"
             else:
                 ranking = "Looser"
-                recompensas.append("Looser")
-
-            imagen_ranking = f"/static/recompensas/{ranking.lower()}.png"
-            if puntos_totales > self.record_puntos:
-                self.record_puntos = puntos_totales
-                self.guardar_datos()
-
-            self.historial_semanal.append({
-                'semana': inicio_semana.strftime('%Y-%m-%d'),
-                'puntos': puntos_totales,
-                'km': km_totales,
-                'completados': ejercicios_completados,
-                'totales': ejercicios_totales,
-                'ranking': ranking
-            })
-            self.guardar_datos()
-
-            return puntos_totales, km_totales, ejercicios_completados, ejercicios_totales, recompensas, ranking, imagen_ranking, self.record_puntos, estadisticas
+                imagen_ranking = "/static/looser.png"
+            estadisticas = {
+                'porcentaje_completados': (completados / totales * 100) if totales > 0 else 0,
+                'km_porcentaje': (km / meta_km * 100) if meta_km > 0 else 0
+            }
+            print(f"[DEBUG] Evaluación semana {semana_ano}: puntos={puntos}, km={km}, completados={completados}, totales={totales}, ranking={ranking}")
+            return puntos, km, completados, totales, recompensas, ranking, imagen_ranking, self.record_puntos, estadisticas
         except Exception as e:
             print(f"[DEBUG] Error en evaluar_semana: {str(e)}")
-            return 0, 0, 0, 0, [], "Sin ranking", "", 0, {}
+            return 0, 0.0, 0, 0, [], "Sin ranking", "", 0, {}
 
     def generar_resumen(self, puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, meta_km):
         try:
             porcentaje = (completados / totales * 100) if totales > 0 else 0
-            texto = f"¡Hola, {self.nombre}!\n\n"
-            es_nuevo_record = puntos >= record_puntos and puntos > 0
-
-            if ranking == "Looser":
-                texto += "Esta semana no fue tu mejor momento, pero ¡tú puedes con esto! 😔\n"
-                texto += f"Lograste {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
-                texto += "💪 **Reto para la próxima semana**: Completa al menos 3 ejercicios diarios.\n"
-                texto += "Consejo: Empieza con ejercicios cortos como estiramientos para crear un hábito.\n\n"
-            elif ranking == "Noob":
-                texto += "¡Buen esfuerzo, Noob! 🌟 Estás en el camino correcto.\n"
-                texto += f"Conseguiste {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
-                texto += "🚀 **Propósito**: Añade un ejercicio personalizado para subir a Chill.\n"
-                texto += "Consejo: Planea tus entrenos al inicio de la semana para mantenerte constante.\n\n"
-            elif ranking == "Chill":
-                texto += "¡Estás en la onda, Chill! 😎 ¡Gran trabajo!\n"
-                texto += f"Sumaste {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
-                texto += "🏅 **Desafío**: Apunta a 150 puntos para ser Mega Crack.\n"
-                texto += "Consejo: Si corriste mucho, incluye estiramientos para evitar lesiones.\n\n"
-            else:  # Mega Crack
-                texto += "¡Eres un Mega Crack! 🏆 ¡Impresionante!\n"
-                texto += f"Arrasaste con {puntos} puntos ({porcentaje:.1f}% de ejercicios completados).\n"
-                texto += "🎉 **Sigue así**: Elige una actividad divertida como premio.\n"
-                texto += "Consejo: Mantén la variedad con nuevos ejercicios personalizados.\n\n"
-
-            if es_nuevo_record:
-                texto += f"🎊 **¡Nuevo récord!** Has superado tu mejor marca con {puntos} puntos.\n\n"
-
+            texto = f"Resumen de la semana:\n"
+            texto += f"- Puntos: {puntos} (Récord: {record_puntos})\n"
+            texto += f"- Ejercicios completados: {completados}/{totales} ({porcentaje:.1f}%)\n"
+            texto += f"- Kilómetros corridos: {km:.1f}/{meta_km:.1f} km\n"
+            texto += f"- Ranking: {ranking}\n"
             if recompensas:
-                texto += "🎁 **Recompensas**:\n"
-                for recompensa in recompensas:
-                    texto += f"- {recompensa}\n"
-            else:
-                texto += "😢 No obtuviste recompensas esta semana, pero ¡sigue dándole duro!\n"
-
-            if km < meta_km and meta_km > 0:
-                texto += f"\n🏃 **Desafío semanal**: Corre {round(meta_km - km, 2)} km más para alcanzar tu meta de {meta_km} km.\n"
-            else:
-                texto += "\n🏃 **Desafío semanal**: Aumenta tu meta de kilómetros en 5 km para la próxima semana.\n"
-
+                texto += "- Recompensas:\n" + "\n".join([f"  * {r}" for r in recompensas])
             return texto
         except Exception as e:
             print(f"[DEBUG] Error en generar_resumen: {str(e)}")
