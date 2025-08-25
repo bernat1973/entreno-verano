@@ -1,10 +1,30 @@
-import json
-import os
+import firebase_admin
+from firebase_admin import credentials, firestore
 from datetime import datetime, date, timedelta
+import os
 
 class Modelo:
-    def __init__(self, archivo):
-        self.archivo = archivo
+    def __init__(self, archivo=None):
+        # Inicializar Firebase
+        try:
+            if not firebase_admin._apps:
+                # Usar variables de entorno si están definidas, o el archivo JSON
+                if os.getenv('FIREBASE_PROJECT_ID'):
+                    cred = credentials.Certificate({
+                        "type": "service_account",
+                        "project_id": os.getenv('FIREBASE_PROJECT_ID'),
+                        "private_key": os.getenv('FIREBASE_PRIVATE_KEY').replace('\\n', '\n'),
+                        "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
+                        "token_uri": "https://oauth2.googleapis.com/token"
+                    })
+                else:
+                    cred = credentials.Certificate('firebase-adminsdk.json')
+                firebase_admin.initialize_app(cred)
+            self.db = firestore.client()
+            print("[DEBUG] Firebase inicializado correctamente")
+        except Exception as e:
+            print(f"[DEBUG] Error al inicializar Firebase: {str(e)}")
+            raise
         self.nombre = ""
         self.peso = 0.0
         self.estatura = 0.0
@@ -21,50 +41,49 @@ class Modelo:
 
     def cargar_datos(self):
         try:
-            if os.path.exists(self.archivo):
-                with open(self.archivo, 'r', encoding='utf-8') as f:
-                    datos = json.load(f)
-                usuario = datos.get('usuario_actual', '')
-                if not usuario or usuario not in datos.get('usuarios', {}):
-                    usuario = next(iter(datos.get('usuarios', {})), '')
-                if usuario:
-                    usuario_datos = datos['usuarios'].get(usuario, {})
-                    self.nombre = usuario_datos.get('nombre', '')
-                    self.peso = float(usuario_datos.get('peso', 0.0))
-                    self.estatura = float(usuario_datos.get('estatura', 0.0))
-                    self.meta_km = {str(k): float(v) for k, v in usuario_datos.get('meta_km', {}).items()}
-                    self.km_corridos = {k: float(v) for k, v in usuario_datos.get('km_corridos', {}).items()}
-                    self.ejercicios_completados = usuario_datos.get('ejercicios_completados', {})
-                    self.historial_semanal = usuario_datos.get('historial_semanal', [])
-                    self.mensaje = usuario_datos.get('mensaje', '')
-                    self.ejercicios_personalizados = usuario_datos.get('ejercicios_personalizados', [])
-                    self.ejercicios_personalizados_por_fecha = usuario_datos.get('ejercicios_personalizados_por_fecha', {})
-                    self.record_puntos = int(usuario_datos.get('record_puntos', 0))
-                    self.ejercicios_type = usuario_datos.get('ejercicios_type', 'bodyweight')
-                    print(f"Datos cargados para usuario: {self.nombre}")
-                else:
-                    print("No se encontró usuario_actual. Inicializando datos vacíos.")
-                    self.guardar_datos()
-            else:
-                print(f"Archivo {self.archivo} no encontrado. Creando datos iniciales.")
+            # Obtener usuario_actual desde Firestore
+            config_ref = self.db.collection('config').document('app')
+            config = config_ref.get()
+            if not config.exists:
+                print("[DEBUG] Documento config/app no existe. Creando con usuario por defecto.")
                 self.guardar_datos()
+                return
+            config_data = config.to_dict() or {'usuario_actual': 'Usuario'}
+            usuario = config_data.get('usuario_actual', 'Usuario')
+            print(f"[DEBUG] usuario_actual desde Firestore: {usuario}")
+            
+            # Cargar datos del usuario
+            usuario_ref = self.db.collection('usuarios').document(usuario)
+            usuario_doc = usuario_ref.get()
+            if not usuario_doc.exists:
+                print(f"[DEBUG] No se encontraron datos para {usuario}. Inicializando.")
+                self.guardar_datos()
+                return
+            
+            usuario_datos = usuario_doc.to_dict()
+            self.nombre = usuario_datos.get('nombre', '')
+            self.peso = float(usuario_datos.get('peso', 0.0))
+            self.estatura = float(usuario_datos.get('estatura', 0.0))
+            self.meta_km = {str(k): float(v) for k, v in usuario_datos.get('meta_km', {}).items()}
+            self.km_corridos = {k: float(v) for k, v in usuario_datos.get('km_corridos', {}).items()}
+            self.ejercicios_completados = usuario_datos.get('ejercicios_completados', {})
+            self.historial_semanal = usuario_datos.get('historial_semanal', [])
+            self.mensaje = usuario_datos.get('mensaje', '')
+            self.ejercicios_personalizados = usuario_datos.get('ejercicios_personalizados', [])
+            self.ejercicios_personalizados_por_fecha = usuario_datos.get('ejercicios_personalizados_por_fecha', {})
+            self.record_puntos = int(usuario_datos.get('record_puntos', 0))
+            self.ejercicios_type = usuario_datos.get('ejercicios_type', 'bodyweight')
+            print(f"[DEBUG] Datos cargados para usuario: {self.nombre}")
         except Exception as e:
-            print(f"Error al cargar datos: {e}")
+            print(f"[DEBUG] Error al cargar datos: {str(e)}")
             self.guardar_datos()
 
     def guardar_datos(self):
         try:
-            datos = {}
-            try:
-                if os.path.exists(self.archivo):
-                    with open(self.archivo, 'r', encoding='utf-8') as f:
-                        datos = json.load(f)
-            except FileNotFoundError:
-                datos = {'usuarios': {}, 'usuario_actual': self.nombre or 'Usuario'}
-            
+            # Guardar datos del usuario
             if self.nombre:
-                datos['usuario_actual'] = self.nombre
-                datos['usuarios'][self.nombre] = {
+                usuario_ref = self.db.collection('usuarios').document(self.nombre)
+                usuario_ref.set({
                     'nombre': self.nombre,
                     'peso': self.peso,
                     'estatura': self.estatura,
@@ -77,22 +96,23 @@ class Modelo:
                     'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
                     'record_puntos': self.record_puntos,
                     'ejercicios_type': self.ejercicios_type
-                }
-            with open(self.archivo, 'w', encoding='utf-8') as f:
-                json.dump(datos, f, indent=4, ensure_ascii=False)
-            print(f"Datos guardados para usuario: {self.nombre}")
+                })
+                # Actualizar usuario_actual
+                self.db.collection('config').document('app').set({
+                    'usuario_actual': self.nombre
+                }, merge=True)
+                print(f"[DEBUG] Datos guardados para usuario: {self.nombre}")
+            else:
+                print("[DEBUG] No se puede guardar: nombre de usuario vacío")
         except Exception as e:
-            print(f"Error al guardar datos: {e}")
+            print(f"[DEBUG] Error al guardar datos: {str(e)}")
 
     def nuevo_usuario(self, nombre):
         try:
             if not nombre:
                 raise ValueError("El nombre no puede estar vacío.")
-            datos = {'usuarios': {}, 'usuario_actual': ''}
-            if os.path.exists(self.archivo):
-                with open(self.archivo, 'r', encoding='utf-8') as f:
-                    datos = json.load(f)
-            if nombre in datos['usuarios']:
+            usuario_ref = self.db.collection('usuarios').document(nombre)
+            if usuario_ref.get().exists:
                 raise ValueError(f"El usuario '{nombre}' ya existe.")
             self.nombre = nombre
             self.peso = 0.0
@@ -106,54 +126,35 @@ class Modelo:
             self.ejercicios_personalizados_por_fecha = {}
             self.record_puntos = 0
             self.ejercicios_type = "bodyweight"
-            datos['usuario_actual'] = nombre
-            datos['usuarios'][nombre] = {
-                'nombre': nombre,
-                'peso': self.peso,
-                'estatura': self.estatura,
-                'meta_km': self.meta_km,
-                'km_corridos': self.km_corridos,
-                'ejercicios_completados': self.ejercicios_completados,
-                'historial_semanal': self.historial_semanal,
-                'mensaje': self.mensaje,
-                'ejercicios_personalizados': self.ejercicios_personalizados,
-                'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
-                'record_puntos': self.record_puntos,
-                'ejercicios_type': self.ejercicios_type
-            }
-            with open(self.archivo, 'w', encoding='utf-8') as f:
-                json.dump(datos, f, indent=4, ensure_ascii=False)
-            print(f"Nuevo usuario creado: {nombre}")
+            self.guardar_datos()
+            print(f"[DEBUG] Nuevo usuario creado: {nombre}")
         except Exception as e:
-            print(f"Error al crear usuario: {e}")
+            print(f"[DEBUG] Error al crear usuario: {str(e)}")
             raise
 
     def cambiar_usuario(self, nombre):
         try:
-            datos = {}
-            if os.path.exists(self.archivo):
-                with open(self.archivo, 'r', encoding='utf-8') as f:
-                    datos = json.load(f)
-            if nombre not in datos['usuarios']:
+            usuario_ref = self.db.collection('usuarios').document(nombre)
+            if not usuario_ref.get().exists:
                 raise ValueError(f"El usuario '{nombre}' no existe.")
-            datos['usuario_actual'] = nombre
-            with open(self.archivo, 'w', encoding='utf-8') as f:
-                json.dump(datos, f, indent=4, ensure_ascii=False)
+            self.db.collection('config').document('app').set({
+                'usuario_actual': nombre
+            }, merge=True)
             self.cargar_datos()
-            print(f"Cambiado a usuario: {nombre}")
+            print(f"[DEBUG] Cambiado a usuario: {nombre}")
         except Exception as e:
-            print(f"Error al cambiar usuario: {e}")
+            print(f"[DEBUG] Error al cambiar usuario: {str(e)}")
             raise
 
     def get_usuarios(self):
         try:
-            datos = {}
-            if os.path.exists(self.archivo):
-                with open(self.archivo, 'r', encoding='utf-8') as f:
-                    datos = json.load(f)
-            return list(datos['usuarios'].keys())
+            usuarios = [doc.id for doc in self.db.collection('usuarios').stream()]
+            print(f"[DEBUG] Usuarios recuperados: {usuarios}")
+            if not usuarios:
+                print("[DEBUG] No se encontraron usuarios en Firestore")
+            return usuarios
         except Exception as e:
-            print(f"Error al obtener usuarios: {e}")
+            print(f"[DEBUG] Error al obtener usuarios: {str(e)}")
             return []
 
     def registrar_ejercicios(self, fecha, ejercicios):
@@ -165,7 +166,7 @@ class Modelo:
                 self.ejercicios_completados[fecha_str][ejercicio] = completado
             self.guardar_datos()
         except Exception as e:
-            print(f"Error al registrar ejercicios: {e}")
+            print(f"Error al registrar ejercicios: {str(e)}")
 
     def registrar_km(self, fecha, km):
         try:
@@ -173,7 +174,7 @@ class Modelo:
             self.km_corridos[fecha_str] = float(km)
             self.guardar_datos()
         except Exception as e:
-            print(f"Error al registrar km: {e}")
+            print(f"Error al registrar km: {str(e)}")
 
     def eliminar_km(self, fecha):
         try:
@@ -182,7 +183,7 @@ class Modelo:
                 del self.km_corridos[fecha_str]
                 self.guardar_datos()
         except Exception as e:
-            print(f"Error al eliminar km: {e}")
+            print(f"Error al eliminar km: {str(e)}")
 
     def anadir_ejercicio_personalizado(self, fecha, ejercicio):
         try:
@@ -194,9 +195,8 @@ class Modelo:
                 if ejercicio not in self.ejercicios_personalizados:
                     self.ejercicios_personalizados.append(ejercicio)
                 self.guardar_datos()
-            print(f"Ejercicio personalizado añadido: {ejercicio} para {fecha_str}")
         except Exception as e:
-            print(f"Error al añadir ejercicio personalizado: {e}")
+            print(f"Error al añadir ejercicio personalizado: {str(e)}")
 
     def evaluar_semana(self, get_ejercicios_dia, fecha, get_puntos):
         try:
@@ -270,7 +270,7 @@ class Modelo:
 
             return puntos_totales, km_totales, ejercicios_completados, ejercicios_totales, recompensas, ranking, imagen_ranking, self.record_puntos, estadisticas
         except Exception as e:
-            print(f"Error en evaluar_semana: {e}")
+            print(f"Error en evaluar_semana: {str(e)}")
             return 0, 0, 0, 0, [], "Sin ranking", "", 0, {}
 
     def generar_resumen(self, puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, meta_km):
@@ -317,5 +317,5 @@ class Modelo:
 
             return texto
         except Exception as e:
-            print(f"Error en generar_resumen: {e}")
+            print(f"Error en generar_resumen: {str(e)}")
             return "Error al generar el resumen."
