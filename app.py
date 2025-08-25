@@ -5,7 +5,7 @@ from ejercicios import Ejercicios
 from generar_pdf import generar_pdf_progreso
 
 app = Flask(__name__)
-modelo = Modelo('entreno_verano.json')
+modelo = Modelo()  # Sin archivo JSON, usa Firestore. Cambia a Modelo(use_auth=True) si usas Firebase Authentication
 ejercicios = Ejercicios(modelo)
 
 @app.template_filter('datetimeformat')
@@ -44,6 +44,7 @@ def datos_personales():
     fin_semana = inicio_semana + timedelta(days=6)
     semana_actual = f"Semana {semana_ano}: del {inicio_semana.strftime('%d/%m/%Y')} al {fin_semana.strftime('%d/%m/%Y')}"
     usuarios = modelo.get_usuarios()
+    print(f"[DEBUG] Usuarios enviados a datos_personales.html: {usuarios}")
     if request.method == 'POST':
         try:
             nombre = request.form['nombre'].strip()
@@ -51,6 +52,8 @@ def datos_personales():
             estatura = float(request.form.get('estatura', 0))
             meta_km = float(request.form.get('meta_km', 0))
             ejercicios_type = request.form.get('ejercicios_type', 'bodyweight')
+            # Si usas Firebase Authentication, obtén el UID aquí
+            uid = None  # Reemplaza con request.form.get('uid') si usas Authentication
             if not nombre:
                 return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
             if peso < 0 or estatura < 0 or meta_km < 0:
@@ -76,9 +79,10 @@ def nuevo_usuario():
     usuarios = modelo.get_usuarios()
     try:
         nuevo_nombre = request.form.get('nuevo_usuario').strip()
+        uid = None  # Reemplaza con request.form.get('uid') si usas Authentication
         if not nuevo_nombre:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
-        modelo.nuevo_usuario(nuevo_nombre)
+        modelo.nuevo_usuario(nuevo_nombre, uid=uid)
         modelo.cargar_datos()  # Recargar para asegurar que el nuevo usuario esté activo
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Usuario '{nuevo_nombre}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
@@ -93,11 +97,11 @@ def cambiar_usuario():
     semana_actual = f"Semana {semana_ano}: del {inicio_semana.strftime('%d/%m/%Y')} al {fin_semana.strftime('%d/%m/%Y')}"
     usuarios = modelo.get_usuarios()
     try:
-        nombre_usuario = request.form.get('usuario').strip()
-        if not nombre_usuario:
+        user_id = request.form.get('usuario').strip()
+        if not user_id:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="Selecciona un usuario.", semana_actual=semana_actual, usuarios=usuarios)
-        modelo.cambiar_usuario(nombre_usuario)
-        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
+        modelo.cambiar_usuario(user_id)
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{modelo.nombre}'!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
 
