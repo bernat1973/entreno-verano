@@ -33,13 +33,10 @@ class Ejercicios:
             ["Press de banca con mancuernas", "Cruces en polea para pecho", "Press de hombros con mancuernas", "Elevaciones laterales en banco inclinado", "Fondos en banco con peso", "Elevaciones frontales con disco"],
             # Sábado: Espalda y brazos
             ["Peso muerto con barra", "Remo con barra T", "Curl de bíceps con barra recta", "Extensiones de tríceps con mancuerna a una mano", "Dominadas supinas con peso", "Curl concentrado con mancuerna"],
-            # Domingo: Recuperación activa (pectorales, hombros, espalda, brazos con pesas ligeras)
+            # Domingo: Recuperación activa
             ["Press de banca ligero con mancuernas", "Elevaciones laterales ligeras con mancuernas", "Remo ligero con mancuernas", "Curl de bíceps ligero con mancuernas", "Extensiones de tríceps ligero en polea", "Face pulls ligeros con polea"]
         ]
-        if self.modelo and self.modelo.ejercicios_type == 'weights':
-            self.base_ejercicios = self.base_ejercicios_weights
-        else:
-            self.base_ejercicios = self.base_ejercicios_bodyweight
+        print(f"[DEBUG] Inicializado Ejercicios con modelo.ejercicios_type: {self.modelo.ejercicios_type if self.modelo else 'None'}")
 
     def get_base_exercise_name(self, ejercicio):
         try:
@@ -48,11 +45,89 @@ class Ejercicios:
                     return ejercicio.split(prefix)[-1].strip()
             return ejercicio
         except Exception as e:
-            print(f"Error al extraer nombre base de {ejercicio}: {e}")
+            print(f"[DEBUG] Error al extraer nombre base de {ejercicio}: {str(e)}")
             return ejercicio
 
     def get_puntos(self, ejercicio):
-        return 5
+        try:
+            base_name = self.get_base_exercise_name(ejercicio)
+            puntos = {
+                # Bodyweight
+                "Abdominales crunch con rodillas dobladas": 6,
+                "Plancha frontal en antebrazos": 8,
+                "Flexiones estándar con manos anchas": 10,
+                "Elevaciones frontales de hombros sin peso": 5,
+                "Saltos verticales suaves con aterrizaje controlado": 7,
+                "Puente de glúteos con rodillas dobladas": 6,
+                "Abdominales bicicleta lentos": 7,
+                "Elevaciones de piernas suaves": 6,
+                "Fondos en silla para tríceps": 8,
+                "Plancha con toques de hombros": 8,
+                "Burpees modificados sin flexión": 10,
+                "Estiramientos dinámicos de cuerpo completo": 5,
+                "Plancha lateral con apoyo en antebrazo": 8,
+                "Flexiones diamante para tríceps": 10,
+                "Rotaciones de hombros con brazos en L": 5,
+                "Escaladores pliométricos lentos": 7,
+                "Gato-vaca para movilidad espinal": 5,
+                "Aperturas de pecho con brazos en T": 5,
+                "Saltos laterales suaves sobre línea": 7,
+                "Respiración diafragmática profunda": 5,
+                "Flexiones pica para hombros": 10,
+                "Saltos patinador con cambio lento": 7,
+                "Abdominales isométricos de contracción": 6,
+                "Yoga suave con posturas básicas": 5,
+                "Movilidad articular de cadera": 5,
+                # Weights
+                "Press de banca con barra": 15,
+                "Press inclinado con mancuernas": 14,
+                "Press militar con barra": 15,
+                "Elevaciones laterales con mancuernas": 12,
+                "Aperturas con mancuernas en banco plano": 12,
+                "Face pulls con polea": 10,
+                "Remo con barra inclinado": 15,
+                "Dominadas con peso asistido": 16,
+                "Curl de bíceps con mancuernas": 10,
+                "Extensiones de tríceps por encima de la cabeza con mancuerna": 10,
+                "Remo con mancuerna a una mano": 12,
+                "Curl martillo con mancuernas": 10,
+                "Press de banca declinado con barra": 15,
+                "Aperturas en banco inclinado con mancuernas": 12,
+                "Press Arnold con mancuernas": 14,
+                "Elevaciones frontales con barra": 12,
+                "Fondos en paralelas con peso": 15,
+                "Elevaciones traseras para deltoides con mancuernas": 12,
+                "Remo sentado en polea baja": 14,
+                "Pull-over con mancuerna": 12,
+                "Curl de bíceps en banco predicador": 10,
+                "Press francés con barra EZ": 10,
+                "Remo invertido con barra": 14,
+                "Extensiones de tríceps en polea alta": 10,
+                "Press de banca con mancuernas": 14,
+                "Cruces en polea para pecho": 12,
+                "Press de hombros con mancuernas": 14,
+                "Elevaciones laterales en banco inclinado": 12,
+                "Fondos en banco con peso": 12,
+                "Elevaciones frontales con disco": 12,
+                "Peso muerto con barra": 16,
+                "Remo con barra T": 14,
+                "Curl de bíceps con barra recta": 10,
+                "Extensiones de tríceps con mancuerna a una mano": 10,
+                "Dominadas supinas con peso": 16,
+                "Curl concentrado con mancuerna": 10,
+                "Press de banca ligero con mancuernas": 10,
+                "Elevaciones laterales ligeras con mancuernas": 8,
+                "Remo ligero con mancuernas": 10,
+                "Curl de bíceps ligero con mancuernas": 8,
+                "Extensiones de tríceps ligero en polea": 8,
+                "Face pulls ligeros con polea": 8
+            }
+            puntos = puntos.get(base_name, 5)  # 5 puntos por defecto para ejercicios personalizados
+            print(f"[DEBUG] Puntos para {ejercicio} ({base_name}): {puntos}")
+            return puntos
+        except Exception as e:
+            print(f"[DEBUG] Error en get_puntos: {str(e)}")
+            return 5
 
     def get_ejercicios_dia(self, fecha, historial_semanal=None):
         try:
@@ -65,14 +140,17 @@ class Ejercicios:
                     raise ValueError(f"Formato de fecha no válido: {fecha}")
             
             dia_semana = fecha.weekday()
-            semana_ano = fecha.isocalendar()[1]
-            ejercicios_base = self.base_ejercicios[dia_semana].copy()
+            # Seleccionar ejercicios según el tipo del usuario
+            base_ejercicios = self.base_ejercicios_weights if self.modelo and self.modelo.ejercicios_type == 'weights' else self.base_ejercicios_bodyweight
+            ejercicios_base = base_ejercicios[dia_semana].copy()
+            print(f"[DEBUG] Ejercicios base para {fecha.strftime('%Y-%m-%d')} (tipo: {self.modelo.ejercicios_type if self.modelo else 'None'}): {ejercicios_base}")
 
             fecha_str = fecha.strftime('%Y-%m-%d')
             if self.modelo and self.modelo.ejercicios_personalizados_por_fecha.get(fecha_str):
                 ejercicios_base.extend(self.modelo.ejercicios_personalizados_por_fecha[fecha_str])
+                print(f"[DEBUG] Ejercicios personalizados añadidos para {fecha_str}: {self.modelo.ejercicios_personalizados_por_fecha[fecha_str]}")
 
-            ciclo = (semana_ano - 1) % 16
+            ciclo = (fecha.isocalendar()[1] - 1) % 16
             if ciclo < 4:
                 series, repeticiones, segundos = 3, 10, 60
             elif ciclo < 8:
@@ -88,9 +166,9 @@ class Ejercicios:
                     ejercicios_progresivos.append(f"{series} series de {segundos} segundos {ej}")
                 else:
                     ejercicios_progresivos.append(f"{series} series de {repeticiones} {ej}")
-
             random.shuffle(ejercicios_progresivos)
+            print(f"[DEBUG] Ejercicios progresivos para {fecha_str}: {ejercicios_progresivos}")
             return ejercicios_progresivos
         except Exception as e:
-            print(f"Error en get_ejercicios_dia: {e}")
+            print(f"[DEBUG] Error en get_ejercicios_dia: {str(e)}")
             return ["Ejercicio no disponible"]
