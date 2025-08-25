@@ -62,8 +62,8 @@ def datos_personales():
             modelo.ejercicios_type = ejercicios_type
             modelo.guardar_datos()
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje="¡Datos guardados correctamente!", semana_actual=semana_actual, usuarios=usuarios)
-        except ValueError:
-            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="Valores inválidos. Revisa los datos.", semana_actual=semana_actual, usuarios=usuarios)
+        except ValueError as e:
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
     return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/nuevo_usuario', methods=['POST'])
@@ -79,7 +79,7 @@ def nuevo_usuario():
         if not nuevo_nombre:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
         modelo.nuevo_usuario(nuevo_nombre)
-        modelo.guardar_datos()
+        modelo.cargar_datos()  # Recargar para asegurar que el nuevo usuario esté activo
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Usuario '{nuevo_nombre}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
@@ -97,7 +97,6 @@ def cambiar_usuario():
         if not nombre_usuario:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="Selecciona un usuario.", semana_actual=semana_actual, usuarios=usuarios)
         modelo.cambiar_usuario(nombre_usuario)
-        modelo.guardar_datos()
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
@@ -112,12 +111,9 @@ def entreno():
                 return render_template('entreno.html', error="Selecciona una fecha válida.", fecha=date.today().strftime('%Y-%m-%d'), ejercicios=[], puntos_totales=0, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=date.today().strftime('%Y-%m-%d'), fecha_siguiente=date.today().strftime('%Y-%m-%d'))
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
             fecha_str = fecha.strftime('%Y-%m-%d')
-            modelo.ejercicios_completados[fecha_str] = {}
-            ejercicios_dia = ejercicios.get_ejercicios_dia(fecha)
-            for ejercicio in ejercicios_dia:
-                base_ejercicio = ejercicios.get_base_exercise_name(ejercicio)
-                modelo.ejercicios_completados[fecha_str][base_ejercicio] = ejercicio in ejercicios_seleccionados
-            modelo.guardar_datos()
+            ejercicios_dia = ejercicios.get_ejercicios_dia(fecha, modelo.historial_semanal)
+            ejercicios_dict = {ejercicios.get_base_exercise_name(ej): (ej in ejercicios_seleccionados) for ej in ejercicios_dia}
+            modelo.registrar_ejercicios(fecha, ejercicios_dict)
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             fecha_anterior = (fecha - timedelta(days=1)).strftime('%Y-%m-%d')
             fecha_siguiente = (fecha + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -126,7 +122,7 @@ def entreno():
             fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date() if fecha_str else date.today()
             fecha_str = fecha.strftime('%Y-%m-%d')
-            ejercicios_dia = ejercicios.get_ejercicios_dia(fecha)
+            ejercicios_dia = ejercicios.get_ejercicios_dia(fecha, modelo.historial_semanal)
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             fecha_anterior = (fecha - timedelta(days=1)).strftime('%Y-%m-%d')
             fecha_siguiente = (fecha + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -165,8 +161,7 @@ def correr():
                 km = float(request.form.get('km', 0))
                 if km < 0:
                     return render_template('correr.html', error="Los kilómetros deben ser positivos.", fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
-                modelo.km_corridos[fecha_str] = modelo.km_corridos.get(fecha_str, 0.0) + km
-                modelo.guardar_datos()
+                modelo.registrar_km(fecha_str, modelo.km_corridos.get(fecha_str, 0.0) + km)
                 km_dia = modelo.km_corridos.get(fecha_str, 0.0)
                 km_por_dia = modelo.km_corridos
                 km_semanal = sum(float(km) for fecha, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha <= fin_semana.strftime('%Y-%m-%d'))
@@ -183,9 +178,7 @@ def correr():
                 return render_template('correr.html', mensaje="¡Kilómetros registrados correctamente!", fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
             elif accion == 'eliminar':
                 fecha_eliminar = request.form.get('fecha_eliminar')
-                if fecha_eliminar in modelo.km_corridos:
-                    del modelo.km_corridos[fecha_eliminar]
-                    modelo.guardar_datos()
+                modelo.eliminar_km(fecha_eliminar)
                 km_por_dia = modelo.km_corridos
                 km_dia = modelo.km_corridos.get(fecha_str, 0.0)
                 km_semanal = sum(float(km) for fecha, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha <= fin_semana.strftime('%Y-%m-%d'))
@@ -214,13 +207,12 @@ def anadir_ejercicio():
             if not ejercicio:
                 return render_template('anadir_ejercicio.html', error="El ejercicio no puede estar vacío.", fecha=fecha_str)
             modelo.anadir_ejercicio_personalizado(fecha_str, ejercicio)
-            modelo.guardar_datos()
             return redirect(url_for('entreno', fecha=fecha_str))
         return render_template('anadir_ejercicio.html', fecha=fecha_str)
     except Exception as e:
         return render_template('anadir_ejercicio.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'))
 
-@app.route('/progreso')
+@app.route('/progreso', methods=['GET'])
 def progreso():
     try:
         fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
@@ -252,7 +244,7 @@ def progreso():
     except Exception as e:
         return render_template('progreso.html', error=f"Error: {str(e)}", puntos=0, km=0, completados=0, totales=0, fecha=date.today().strftime('%Y-%m-%d'), recompensas=[], ranking="Sin ranking", imagen_ranking="", record_puntos=0, estadisticas={}, semanas_puntos=[], semanas_km=[], semanas_totales_completados=[])
 
-@app.route('/resumen')
+@app.route('/resumen', methods=['GET'])
 def resumen():
     try:
         fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
