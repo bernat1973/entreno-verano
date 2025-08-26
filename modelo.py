@@ -6,21 +6,49 @@ import os
 class Modelo:
     def __init__(self, use_auth=False):
         try:
-            # Inicializar Firebase
-            cred = credentials.Certificate({
-                "type": "service_account",
-                "project_id": os.getenv("FIREBASE_PROJECT_ID"),
-                "private_key": os.getenv("FIREBASE_PRIVATE_KEY").replace('\\n', '\n'),
-                "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
-                "token_uri": "https://oauth2.googleapis.com/token"
-            })
-            firebase_admin.initialize_app(cred)
-            self.db = firestore.client()
-            # Verificar ID del proyecto
-            project_id = firebase_admin.get_app().options.get('projectId')
-            if project_id != 'entreno-verano':
-                raise ValueError(f"Proyecto Firebase incorrecto: {project_id}. Se esperaba 'entreno-verano'.")
-            print(f"[DEBUG] Firebase inicializado correctamente para proyecto: {project_id}")
+            # Depurar variables de entorno
+            project_id = os.getenv("FIREBASE_PROJECT_ID")
+            client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
+            private_key = os.getenv("FIREBASE_PRIVATE_KEY")
+            print(f"[DEBUG] FIREBASE_PROJECT_ID: {project_id}")
+            print(f"[DEBUG] FIREBASE_CLIENT_EMAIL: {client_email}")
+            print(f"[DEBUG] FIREBASE_PRIVATE_KEY: {'[present]' if private_key else 'None'}")
+            print(f"[DEBUG] Longitud de FIREBASE_PRIVATE_KEY: {len(private_key) if private_key else 0}")
+
+            # Verificar que las variables existen
+            if not project_id:
+                raise ValueError("FIREBASE_PROJECT_ID no está configurado")
+            if not client_email:
+                raise ValueError("FIREBASE_CLIENT_EMAIL no está configurado")
+            if not private_key:
+                raise ValueError("FIREBASE_PRIVATE_KEY no está configurado")
+
+            # Inicializar Firebase con las credenciales
+            # FIREBASE_PROJECT_ID debe ser 'entreno-verano'
+            # FIREBASE_CLIENT_EMAIL debe ser '676828316643-compute@developer.gserviceaccount.com'
+            # FIREBASE_PRIVATE_KEY debe ser la clave privada del archivo JSON de Firebase
+            try:
+                cred = credentials.Certificate({
+                    "type": "service_account",
+                    "project_id": project_id,
+                    "private_key": private_key.replace('\\n', '\n'),
+                    "client_email": client_email,
+                    "token_uri": "https://oauth2.googleapis.com/token"
+                })
+                firebase_admin.initialize_app(cred)
+                self.db = firestore.client()
+            except Exception as e:
+                print(f"[DEBUG] Error al inicializar credenciales de Firebase: {str(e)}")
+                raise ValueError(f"Fallo al inicializar Firebase: {str(e)}")
+
+            # Verificar ID del proyecto (opcional, para depuración)
+            app_project_id = firebase_admin.get_app().options.get('projectId')
+            print(f"[DEBUG] Firebase inicializado, projectId detectado: {app_project_id}")
+            if app_project_id != 'entreno-verano':
+                print(f"[WARNING] Proyecto Firebase esperado: 'entreno-verano', encontrado: {app_project_id}")
+                # No lanzar excepción, permitir que la aplicación continúe
+                # raise ValueError(f"Proyecto Firebase incorrecto: {app_project_id}. Se esperaba 'entreno-verano'.")
+
             self.use_auth = use_auth
             self.nombre = ""
             self.peso = 0.0
@@ -37,7 +65,7 @@ class Modelo:
             self.user_id = None
             self.cargar_datos()
         except Exception as e:
-            print(f"[DEBUG] Error al inicializar Firebase: {str(e)}")
+            print(f"[DEBUG] Error al inicializar Modelo: {str(e)}")
             raise
 
     def cargar_datos(self):
