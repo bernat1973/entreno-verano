@@ -221,6 +221,7 @@ def descargar_pdf():
         hoy = date.today()
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
         texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
+        output_path = f"static/progreso_{modelo.nombre}.pdf"  # Corregida indentación
         pdf_path = generar_pdf_progreso(texto_resumen, imagen_ranking, estadisticas)
         return send_file(pdf_path, as_attachment=True, download_name='progreso_semanal.pdf', mimetype='application/pdf')
     except Exception as e:
@@ -228,16 +229,3 @@ def descargar_pdf():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
-        output_path = f"static/progreso_{modelo.nombre}.pdf"
-        try:
-            generar_pdf_progreso(modelo, fecha_inicio, fecha_fin, output_path)
-            mensaje = "PDF generado correctamente."
-            return send_file(output_path, as_attachment=True)
-        except Exception as e:
-            mensaje = f"Error al generar PDF: {e}"
-    return render_template('informe_pdf.html', mensaje=mensaje)
-
-if __name__ == '__main__':
-    port = int(os.getenv('PORT', 10000))  # Usa PORT de Render, por defecto 10000
-    app.run(host='0.0.0.0', port=port, debug=True)
-
