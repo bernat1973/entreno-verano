@@ -92,7 +92,7 @@
                 <form action="{{ url_for('nuevo_usuario') }}" method="post">
                     <div class="mb-3">
                         <label for="nuevo_usuario" class="form-label">Nombre del Nuevo Usuario</label>
-                        <input type="type" name="nuevo_usuario" id="nuevo_usuario" class="form-control" required> <!-- Corrección: type="text" -->
+                        <input type="text" name="nuevo_usuario" id="nuevo_usuario" class="form-control" required>
                     </div>
                     <button type="submit" class="btn btn-success">Crear Usuario</button>
                 </form>
@@ -110,19 +110,28 @@
             event.preventDefault(); // Evitar envío tradicional del formulario
             var form = document.getElementById('cambiarUsuarioForm');
             var formData = new FormData(form);
+            var usuario = formData.get('usuario');
 
+            console.log("[DEBUG] Enviando cambio a usuario:", usuario); // Depuración en consola
             fetch('/cambiar_usuario', {
                 method: 'POST',
                 body: new URLSearchParams(formData)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Respuesta no válida');
+                return response.json();
+            })
             .then(data => {
+                console.log("[DEBUG] Respuesta del servidor:", data); // Depuración en consola
                 alert(data.message);
                 if (data.success) {
                     location.reload(); // Recargar la página para reflejar los nuevos datos
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al cambiar usuario');
+            });
         }
     </script>
 </body>
