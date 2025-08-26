@@ -65,10 +65,11 @@ class Modelo:
 
     def cargar_datos(self):
         try:
+            print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
             # Cargar usuario actual desde config/app
             config_ref = self.db.collection('config').document('app')
             config = config_ref.get().to_dict() or {}
-            self.user_id = config.get('usuario_actual', None)
+            self.user_id = config.get('usuario_actual', self.user_id)
             if not self.user_id:
                 print("[DEBUG] No hay usuario actual en config/app")
                 return
@@ -87,9 +88,9 @@ class Modelo:
             self.historial_semanal = user_data.get('historial_semanal', [])
             self.record_puntos = user_data.get('record_puntos', 0)
             self.mensaje = user_data.get('mensaje', '')
-            print(f"[DEBUG] Datos cargados para usuario {self.user_id}: ejercicios_type={self.ejercicios_type}")
+            print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
         except Exception as e:
-            print(f"[DEBUG] Error al cargar datos: {str(e)}")
+            print(f"[DEBUG] Error al cargar datos para {self.user_id}: {str(e)}")
 
     def guardar_datos(self):
         try:
@@ -139,14 +140,15 @@ class Modelo:
             if not user_id or user_id not in self.get_usuarios():
                 print(f"[DEBUG] Usuario {user_id} no encontrado o inválido")
                 return False
-            self.user_id = user_id
-            self.cargar_datos()
-            print(f"[DEBUG] Cambio a usuario {self.user_id} realizado, ejercicios_type={self.ejercicios_type}")
+            self.user_id = user_id  # Asegurar que se actualiza antes de cargar datos
+            self.cargar_datos()     # Recargar datos del nuevo usuario
+            print(f"[DEBUG] Cambio a usuario {self.user_id} realizado, nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
             config_ref = self.db.collection('config').document('app')
             config_ref.set({'usuario_actual': self.user_id}, merge=True)
+            print(f"[DEBUG] usuario_actual actualizado a {self.user_id} en config/app")
             return True
         except Exception as e:
-            print(f"[DEBUG] Error al cambiar usuario: {str(e)}")
+            print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
             return False
 
     def registrar_km(self, fecha, km):
