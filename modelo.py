@@ -24,9 +24,6 @@ class Modelo:
                 raise ValueError("FIREBASE_PRIVATE_KEY no está configurado")
 
             # Inicializar Firebase con las credenciales
-            # FIREBASE_PROJECT_ID debe ser 'entreno-verano'
-            # FIREBASE_CLIENT_EMAIL debe ser '676828316643-compute@developer.gserviceaccount.com'
-            # FIREBASE_PRIVATE_KEY debe ser la clave privada del archivo JSON de Firebase
             try:
                 cred = credentials.Certificate({
                     "type": "service_account",
@@ -46,8 +43,6 @@ class Modelo:
             print(f"[DEBUG] Firebase inicializado, projectId detectado: {app_project_id}")
             if app_project_id != 'entreno-verano':
                 print(f"[WARNING] Proyecto Firebase esperado: 'entreno-verano', encontrado: {app_project_id}")
-                # No lanzar excepción, permitir que la aplicación continúe
-                # raise ValueError(f"Proyecto Firebase incorrecto: {app_project_id}. Se esperaba 'entreno-verano'.")
 
             self.use_auth = use_auth
             self.nombre = ""
@@ -139,8 +134,20 @@ class Modelo:
         self.guardar_datos()
 
     def cambiar_usuario(self, user_id):
-        self.user_id = user_id
-        self.cargar_datos()
+        try:
+            print(f"[DEBUG] Intentando cambiar a usuario: {user_id}")
+            if not user_id or user_id not in self.get_usuarios():
+                print(f"[DEBUG] Usuario {user_id} no encontrado o inválido")
+                return False
+            self.user_id = user_id
+            self.cargar_datos()
+            print(f"[DEBUG] Cambio a usuario {self.user_id} realizado, ejercicios_type={self.ejercicios_type}")
+            config_ref = self.db.collection('config').document('app')
+            config_ref.set({'usuario_actual': self.user_id}, merge=True)
+            return True
+        except Exception as e:
+            print(f"[DEBUG] Error al cambiar usuario: {str(e)}")
+            return False
 
     def registrar_km(self, fecha, km):
         self.km_corridos[fecha] = km
