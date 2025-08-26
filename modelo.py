@@ -64,23 +64,16 @@ class Modelo:
             raise
 
     def cargar_datos(self):
-        """Carga los datos del usuario_actual desde Firestore."""
+        """Carga los datos del usuario_actual desde Firestore usando el self.user_id actual."""
         try:
             print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
-            # Cargar usuario actual desde config/app
-            config_ref = self.db.collection('config').document('app')
-            config = config_ref.get()
-            if config.exists:
-                self.user_id = config.to_dict().get('usuario_actual', self.user_id)
-            else:
-                self.user_id = 'Juan'  # Valor por defecto si no existe config/app
-                config_ref.set({'usuario_actual': self.user_id})
-
             if not self.user_id:
-                print("[DEBUG] No hay usuario actual en config/app, usando user_id inicial")
-                return
+                print("[DEBUG] self.user_id no está definido, usando 'Juan' como predeterminado")
+                self.user_id = 'Juan'
+                config_ref = self.db.collection('config').document('app')
+                config_ref.set({'usuario_actual': self.user_id}, merge=True)
 
-            # Cargar datos del usuario
+            # Cargar datos del usuario usando el self.user_id actual
             user_ref = self.db.collection('usuarios').document(self.user_id)
             user_data = user_ref.get()
             if user_data.exists:
@@ -104,6 +97,7 @@ class Modelo:
                 self.guardar_datos()
         except Exception as e:
             print(f"[DEBUG] Error al cargar datos para {self.user_id}: {str(e)}")
+            raise
 
     def guardar_datos(self):
         """Guarda los datos actuales del usuario en Firestore."""
@@ -129,6 +123,7 @@ class Modelo:
             print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
         except Exception as e:
             print(f"[DEBUG] Error al guardar datos: {str(e)}")
+            raise
 
     def nuevo_usuario(self, nombre, uid=None):
         """Crea un nuevo usuario con los datos iniciales."""
@@ -154,15 +149,18 @@ class Modelo:
         try:
             print(f"[DEBUG] Intentando cambiar a usuario: {user_id}")
             if not user_id or user_id not in self.get_usuarios():
-                print(f"[DEBUG] Usuario {user_id} no encontrado o inválido")
+                print(f"[DEBUG] Usuario {user_id} no encontrado o inválido. Usuarios disponibles: {self.get_usuarios()}")
                 raise ValueError(f"Usuario '{user_id}' no encontrado en la lista: {self.get_usuarios()}")
 
             old_user_id = self.user_id
             self.user_id = user_id  # Actualizar user_id antes de recargar
-            self.cargar_datos()     # Recargar datos del nuevo usuario
+            print(f"[DEBUG] user_id actualizado a {self.user_id} antes de cargar datos")
+
+            self.cargar_datos()  # Recargar datos del nuevo usuario
+            print(f"[DEBUG] Datos recargados para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
 
             if self.user_id != old_user_id:
-                print(f"[DEBUG] Cambio a usuario {self.user_id} realizado, nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
+                print(f"[DEBUG] Cambio a usuario {self.user_id} realizado exitosamente")
                 self.guardar_datos()  # Asegurar que los datos se guarden después del cambio
             else:
                 print(f"[DEBUG] No se realizó cambio, user_id sigue siendo {self.user_id}")
@@ -170,7 +168,7 @@ class Modelo:
         except Exception as e:
             print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
             self.user_id = old_user_id if 'old_user_id' in locals() else self.user_id
-            return False
+            raise  # Re-lanzar la excepción para que se capture en app.py
 
     def registrar_km(self, fecha, km):
         """Registra los kilómetros corridos para un día específico."""
