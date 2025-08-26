@@ -5,7 +5,7 @@ from ejercicios import Ejercicios
 from generar_pdf import generar_pdf_progreso
 
 app = Flask(__name__)
-modelo = Modelo('entreno_verano.json')  # Usar archivo de credenciales
+modelo = Modelo('entreno_verano.json')
 ejercicios = Ejercicios(modelo)
 
 @app.template_filter('datetimeformat')
@@ -77,12 +77,17 @@ def cambiar_usuario():
         nombre_usuario = request.form['usuario'].strip()
         if not nombre_usuario:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="Selecciona un usuario.", semana_actual=semana_actual, usuarios=usuarios)
+        if nombre_usuario not in usuarios:
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Usuario '{nombre_usuario}' no encontrado en la lista: {usuarios}", semana_actual=semana_actual, usuarios=usuarios)
         if modelo.cambiar_usuario(nombre_usuario):
+            modelo.guardar_datos()  # Asegurar que los datos se guarden tras el cambio
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
         else:
-            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Usuario '{nombre_usuario}' no encontrado.", semana_actual=semana_actual, usuarios=usuarios)
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error al cambiar a usuario '{nombre_usuario}'. Verifica los datos.", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
-        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error: {str(e)}", semana_actual=semana_actual, usuarios=usuarios)
+    except Exception as e:
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error inesperado: {str(e)}", semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/nuevo_usuario', methods=['POST'])
 def nuevo_usuario():
@@ -298,5 +303,5 @@ def informe_pdf():
     return render_template('informe_pdf.html', mensaje=mensaje, semana_actual=semana_actual)
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 10000))  # Usa PORT de Render, por defecto 10000
+    port = int(os.getenv('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=True)
