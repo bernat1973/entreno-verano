@@ -5,8 +5,8 @@ from ejercicios import Ejercicios
 from generar_pdf import generar_pdf_progreso
 
 app = Flask(__name__)
-modelo = Modelo()  # Usa Firestore. Cambia a Modelo(use_auth=True) si usas Firebase Authentication
-ejercicios = Ejercicios(modelo)  # Inicialización inicial
+modelo = Modelo('entreno_verano.json')
+ejercicios = Ejercicios(modelo)
 
 @app.template_filter('datetimeformat')
 def datetimeformat(value, format='%Y-%m-%d'):
@@ -38,14 +38,12 @@ def index():
 
 @app.route('/datos_personales', methods=['GET', 'POST'])
 def datos_personales():
-    global ejercicios  # Necesario para actualizar la instancia global
     semana_ano = str(datetime.now().isocalendar()[1])
     hoy = date.today()
     inicio_semana = hoy - timedelta(days=hoy.weekday())
     fin_semana = inicio_semana + timedelta(days=6)
     semana_actual = f"Semana {semana_ano}: del {inicio_semana.strftime('%d/%m/%Y')} al {fin_semana.strftime('%d/%m/%Y')}"
     usuarios = modelo.get_usuarios()
-    print(f"[DEBUG] Usuarios enviados a datos_personales.html: {usuarios}")
     if request.method == 'POST':
         try:
             nombre = request.form['nombre'].strip()
@@ -53,7 +51,6 @@ def datos_personales():
             estatura = float(request.form.get('estatura', 0))
             meta_km = float(request.form.get('meta_km', 0))
             ejercicios_type = request.form.get('ejercicios_type', 'bodyweight')
-            uid = None  # Reemplaza con request.form.get('uid') si usas Authentication
             if not nombre:
                 return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
             if peso < 0 or estatura < 0 or meta_km < 0:
@@ -64,16 +61,31 @@ def datos_personales():
             modelo.meta_km[semana_ano] = meta_km
             modelo.ejercicios_type = ejercicios_type
             modelo.guardar_datos()
-            ejercicios = Ejercicios(modelo)  # Reinstanciar Ejercicios con el nuevo tipo
-            print(f"[DEBUG] Datos guardados para {nombre}: ejercicios_type={ejercicios_type}")
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje="¡Datos guardados correctamente!", semana_actual=semana_actual, usuarios=usuarios)
         except ValueError as e:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
     return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, semana_actual=semana_actual, usuarios=usuarios)
 
+@app.route('/cambiar_usuario', methods=['POST'])
+def cambiar_usuario():
+    semana_ano = str(datetime.now().isocalendar()[1])
+    hoy = date.today()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())
+    fin_semana = inicio_semana + timedelta(days=6)
+    semana_actual = f"Semana {semana_ano}: del {inicio_semana.strftime('%d/%m/%Y')} al {fin_semana.strftime('%d/%m/%Y')}"
+    usuarios = modelo.get_usuarios()
+    try:
+        nuevo_usuario = request.form['usuario'].strip()
+        if not nuevo_usuario:
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
+        modelo.nuevo_usuario(nuevo_usuario)
+        modelo.guardar_datos()
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Usuario '{nuevo_usuario}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios)
+    except ValueError as e:
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
+
 @app.route('/nuevo_usuario', methods=['POST'])
 def nuevo_usuario():
-    global ejercicios
     semana_ano = str(datetime.now().isocalendar()[1])
     hoy = date.today()
     inicio_semana = hoy - timedelta(days=hoy.weekday())
@@ -82,20 +94,16 @@ def nuevo_usuario():
     usuarios = modelo.get_usuarios()
     try:
         nuevo_nombre = request.form.get('nuevo_usuario').strip()
-        uid = None  # Reemplaza con request.form.get('uid') si usas Authentication
         if not nuevo_nombre:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios)
-        modelo.nuevo_usuario(nuevo_nombre, uid=uid)
-        modelo.cargar_datos()  # Recargar para asegurar que el nuevo usuario esté activo
-        ejercicios = Ejercicios(modelo)  # Reinstanciar Ejercicios
-        print(f"[DEBUG] Nuevo usuario creado: {nuevo_nombre}, ejercicios_type={modelo.ejercicios_type}")
+        modelo.nuevo_usuario(nuevo_nombre)
+        modelo.guardar_datos()
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Usuario '{nuevo_nombre}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios)
-    except ValueError as e:
-        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
+        except ValueError as e:
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/cambiar_usuario', methods=['POST'])
 def cambiar_usuario():
-    global ejercicios
     semana_ano = str(datetime.now().isocalendar()[1])
     hoy = date.today()
     inicio_semana = hoy - timedelta(days=hoy.weekday())
@@ -103,15 +111,13 @@ def cambiar_usuario():
     semana_actual = f"Semana {semana_ano}: del {inicio_semana.strftime('%d/%m/%Y')} al {fin_semana.strftime('%d/%m/%Y')}"
     usuarios = modelo.get_usuarios()
     try:
-        user_id = request.form.get('usuario').strip()
-        if not user_id:
+        nombre_usuario = request.form['usuario'].strip()
+        if not nombre_usuario:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="Selecciona un usuario.", semana_actual=semana_actual, usuarios=usuarios)
-        modelo.cambiar_usuario(user_id)
-        ejercicios = Ejercicios(modelo)  # Reinstanciar Ejercicios
-        print(f"[DEBUG] Cambiado a usuario {modelo.nombre} con ejercicios_type={modelo.ejercicios_type}")
-        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{modelo.nombre}'!", semana_actual=semana_actual, usuarios=usuarios)
-    except ValueError as e:
-        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
+        modelo.cambiar_usuario(nombre_usuario)
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
+        except ValueError as e:
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/entreno', methods=['GET', 'POST'])
 def entreno():
@@ -120,7 +126,7 @@ def entreno():
             fecha_str = request.form.get('fecha')
             ejercicios_seleccionados = request.form.getlist('ejercicios')
             if not fecha_str:
-                return render_template('entreno.html', error="Selecciona una fecha válida.", fecha=date.today().strftime('%Y-%m-%d'), ejercicios=[], puntos_totales=0, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=date.today().strftime('%Y-%m-%d'), fecha_siguiente=date.today().strftime('%Y-%m-%d'), ejercicios_type=modelo.ejercicios_type)
+                return render_template('entreno.html', error="Selecciona una fecha válida.", fecha=date.today().strftime('%Y-%m-%d'), ejercicios=[], puntos_totales=0, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=date.today().strftime('%Y-%m-%d'), fecha_siguiente=date.today().strftime('%Y-%m-%d'))
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
             fecha_str = fecha.strftime('%Y-%m-%d')
             ejercicios_dia = ejercicios.get_ejercicios_dia(fecha, modelo.historial_semanal)
@@ -129,8 +135,7 @@ def entreno():
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             fecha_anterior = (fecha - timedelta(days=1)).strftime('%Y-%m-%d')
             fecha_siguiente = (fecha + timedelta(days=1)).strftime('%Y-%m-%d')
-            print(f"[DEBUG] Entreno POST: fecha={fecha_str}, ejercicios_dia={ejercicios_dia}, puntos_totales={puntos_totales}, ejercicios_type={modelo.ejercicios_type}")
-            return render_template('entreno.html', mensaje="¡Ejercicios guardados correctamente!", fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente, ejercicios_type=modelo.ejercicios_type)
+            return render_template('entreno.html', mensaje="¡Ejercicios guardados correctamente!", fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente)
         else:
             fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date() if fecha_str else date.today()
@@ -139,13 +144,11 @@ def entreno():
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             fecha_anterior = (fecha - timedelta(days=1)).strftime('%Y-%m-%d')
             fecha_siguiente = (fecha + timedelta(days=1)).strftime('%Y-%m-%d')
-            print(f"[DEBUG] Entreno GET: fecha={fecha_str}, ejercicios_dia={ejercicios_dia}, puntos_totales={puntos_totales}, ejercicios_type={modelo.ejercicios_type}")
-            return render_template('entreno.html', fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente, ejercicios_type=modelo.ejercicios_type)
-    except Exception as e:
-        fecha_anterior = date.today().strftime('%Y-%m-%d')
-        fecha_siguiente = date.today().strftime('%Y-%m-%d')
-        print(f"[DEBUG] Error en entreno: {str(e)}")
-        return render_template('entreno.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'), ejercicios=None, puntos_totales=0, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente, ejercicios_type=modelo.ejercicios_type)
+            return render_template('entreno.html', fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente)
+        except Exception as e:
+            fecha_anterior = date.today().strftime('%Y-%m-%d')
+            fecha_siguiente = date.today().strftime('%Y-%m-%d')
+            return render_template('entreno.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'), ejercicios=None, puntos_totales=0, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente)
 
 @app.route('/correr', methods=['GET', 'POST'])
 def correr():
@@ -255,10 +258,8 @@ def progreso():
                 'completados': completados_semana,
                 'totales': totales_semana
             })
-        print(f"[DEBUG] Progreso: puntos={puntos}, ranking={ranking}, ejercicios_type={modelo.ejercicios_type}")
         return render_template('progreso.html', puntos=puntos, km=km, completados=completados, totales=totales, fecha=fecha_str, recompensas=recompensas, ranking=ranking, imagen_ranking=imagen_ranking, record_puntos=record_puntos, estadisticas=estadisticas, semanas_puntos=semanas_puntos, semanas_km=semanas_km, semanas_totales_completados=semanas_totales_completados)
     except Exception as e:
-        print(f"[DEBUG] Error en progreso: {str(e)}")
         return render_template('progreso.html', error=f"Error: {str(e)}", puntos=0, km=0, completados=0, totales=0, fecha=date.today().strftime('%Y-%m-%d'), recompensas=[], ranking="Sin ranking", imagen_ranking="", record_puntos=0, estadisticas={}, semanas_puntos=[], semanas_km=[], semanas_totales_completados=[])
 
 @app.route('/resumen', methods=['GET'])
@@ -268,10 +269,8 @@ def resumen():
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, fecha, ejercicios.get_puntos)
         texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(fecha.isocalendar()[1]), 0))
-        print(f"[DEBUG] Resumen: puntos={puntos}, ranking={ranking}, ejercicios_type={modelo.ejercicios_type}")
         return render_template('resumen.html', texto_resumen=texto_resumen, fecha=fecha_str, puntos=puntos, ranking=ranking, imagen_ranking=imagen_ranking, record_puntos=record_puntos, recompensas=recompensas)
     except Exception as e:
-        print(f"[DEBUG] Error en resumen: {str(e)}")
         return render_template('resumen.html', error=f"Error: {str(e)}", texto_resumen="Error al generar el resumen.", fecha=date.today().strftime('%Y-%m-%d'), puntos=0, ranking="Sin ranking", imagen_ranking="", record_puntos=0, recompensas=[])
 
 @app.route('/informe_pdf', methods=['GET', 'POST'])
@@ -290,4 +289,5 @@ def informe_pdf():
     return render_template('informe_pdf.html', mensaje=mensaje)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.getenv('PORT', 10000))  # Usa PORT de Render, por defecto 10000
+    app.run(host='0.0.0.0', port=port, debug=True)
