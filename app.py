@@ -82,12 +82,12 @@ def cambiar_usuario():
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Usuario '{nombre_usuario}' no encontrado en la lista: {usuarios}", semana_actual=semana_actual, usuarios=usuarios)
         success = modelo.cambiar_usuario(nombre_usuario)
         if success:
-            modelo.guardar_datos()  # Asegura que los datos del nuevo usuario se guarden
+            # Forzar recarga con los datos actualizados
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
         else:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error al cambiar a usuario '{nombre_usuario}'.", semana_actual=semana_actual, usuarios=usuarios)
     except Exception as e:
-        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error inesperado: {str(e)}", semana_actual=semana_actual, usuarios=usuarios)
+        return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error al cambiar usuario: {str(e)}", semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/nuevo_usuario', methods=['POST'])
 def nuevo_usuario():
@@ -104,7 +104,6 @@ def nuevo_usuario():
         if nuevo_nombre in usuarios:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El usuario ya existe.", semana_actual=semana_actual, usuarios=usuarios)
         modelo.nuevo_usuario(nuevo_nombre)
-        modelo.guardar_datos()
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Usuario '{nuevo_nombre}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios)
     except ValueError as e:
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios)
@@ -183,92 +182,52 @@ def correr():
                         'fin_semana': semana_fin.strftime('%Y-%m-%d'),
                         'km': round(km_semana, 2)
                     })
-                return render_template('correr.html', mensaje="¡Kilómetros registrados correctamente!", fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
+                return render_template('correr.html', mensaje="¡Kilómetros registrados!", fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
             elif accion == 'eliminar':
-                fecha_eliminar = request.form.get('fecha_eliminar')
-                modelo.eliminar_km(fecha_eliminar)
-                km_por_dia = modelo.km_corridos
-                km_dia = modelo.km_corridos.get(fecha_str, 0.0)
-                km_semanal = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))
-                semanas = []
-                for i in range(-1, 3):
-                    semana_inicio = inicio_semana + timedelta(days=i*7)
-                    semana_fin = semana_inicio + timedelta(days=6)
-                    km_semana = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
-                    semanas.append({
-                        'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
-                        'fin_semana': semana_fin.strftime('%Y-%m-%d'),
-                        'km': round(km_semana, 2)
-                    })
-                return render_template('correr.html', mensaje="Registro eliminado correctamente.", fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
+                if fecha_str in modelo.km_corridos:
+                    del modelo.km_corridos[fecha_str]
+                    modelo.guardar_datos()
+                    km_dia = 0.0
+                    km_por_dia = modelo.km_corridos
+                    km_semanal = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))
+                    semanas = []
+                    for i in range(-1, 3):
+                        semana_inicio = inicio_semana + timedelta(days=i*7)
+                        semana_fin = semana_inicio + timedelta(days=6)
+                        km_semana = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
+                        semanas.append({
+                            'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
+                            'fin_semana': semana_fin.strftime('%Y-%m-%d'),
+                            'km': round(km_semana, 2)
+                        })
+                    return render_template('correr.html', mensaje="¡Kilómetros eliminados!", fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
         return render_template('correr.html', fecha=fecha_str, km_semanal=km_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, km_dia=km_dia)
     except Exception as e:
-        return render_template('correr.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'), km_semanal=0, meta_km=0, semanas=[], km_por_dia={}, km_dia=0)
-
-@app.route('/anadir_ejercicio', methods=['GET', 'POST'])
-def anadir_ejercicio():
-    try:
-        fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
-        if request.method == 'POST':
-            ejercicio = request.form['ejercicio'].strip()
-            fecha_str = request.form.get('fecha', date.today().strftime('%Y-%m-%d'))
-            if not ejercicio:
-                return render_template('anadir_ejercicio.html', error="El ejercicio no puede estar vacío.", fecha=fecha_str)
-            modelo.anadir_ejercicio_personalizado(fecha_str, ejercicio)
-            return redirect(url_for('entreno', fecha=fecha_str))
-        return render_template('anadir_ejercicio.html', fecha=fecha_str)
-    except Exception as e:
-        return render_template('anadir_ejercicio.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'))
-
-@app.route('/progreso', methods=['GET'])
-def progreso():
-    try:
-        fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
-        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, fecha, ejercicios.get_puntos)
-        semanas_puntos = []
-        semanas_km = []
-        semanas_totales_completados = []
-        inicio_semana = fecha - timedelta(days=fecha.weekday())
-        for i in range(-1, 3):
-            semana_inicio = inicio_semana + timedelta(days=i*7)
-            semana_fin = semana_inicio + timedelta(days=6)
-            puntos_semana, km_semana, completados_semana, totales_semana, _, _, _, _, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
-            semanas_puntos.append({
-                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
-                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
-                'puntos': puntos_semana
-            })
-            semanas_km.append({
-                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
-                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
-                'km': round(km_semana, 2)
-            })
-            semanas_totales_completados.append({
-                'completados': completados_semana,
-                'totales': totales_semana
-            })
-        return render_template('progreso.html', puntos=puntos, km=km, completados=completados, totales=totales, fecha=fecha_str, recompensas=recompensas, ranking=ranking, imagen_ranking=imagen_ranking, record_puntos=record_puntos, estadisticas=estadisticas, semanas_puntos=semanas_puntos, semanas_km=semanas_km, semanas_totales_completados=semanas_totales_completados)
-    except Exception as e:
-        return render_template('progreso.html', error=f"Error: {str(e)}", puntos=0, km=0, completados=0, totales=0, fecha=date.today().strftime('%Y-%m-%d'), recompensas=[], ranking="Sin ranking", imagen_ranking="", record_puntos=0, estadisticas={}, semanas_puntos=[], semanas_km=[], semanas_totales_completados=[])
+        return render_template('correr.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'), km_semanal=0.0, meta_km=0.0, semanas=[], km_por_dia={}, km_dia=0.0)
 
 @app.route('/resumen', methods=['GET'])
 def resumen():
     try:
-        fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
-        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, fecha, ejercicios.get_puntos)
-        texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(fecha.isocalendar()[1]), 0))
-        return render_template('resumen.html', texto_resumen=texto_resumen, fecha=fecha_str, puntos=puntos, ranking=ranking, imagen_ranking=imagen_ranking, record_puntos=record_puntos, recompensas=recompensas)
+        hoy = date.today()
+        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
+        texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
+        return render_template('resumen.html', resumen=texto_resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas)
     except Exception as e:
-        return render_template('resumen.html', error=f"Error: {str(e)}", texto_resumen="Error al generar el resumen.", fecha=date.today().strftime('%Y-%m-%d'), puntos=0, ranking="Sin ranking", imagen_ranking="", record_puntos=0, recompensas=[])
+        return render_template('resumen.html', error=f"Error al generar resumen: {str(e)}", resumen="", imagen_ranking="", estadisticas={})
 
-@app.route('/informe_pdf', methods=['GET', 'POST'])
-def informe_pdf():
-    mensaje = None
-    if request.method == 'POST':
-        fecha_inicio = request.form.get('fecha_inicio')
-        fecha_fin = request.form.get('fecha_fin')
+@app.route('/descargar_pdf', methods=['GET'])
+def descargar_pdf():
+    try:
+        hoy = date.today()
+        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
+        texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
+        pdf_path = generar_pdf_progreso(texto_resumen, imagen_ranking, estadisticas)
+        return send_file(pdf_path, as_attachment=True, download_name='progreso_semanal.pdf', mimetype='application/pdf')
+    except Exception as e:
+        return render_template('resumen.html', error=f"Error al generar PDF: {str(e)}", resumen="", imagen_ranking="", estadisticas={})
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=10000)
         output_path = f"static/progreso_{modelo.nombre}.pdf"
         try:
             generar_pdf_progreso(modelo, fecha_inicio, fecha_fin, output_path)
