@@ -38,7 +38,7 @@ class Modelo:
                 print(f"[DEBUG] Error al inicializar credenciales de Firebase: {str(e)}")
                 raise ValueError(f"Fallo al inicializar Firebase: {str(e)}")
 
-            # Verificar ID del proyecto (opcional, para depuración)
+            # Verificar ID del proyecto
             app_project_id = firebase_admin.get_app().options.get('projectId')
             print(f"[DEBUG] Firebase inicializado, projectId detectado: {app_project_id}")
             if app_project_id != 'entreno-verano':
@@ -71,7 +71,7 @@ class Modelo:
             config = config_ref.get().to_dict() or {}
             self.user_id = config.get('usuario_actual', self.user_id)
             if not self.user_id:
-                print("[DEBUG] No hay usuario actual en config/app")
+                print("[DEBUG] No hay usuario actual en config/app, usando user_id inicial")
                 return
             # Cargar datos del usuario
             user_ref = self.db.collection('usuarios').document(self.user_id)
@@ -140,13 +140,17 @@ class Modelo:
             if not user_id or user_id not in self.get_usuarios():
                 print(f"[DEBUG] Usuario {user_id} no encontrado o inválido")
                 return False
-            self.user_id = user_id  # Asegurar que se actualiza antes de cargar datos
+            old_user_id = self.user_id
+            self.user_id = user_id  # Actualizar user_id antes de cargar datos
             self.cargar_datos()     # Recargar datos del nuevo usuario
-            print(f"[DEBUG] Cambio a usuario {self.user_id} realizado, nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
-            config_ref = self.db.collection('config').document('app')
-            config_ref.set({'usuario_actual': self.user_id}, merge=True)
-            print(f"[DEBUG] usuario_actual actualizado a {self.user_id} en config/app")
-            return True
+            if self.user_id != old_user_id:
+                print(f"[DEBUG] Cambio a usuario {self.user_id} realizado, nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
+                config_ref = self.db.collection('config').document('app')
+                config_ref.set({'usuario_actual': self.user_id}, merge=True)
+                print(f"[DEBUG] usuario_actual actualizado a {self.user_id} en config/app")
+            else:
+                print(f"[DEBUG] No se realizó cambio, user_id sigue siendo {self.user_id}")
+            return self.user_id != old_user_id
         except Exception as e:
             print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
             return False
