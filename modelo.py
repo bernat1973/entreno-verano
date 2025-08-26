@@ -64,35 +64,49 @@ class Modelo:
             raise
 
     def cargar_datos(self):
+        """Carga los datos del usuario_actual desde Firestore."""
         try:
             print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
             # Cargar usuario actual desde config/app
             config_ref = self.db.collection('config').document('app')
-            config = config_ref.get().to_dict() or {}
-            self.user_id = config.get('usuario_actual', self.user_id)
+            config = config_ref.get()
+            if config.exists:
+                self.user_id = config.to_dict().get('usuario_actual', self.user_id)
+            else:
+                self.user_id = 'Juan'  # Valor por defecto si no existe config/app
+                config_ref.set({'usuario_actual': self.user_id})
+
             if not self.user_id:
                 print("[DEBUG] No hay usuario actual en config/app, usando user_id inicial")
                 return
+
             # Cargar datos del usuario
             user_ref = self.db.collection('usuarios').document(self.user_id)
-            user_data = user_ref.get().to_dict() or {}
-            self.nombre = user_data.get('nombre', '')
-            self.peso = user_data.get('peso', 0.0)
-            self.estatura = user_data.get('estatura', 0.0)
-            self.meta_km = user_data.get('meta_km', {})
-            self.ejercicios_type = user_data.get('ejercicios_type', 'bodyweight')
-            self.km_corridos = user_data.get('km_corridos', {})
-            self.ejercicios_completados = user_data.get('ejercicios_completados', {})
-            self.ejercicios_personalizados = user_data.get('ejercicios_personalizados', [])
-            self.ejercicios_personalizados_por_fecha = user_data.get('ejercicios_personalizados_por_fecha', {})
-            self.historial_semanal = user_data.get('historial_semanal', [])
-            self.record_puntos = user_data.get('record_puntos', 0)
-            self.mensaje = user_data.get('mensaje', '')
-            print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
+            user_data = user_ref.get()
+            if user_data.exists:
+                data = user_data.to_dict()
+                self.nombre = data.get('nombre', '')
+                self.peso = data.get('peso', 0.0)
+                self.estatura = data.get('estatura', 0.0)
+                self.meta_km = data.get('meta_km', {})
+                self.ejercicios_type = data.get('ejercicios_type', 'bodyweight')
+                self.km_corridos = data.get('km_corridos', {})
+                self.ejercicios_completados = data.get('ejercicios_completados', {})
+                self.ejercicios_personalizados = data.get('ejercicios_personalizados', [])
+                self.ejercicios_personalizados_por_fecha = data.get('ejercicios_personalizados_por_fecha', {})
+                self.historial_semanal = data.get('historial_semanal', [])
+                self.record_puntos = data.get('record_puntos', 0)
+                self.mensaje = data.get('mensaje', '')
+                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
+            else:
+                print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando con valores por defecto")
+                self.nombre = self.user_id
+                self.guardar_datos()
         except Exception as e:
             print(f"[DEBUG] Error al cargar datos para {self.user_id}: {str(e)}")
 
     def guardar_datos(self):
+        """Guarda los datos actuales del usuario en Firestore."""
         try:
             user_ref = self.db.collection('usuarios').document(self.user_id)
             user_ref.set({
@@ -109,7 +123,7 @@ class Modelo:
                 'record_puntos': self.record_puntos,
                 'mensaje': self.mensaje
             })
-            # Actualizar usuario actual
+            # Actualizar usuario actual en config/app
             config_ref = self.db.collection('config').document('app')
             config_ref.set({'usuario_actual': self.user_id}, merge=True)
             print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
@@ -117,6 +131,7 @@ class Modelo:
             print(f"[DEBUG] Error al guardar datos: {str(e)}")
 
     def nuevo_usuario(self, nombre, uid=None):
+        """Crea un nuevo usuario con los datos iniciales."""
         self.user_id = nombre if not self.use_auth else uid
         if not self.user_id:
             raise ValueError("El ID de usuario no puede estar vacío")
@@ -135,41 +150,47 @@ class Modelo:
         self.guardar_datos()
 
     def cambiar_usuario(self, user_id):
+        """Cambia al usuario especificado y recarga sus datos."""
         try:
             print(f"[DEBUG] Intentando cambiar a usuario: {user_id}")
             if not user_id or user_id not in self.get_usuarios():
                 print(f"[DEBUG] Usuario {user_id} no encontrado o inválido")
-                return False
+                raise ValueError(f"Usuario '{user_id}' no encontrado en la lista: {self.get_usuarios()}")
+
             old_user_id = self.user_id
-            self.user_id = user_id  # Actualizar user_id antes de cargar datos
+            self.user_id = user_id  # Actualizar user_id antes de recargar
             self.cargar_datos()     # Recargar datos del nuevo usuario
+
             if self.user_id != old_user_id:
                 print(f"[DEBUG] Cambio a usuario {self.user_id} realizado, nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
-                config_ref = self.db.collection('config').document('app')
-                config_ref.set({'usuario_actual': self.user_id}, merge=True)
-                print(f"[DEBUG] usuario_actual actualizado a {self.user_id} en config/app")
+                self.guardar_datos()  # Asegurar que los datos se guarden después del cambio
             else:
                 print(f"[DEBUG] No se realizó cambio, user_id sigue siendo {self.user_id}")
             return self.user_id != old_user_id
         except Exception as e:
             print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
+            self.user_id = old_user_id if 'old_user_id' in locals() else self.user_id
             return False
 
     def registrar_km(self, fecha, km):
+        """Registra los kilómetros corridos para un día específico."""
         self.km_corridos[fecha] = km
         self.guardar_datos()
 
     def eliminar_km(self, fecha):
+        """Elimina los kilómetros registrados para un día específico."""
         if fecha in self.km_corridos:
             del self.km_corridos[fecha]
             self.guardar_datos()
 
     def registrar_ejercicios(self, fecha, ejercicios_dict):
+        """Registra los ejercicios completados para un día específico."""
         fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
         self.ejercicios_completados[fecha_str] = ejercicios_dict
         self.guardar_datos()
 
     def anadir_ejercicio_personalizado(self, fecha, ejercicio):
+        """Añade un ejercicio personalizado para un día específico."""
         fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
         if fecha_str not in self.ejercicios_personalizados_por_fecha:
             self.ejercicios_personalizados_por_fecha[fecha_str] = []
@@ -179,6 +200,7 @@ class Modelo:
             self.guardar_datos()
 
     def get_usuarios(self):
+        """Obtiene la lista de usuarios disponibles desde la colección 'usuarios'."""
         try:
             usuarios = [doc.id for doc in self.db.collection('usuarios').stream()]
             print(f"[DEBUG] Usuarios obtenidos: {usuarios}")
@@ -188,6 +210,7 @@ class Modelo:
             return []
 
     def evaluar_semana(self, get_ejercicios_dia, fecha, get_puntos):
+        """Evalúa el progreso de una semana."""
         try:
             inicio_semana = fecha - timedelta(days=fecha.weekday())
             fin_semana = inicio_semana + timedelta(days=6)
@@ -238,6 +261,7 @@ class Modelo:
             return 0, 0.0, 0, 0, [], "Sin ranking", "", 0, {}
 
     def generar_resumen(self, puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, meta_km):
+        """Genera un resumen textual del progreso."""
         try:
             porcentaje = (completados / totales * 100) if totales > 0 else 0
             texto = f"Resumen de la semana:\n"
