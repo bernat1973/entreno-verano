@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime, date, timedelta
 from modelo import Modelo
 from ejercicios import Ejercicios
-from generar_pdf import generar_pdf_progreso
 
 app = Flask(__name__)
 modelo = Modelo('entreno_verano.json')
@@ -82,7 +81,6 @@ def cambiar_usuario():
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Usuario '{nombre_usuario}' no encontrado en la lista: {usuarios}", semana_actual=semana_actual, usuarios=usuarios)
         success = modelo.cambiar_usuario(nombre_usuario)
         if success:
-            # Forzar recarga con los datos actualizados
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
         else:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error al cambiar a usuario '{nombre_usuario}'.", semana_actual=semana_actual, usuarios=usuarios)
@@ -119,25 +117,46 @@ def entreno():
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
             fecha_str = fecha.strftime('%Y-%m-%d')
             ejercicios_dia = ejercicios.get_ejercicios_dia(fecha, modelo.historial_semanal)
+            if ejercicios_dia is None or not ejercicios_dia:
+                print(f"[DEBUG] Advertencia: No se encontraron ejercicios para la fecha {fecha_str}. Usando lista vacía.")
+                ejercicios_dia = []
             ejercicios_dict = {ejercicios.get_base_exercise_name(ej): (ej in ejercicios_seleccionados) for ej in ejercicios_dia}
             modelo.registrar_ejercicios(fecha, ejercicios_dict)
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             fecha_anterior = (fecha - timedelta(days=1)).strftime('%Y-%m-%d')
             fecha_siguiente = (fecha + timedelta(days=1)).strftime('%Y-%m-%d')
-            return render_template('entreno.html', mensaje="¡Ejercicios guardados correctamente!", fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente)
+            return render_template('entreno.html', mensaje="¡Ejercicios guardados correctamente!", fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente, ejercicios_type=modelo.ejercicios_type)
         else:
             fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date() if fecha_str else date.today()
             fecha_str = fecha.strftime('%Y-%m-%d')
             ejercicios_dia = ejercicios.get_ejercicios_dia(fecha, modelo.historial_semanal)
+            if ejercicios_dia is None or not ejercicios_dia:
+                print(f"[DEBUG] Advertencia: No se encontraron ejercicios para la fecha {fecha_str}. Usando lista vacía.")
+                ejercicios_dia = []
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             fecha_anterior = (fecha - timedelta(days=1)).strftime('%Y-%m-%d')
             fecha_siguiente = (fecha + timedelta(days=1)).strftime('%Y-%m-%d')
-            return render_template('entreno.html', fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente)
+            return render_template('entreno.html', fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente, ejercicios_type=modelo.ejercicios_type)
     except Exception as e:
-        fecha_anterior = date.today().strftime('%Y-%m-%d')
-        fecha_siguiente = date.today().strftime('%Y-%m-%d')
-        return render_template('entreno.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'), ejercicios=None, puntos_totales=0, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente)
+        print(f"[DEBUG] Error en /entreno: {str(e)}")
+        return render_template('error.html', error=f"Error al cargar entreno: {str(e)}"), 500  # Usar una página de error genérica
+
+@app.route('/anadir_ejercicio', methods=['GET', 'POST'])
+def anadir_ejercicio():
+    try:
+        fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        if request.method == 'POST':
+            nuevo_ejercicio = request.form.get('nuevo_ejercicio').strip()
+            if nuevo_ejercicio:
+                modelo.anadir_ejercicio_personalizado(fecha, nuevo_ejercicio)
+                return redirect(url_for('entreno', fecha=fecha_str))
+            return render_template('anadir_ejercicio.html', error="El ejercicio no puede estar vacío.", fecha=fecha_str)
+        return render_template('anadir_ejercicio.html', fecha=fecha_str)
+    except Exception as e:
+        print(f"[DEBUG] Error en /anadir_ejercicio: {str(e)}")
+        return render_template('error.html', error=f"Error al añadir ejercicio: {str(e)}"), 500
 
 @app.route('/correr', methods=['GET', 'POST'])
 def correr():
@@ -211,21 +230,14 @@ def resumen():
         hoy = date.today()
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
         texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
-        return render_template('resumen.html', resumen=texto_resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas)
+        return render_template('resumen.html', resumen=texto_resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'))
     except Exception as e:
-        return render_template('resumen.html', error=f"Error al generar resumen: {str(e)}", resumen="", imagen_ranking="", estadisticas={})
+        print(f"[DEBUG] Error en /resumen: {str(e)}")
+        return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
 
-@app.route('/descargar_pdf', methods=['GET'])
-def descargar_pdf():
-    try:
-        hoy = date.today()
-        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
-        texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
-        output_path = f"static/progreso_{modelo.nombre}.pdf"  # Corregida indentación
-        pdf_path = generar_pdf_progreso(texto_resumen, imagen_ranking, estadisticas)
-        return send_file(pdf_path, as_attachment=True, download_name='progreso_semanal.pdf', mimetype='application/pdf')
-    except Exception as e:
-        return render_template('resumen.html', error=f"Error al generar PDF: {str(e)}", resumen="", imagen_ranking="", estadisticas={})
+@app.route('/recompensas', methods=['GET'])
+def recompensas():
+    return redirect(url_for('resumen'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
