@@ -29,8 +29,8 @@ class Modelo:
                     "client_email": client_email,
                     "token_uri": "https://oauth2.googleapis.com/token",
                     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "client_id": "your-client-id",  # Añadir si está en el JSON original
-                    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email"
+                    "client_id": "your-client-id",  # Reemplaza con el valor real de tu archivo JSON
+                    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email"  # Reemplaza con el valor real
                 })
                 firebase_admin.initialize_app(cred)
                 self.db = firestore.client()
@@ -232,14 +232,13 @@ class Modelo:
             meta_km = self.meta_km.get(str(semana_ano), 0.0)
             recompensas = []
             if km >= meta_km and meta_km > 0:
-                recompensas.append("¡Cumpliste tu meta de km!")
+                recompensas.append("¡Meta de km alcanzada!")
             if puntos > self.record_puntos:
                 self.record_puntos = puntos
                 self.guardar_datos()
                 recompensas.append("¡Nuevo récord de puntos!")
 
-            # Asignar recompensa aleatoria según rango de puntos
-            recompensa_categoria = None
+            # Asignar recompensa según rango de puntos
             if puntos >= 150:
                 recompensa_categoria = "Semi Dios"
             elif puntos >= 100:
@@ -250,6 +249,7 @@ class Modelo:
                 recompensa_categoria = "Noob"
             else:
                 recompensa_categoria = "Looser"
+            recompensas.append(f"Recompensa: {recompensa_categoria}")
 
             # Añadir imagen de recompensa
             imagen_ranking = f"recompensas/{recompensa_categoria.lower().replace(' ', '_')}.png"
@@ -259,7 +259,7 @@ class Modelo:
                 'porcentaje_completados': (completados / totales * 100) if totales > 0 else 0,
                 'km_porcentaje': (km / meta_km * 100) if meta_km > 0 else 0
             }
-            print(f"[DEBUG] Evaluación semana {semana_ano}: puntos={puntos}, km={km}, completados={completados}, totales={totales}, ranking={ranking}")
+            print(f"[DEBUG] Evaluación semana {semana_ano}: puntos={puntos}, km={km}, completados={completados}, totales={totales}, ranking={ranking}, recompensas={recompensas}")
             return puntos, km, completados, totales, recompensas, ranking, imagen_ranking, self.record_puntos, estadisticas
         except Exception as e:
             print(f"[DEBUG] Error en evaluar_semana: {str(e)}")
