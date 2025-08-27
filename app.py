@@ -260,5 +260,9 @@ def resumen():
         print(f"[DEBUG] Error en /resumen: {str(e)}")
         return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
 
+@app.route('/recompensas', methods=['GET'])
+def redirigir_recompensas():
+    return redirect(url_for('resumen'))
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
