@@ -4,7 +4,7 @@ from datetime import date, timedelta
 import os
 
 class Modelo:
-    def __init__(self, use_auth=False):
+    def __init__(self, config_file='entreno_verano.json', use_auth=False):
         try:
             # Depurar variables de entorno
             project_id = os.getenv("FIREBASE_PROJECT_ID")
@@ -16,12 +16,8 @@ class Modelo:
             print(f"[DEBUG] Longitud de FIREBASE_PRIVATE_KEY: {len(private_key) if private_key else 0}")
 
             # Verificar que las variables existen
-            if not project_id:
-                raise ValueError("FIREBASE_PROJECT_ID no está configurado")
-            if not client_email:
-                raise ValueError("FIREBASE_CLIENT_EMAIL no está configurado")
-            if not private_key:
-                raise ValueError("FIREBASE_PRIVATE_KEY no está configurado")
+            if not all([project_id, client_email, private_key]):
+                raise ValueError("Faltan variables de entorno de Firebase (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY)")
 
             # Inicializar Firebase con las credenciales
             try:
@@ -30,7 +26,10 @@ class Modelo:
                     "project_id": project_id,
                     "private_key": private_key.replace('\\n', '\n'),
                     "client_email": client_email,
-                    "token_uri": "https://oauth2.googleapis.com/token"
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "client_id": "your-client-id",  # Añadir si está en el JSON original
+                    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email"
                 })
                 firebase_admin.initialize_app(cred)
                 self.db = firestore.client()
@@ -194,7 +193,8 @@ class Modelo:
             self.ejercicios_personalizados_por_fecha[fecha_str] = []
         if ejercicio not in self.ejercicios_personalizados_por_fecha[fecha_str]:
             self.ejercicios_personalizados_por_fecha[fecha_str].append(ejercicio)
-            self.ejercicios_personalizados.append(ejercicio)
+            if ejercicio not in self.ejercicios_personalizados:
+                self.ejercicios_personalizados.append(ejercicio)
             self.guardar_datos()
 
     def get_usuarios(self):
