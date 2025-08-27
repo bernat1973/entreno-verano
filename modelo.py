@@ -228,11 +228,11 @@ class Modelo:
                 "Looser": ["¡Anímate, looser!", "¡No te rindas!"]
             }
             recompensas_categoria = {
-                "Semidios": ["Juega 30 min más a la Play esta semana", "Elige una película para ver en familia"],
-                "Crack": ["Sal a tomar un helado", "Descansa una hora extra esta semana"],
-                "Chill": ["Toma un refresco como premio", "Escucha tu música favorita 20 min"],
-                "Noob": ["Ayuda a organizar tu habitación", "Lava los platos esta noche"],
-                "Looser": ["Recoge la mesa 2 días seguidos", "Barre el suelo esta semana"]
+                "Semidios": ["Gana un día libre de entreno", "Elige tu próxima meta especial"],
+                "Crack": ["Disfruta de un batido proteico", "Descansa con una película favorita"],
+                "Chill": ["Toma un smoothie saludable", "Escucha tu playlist de motivación"],
+                "Noob": ["Prueba un nuevo ejercicio divertido", "Gana 15 min extra de descanso"],
+                "Looser": ["¡Sigue intentándolo, recompensa sorpresa pronto!", "Elige un amigo para entrenar"]
             }
 
             semana_actual = inicio_semana.strftime('%Y-%W')
