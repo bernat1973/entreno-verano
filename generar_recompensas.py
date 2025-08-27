@@ -1,43 +1,36 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 import os
 
-def generar_imagen_recompensa(recompensa, output_path):
+def generar_imagen_recompensa(nombre_recompensa, ruta_origen, ruta_destino):
     try:
-        img = Image.new('RGB', (200, 200), (255, 255, 255))
-        draw = ImageDraw.Draw(img)
-        try:
-            font = ImageFont.truetype("arial.ttf", 20)
-        except Exception:
-            font = ImageFont.load_default()
-        if recompensa == "Crack":
-            draw.rectangle((80, 60, 120, 100), fill=(255, 215, 0))  # Copa dorada
-            draw.ellipse((70, 20, 130, 50), fill=(255, 215, 0))
-            draw.text((30, 120), "¡Crack!", font=font, fill="#000000")
-        elif recompensa == "Chill":
-            for pos in [(60, 60), (140, 60), (100, 100)]:  # Estrellas
-                draw.polygon([
-                    (pos[0], pos[1]-15), (pos[0]+5, pos[1]-5),
-                    (pos[0]+15, pos[1]-5), (pos[0]+5, pos[1]+5),
-                    (pos[0]+10, pos[1]+15), (pos[0], pos[1]+5),
-                    (pos[0]-10, pos[1]+15), (pos[0]-5, pos[1]+5),
-                    (pos[0]-15, pos[1]-5), (pos[0]-5, pos[1]-5)
-                ], fill=(255, 255, 0))
-            draw.text((30, 140), "¡Chill!", font=font, fill="#000000")
-        elif recompensa == "Looser":
-            draw.ellipse((70, 70, 130, 130), fill=(255, 223, 0))  # Círculo amarillo
-            draw.text((30, 140), "¡Looser!", font=font, fill="#000000")
-        elif recompensa == "Noob":
-            draw.ellipse((70, 50, 130, 110), fill=(220, 220, 220))  # Calavera gris
-            draw.text((10, 140), "¡Noob!", font=font, fill="#555")
-        elif recompensa == "Semi Dios":
-            draw.ellipse((60, 40, 140, 120), fill=(138, 43, 226))  # Elipse púrpura
-            draw.text((10, 140), "¡Semi Dios!", font=font, fill="#fff")
+        if os.path.exists(ruta_origen):
+            img = Image.open(ruta_origen)
+        else:
+            # Imagen de fallback si no encuentra la original
+            img = Image.new("RGB", (200, 200), (200, 200, 200))
+
+        # Redimensionar para mantener consistencia
         img = img.resize((100, 100), Image.LANCZOS)
-        img.save(output_path)
+        img.save(ruta_destino)
+
     except Exception as e:
-        print(f"Error al generar imagen para {recompensa}: {e}")
+        print(f"Error al generar imagen para {nombre_recompensa}: {e}")
+
 
 if __name__ == "__main__":
-    os.makedirs("static/recompensas", exist_ok=True)
-    for recompensa in ["Crack", "Chill", "Looser", "Noob", "Semi Dios"]:
-        generar_imagen_recompensa(recompensa, f"static/recompensas/{recompensa.lower().replace(' ', '_')}.png")
+    carpeta_origen = "static/mis_imagenes"
+    carpeta_destino = "static/recompensas"
+
+    os.makedirs(carpeta_destino, exist_ok=True)
+
+    # Lista fija de recompensas actuales
+    recompensas = ["Crack", "Chill", "Looser", "Noob", "Semidios"]
+
+    for recompensa in recompensas:
+        archivo = f"{recompensa.lower()}.png"
+        ruta_origen = os.path.join(carpeta_origen, archivo)
+        ruta_destino = os.path.join(carpeta_destino, archivo)
+
+        generar_imagen_recompensa(recompensa, ruta_origen, ruta_destino)
+
+    print("✅ Imágenes de recompensas generadas en:", carpeta_destino)
