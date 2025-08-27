@@ -1,27 +1,65 @@
-<!-- progreso.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Progreso</title>
+    <title>Progreso - Entreno Verano</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            background-color: #fff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 5px 0;
+        }
+        img {
+            max-width: 200px;
+            display: block;
+            margin: 10px auto;
+        }
+    </style>
 </head>
 <body>
     <h1>Progreso - {{ fecha }}</h1>
-    <p>Puntos: {{ puntos }}</p>
-    <p>Kilómetros: {{ km }}</p>
-    <p>Ejercicios completados: {{ completados }} / {{ totales }} ({{ estadisticas.porcentaje_completados|round(2) }}%)</p>
-    <p>Ranking: {{ ranking }}</p>
-    <p>Recompensas: {% for recompensa in recompensas %}<li>{{ recompensa }}</li>{% endfor %}</p>
-    <p>Récord de puntos: {{ record_puntos }}</p>
-    {% if imagen_ranking %}
-        <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking" style="max-width: 200px;">
-    {% else %}
-        <p>No hay imagen de ranking disponible.</p>
-    {% endif %}
-    <h2>Semanas pasadas</h2>
-    <ul>
-        {% for semana in semanas_puntos %}
-            <li>{{ semana.inicio_semana.strftime('%d/%m/%Y') }} - {{ semana.fin_semana.strftime('%d/%m/%Y') }}: {{ semana.puntos }} puntos, {{ semana.km }} km</li>
-        {% endfor %}
-    </ul>
+    <div class="section">
+        <p><strong>Puntos:</strong> {{ puntos }}</p>
+        <p><strong>Kilómetros:</strong> {{ km }}</p>
+        <p><strong>Ejercicios completados:</strong> {{ completados }} / {{ totales }} ({{ estadisticas.porcentaje_completados|round(2) }}%)</p>
+        <p><strong>Ranking:</strong> {{ ranking }}</p>
+        <p><strong>Récord de puntos:</strong> {{ record_puntos }}</p>
+        {% if imagen_ranking %}
+            <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
+        {% else %}
+            <p>No hay imagen de ranking disponible.</p>
+        {% endif %}
+        <h3>Recompensas</h3>
+        <ul>
+            {% for recompensa in recompensas %}
+                <li>{{ recompensa }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="section">
+        <h3>Semanas pasadas</h3>
+        <ul>
+            {% for semana in semanas_puntos %}
+                <li>{{ semana.inicio_semana.strftime('%d/%m/%Y') }} - {{ semana.fin_semana.strftime('%d/%m/%Y') }}: {{ semana.puntos }} puntos, {{ semana.km }} km</li>
+            {% endfor %}
+        </ul>
+    </div>
 </body>
 </html>
