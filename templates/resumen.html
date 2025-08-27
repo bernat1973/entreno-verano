@@ -83,10 +83,12 @@
         {% else %}
             <p style="text-align: center; color: #7f8c8d;">No hay imagen de ranking disponible.</p>
         {% endif %}
-        <h3>Recompensas</h3>
+        <h3>Recompensas Acumuladas</h3>
         <ul>
-            {% for recompensa in recompensas %}
-                <li>{{ recompensa | default('Sin recompensa') }}</li>
+            {% for semana, usadas in modelo.recompensas_usadas.items() %}
+                {% for recompensa in usadas %}
+                    <li>{{ recompensa }}</li>
+                {% endfor %}
             {% endfor %}
         </ul>
         <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
