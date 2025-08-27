@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import date, timedelta
 import os
+import random
 
 class Modelo:
     def __init__(self, config_file='entreno_verano.json', use_auth=False):
@@ -236,18 +237,24 @@ class Modelo:
                 self.record_puntos = puntos
                 self.guardar_datos()
                 recompensas.append("¡Nuevo récord de puntos!")
+
+            # Asignar recompensa aleatoria según rango de puntos
+            recompensa_categoria = None
             if puntos >= 150:
-                ranking = "Mega Crack"
-                imagen_ranking = "/static/mega_crack.png"
+                recompensa_categoria = "Semi Dios"
             elif puntos >= 100:
-                ranking = "Chill"
-                imagen_ranking = "/static/chill.png"
+                recompensa_categoria = "Crack"
             elif puntos >= 50:
-                ranking = "Noob"
-                imagen_ranking = "/static/noob.png"
+                recompensa_categoria = "Chill"
+            elif puntos >= 25:
+                recompensa_categoria = "Noob"
             else:
-                ranking = "Looser"
-                imagen_ranking = "/static/looser.png"
+                recompensa_categoria = "Looser"
+
+            # Añadir imagen de recompensa
+            imagen_ranking = f"recompensas/{recompensa_categoria.lower().replace(' ', '_')}.png"
+            ranking = recompensa_categoria
+
             estadisticas = {
                 'porcentaje_completados': (completados / totales * 100) if totales > 0 else 0,
                 'km_porcentaje': (km / meta_km * 100) if meta_km > 0 else 0
