@@ -81,8 +81,7 @@ def cambiar_usuario():
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Usuario '{nombre_usuario}' no encontrado en la lista: {usuarios}", semana_actual=semana_actual, usuarios=usuarios)
         success = modelo.cambiar_usuario(nombre_usuario)
         if success:
-            mensaje = f"¡Cambiado a usuario '{nombre_usuario}'!" if modelo.user_id != nombre_usuario else f"¡Datos de '{nombre_usuario}' recargados!"
-            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=mensaje, semana_actual=semana_actual, usuarios=usuarios)
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios)
         else:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error al cambiar a usuario '{nombre_usuario}'.", semana_actual=semana_actual, usuarios=usuarios)
     except Exception as e:
@@ -260,10 +259,6 @@ def resumen():
     except Exception as e:
         print(f"[DEBUG] Error en /resumen: {str(e)}")
         return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
-
-@app.route('/recompensas', methods=['GET'])
-def redirigir_recompensas():
-    return redirect(url_for('resumen'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
