@@ -140,7 +140,7 @@ def entreno():
             return render_template('entreno.html', fecha=fecha_str, ejercicios=ejercicios_dia, puntos_totales=puntos_totales, modelo=modelo, ejercicios_obj=ejercicios, fecha_anterior=fecha_anterior, fecha_siguiente=fecha_siguiente, ejercicios_type=modelo.ejercicios_type)
     except Exception as e:
         print(f"[DEBUG] Error en /entreno: {str(e)}")
-        return render_template('error.html', error=f"Error al cargar entreno: {str(e)}"), 500  # Usar una página de error genérica
+        return render_template('error.html', error=f"Error al cargar entreno: {str(e)}"), 500
 
 @app.route('/anadir_ejercicio', methods=['GET', 'POST'])
 def anadir_ejercicio():
@@ -224,13 +224,38 @@ def correr():
     except Exception as e:
         return render_template('correr.html', error=f"Error: {str(e)}", fecha=date.today().strftime('%Y-%m-%d'), km_semanal=0.0, meta_km=0.0, semanas=[], km_por_dia={}, km_dia=0.0)
 
+@app.route('/progreso', methods=['GET'])
+def progreso():
+    try:
+        hoy = date.today()
+        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
+
+        # Calcular progreso de semanas pasadas (últimas 4 semanas)
+        semanas_puntos = []
+        for i in range(-3, 1):  # Últimas 3 semanas + actual
+            semana_inicio = hoy - timedelta(days=(hoy.weekday() + 7 * (i + 1)))
+            semana_fin = semana_inicio + timedelta(days=6)
+            semana_str = semana_inicio.strftime('%Y-%m-%d')
+            p, k, _, _, _, _, _, _, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
+            semanas_puntos.append({
+                'inicio_semana': semana_inicio,
+                'fin_semana': semana_fin,
+                'puntos': p,
+                'km': k
+            })
+
+        return render_template('progreso.html', puntos=puntos, km=km, completados=completados, totales=totales, recompensas=recompensas, ranking=ranking, imagen_ranking=imagen_ranking, record_puntos=record_puntos, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), semanas_puntos=semanas_puntos)
+    except Exception as e:
+        print(f"[DEBUG] Error en /progreso: {str(e)}")
+        return render_template('error.html', error=f"Error al cargar progreso: {str(e)}"), 500
+
 @app.route('/resumen', methods=['GET'])
 def resumen():
     try:
         hoy = date.today()
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
-        texto_resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
-        return render_template('resumen.html', resumen=texto_resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'))
+        resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
+        return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), puntos=puntos, record_puntos=record_puntos, recompensas=recompensas)
     except Exception as e:
         print(f"[DEBUG] Error en /resumen: {str(e)}")
         return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
