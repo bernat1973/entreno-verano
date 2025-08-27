@@ -6,28 +6,15 @@
     <title>Progreso - Entreno Verano</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 800px;
-        }
-        .card {
-            border: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .card-header {
-            background-color: #007bff;
-            color: white;
-        }
-        .ranking-img {
-            max-width: 100px;
-            height: auto;
-        }
+        body { background-color: #f8f9fa; }
+        .container { max-width: 800px; margin-top: 20px; }
+        .card { border: none; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
+        .card-header { background-color: #007bff; color: white; }
+        .ranking-img { max-width: 100px; height: auto; }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
+    <div class="container">
         <div class="card">
             <div class="card-header">
                 <h1 class="h4 mb-0">Progreso Semanal</h1>
@@ -40,37 +27,25 @@
                     </div>
                 {% endif %}
                 <h5>Fecha: {{ fecha }}</h5>
-                <p><strong>Puntos acumulados:</strong> {{ puntos }}</p>
-                <p><strong>Kilómetros corridos:</strong> {{ km }} km</p>
-                <p><strong>Ejercicios completados:</strong> {{ completados }}/{{ totales }} ({{ estadisticas.porcentaje_completados|default(0) }}%)</p>
-                <p><strong>Ranking:</strong> {{ ranking }}</p>
+                <p><strong>Puntos acumulados esta semana:</strong> {{ puntos }}</p>
+                <p><strong>Kilómetros corridos esta semana:</strong> {{ km }} km</p>
+                <p><strong>Ejercicios completados:</strong> {{ completados }}/{{ totales }} ({{ '%0.1f'|format(estadisticas.porcentaje_completados)|default(0) }}%)</p>
+                <p><strong>Ranking actual:</strong> {{ ranking }}</p>
                 {% if imagen_ranking %}
-                    <img src="{{ imagen_ranking }}" alt="Ranking {{ ranking }}" class="ranking-img mb-3">
+                    <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Ranking {{ ranking }}" class="ranking-img mb-3">
                 {% endif %}
                 {% if recompensas %}
-                    <h5>Recompensas:</h5>
+                    <h5>Recompensas esta semana:</h5>
                     <ul>
                         {% for recompensa in recompensas %}
                             <li>{{ recompensa }}</li>
                         {% endfor %}
                     </ul>
                 {% endif %}
-                <h5>Estadísticas:</h5>
-                <ul>
-                    <li>Promedio puntos por día: {{ estadisticas.promedio_puntos|default(0) }}</li>
-                    <li>Día más activo: {{ estadisticas.dia_mas_activo|default('Ninguno') }}</li>
-                    <li>Progreso km: {{ estadisticas.progreso_km|default(0) }}%</li>
-                </ul>
-                <h5>Puntos por semana:</h5>
+                <h5>Progreso por semanas:</h5>
                 <ul>
                     {% for semana in semanas_puntos %}
-                        <li>Semana del {{ semana.inicio_semana }} al {{ semana.fin_semana }}: {{ semana.puntos }} puntos</li>
-                    {% endfor %}
-                </ul>
-                <h5>Kilómetros por semana:</h5>
-                <ul>
-                    {% for semana in semanas_km %}
-                        <li>Semana del {{ semana.inicio_semana }} al {{ semana.fin_semana }}: {{ semana.km }} km</li>
+                        <li>Semana del {{ semana.inicio_semana|datetimeformat('%d/%m/%Y') }} al {{ semana.fin_semana|datetimeformat('%d/%m/%Y') }}: {{ semana.puntos }} puntos ({{ semana.km }} km)</li>
                     {% endfor %}
                 </ul>
                 <div class="mt-4">
