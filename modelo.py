@@ -155,22 +155,20 @@ class Modelo:
                 raise ValueError(f"Usuario '{user_id}' no encontrado en la lista: {self.get_usuarios()}")
 
             old_user_id = self.user_id
-            self.user_id = user_id  # Actualizar user_id
+            self.user_id = user_id
             print(f"[DEBUG] user_id actualizado a {self.user_id} antes de cargar datos")
 
-            self.cargar_datos()  # Recargar datos siempre, incluso si es el mismo usuario
+            self.cargar_datos()
             print(f"[DEBUG] Datos recargados para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
 
             if self.user_id != old_user_id:
                 print(f"[DEBUG] Cambio a usuario {self.user_id} realizado exitosamente")
-            else:
-                print(f"[DEBUG] Recarga de datos para el mismo usuario {self.user_id}")
-            self.guardar_datos()  # Asegurar que los datos se guarden
-            return True  # Siempre retornar True si no hay error
+            self.guardar_datos()
+            return self.user_id != old_user_id
         except Exception as e:
             print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
             self.user_id = old_user_id if 'old_user_id' in locals() else self.user_id
-            raise  # Re-lanzar la excepción
+            raise
 
     def registrar_km(self, fecha, km):
         """Registra los kilómetros corridos para un día específico."""
