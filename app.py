@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime, date, timedelta
 from modelo import Modelo
@@ -259,6 +260,13 @@ def resumen():
     except Exception as e:
         print(f"[DEBUG] Error en /resumen: {str(e)}")
         return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
+
+@app.route('/recompensas', methods=['GET'])
+def recompensas():
+    return redirect(url_for('resumen'))
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=10000)
 
 @app.route('/recompensas', methods=['GET'])
 def recompensas():
