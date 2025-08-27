@@ -31,13 +31,25 @@
             display: block;
             margin: 10px auto;
         }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
     <h1>Resumen - {{ fecha }}</h1>
     <div class="section">
         {% if resumen %}
-            <pre>{{ resumen }}</pre>
+            <pre>{{ resumen | default('No hay resumen disponible.') }}</pre>
         {% else %}
             <p>No hay resumen disponible. Por favor, intenta de nuevo.</p>
         {% endif %}
@@ -49,11 +61,12 @@
         <h3>Recompensas</h3>
         <ul>
             {% for recompensa in recompensas %}
-                <li>{{ recompensa }}</li>
+                <li>{{ recompensa | default('Sin recompensa') }}</li>
             {% endfor %}
         </ul>
-        <p><strong>Puntos:</strong> {{ puntos }}</p>
-        <p><strong>Récord de puntos:</strong> {{ record_puntos }}</p>
+        <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
+        <p><strong>Récord de puntos:</strong> {{ record_puntos | default(0) }}</p>
     </div>
+    <a href="/" class="button">Volver al Menú</a>
 </body>
 </html>
