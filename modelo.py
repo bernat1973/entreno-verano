@@ -204,9 +204,12 @@ class Modelo:
                 ejercicios_dia = get_ejercicios_dia(dia, self.historial_semanal)
                 totales += len(ejercicios_dia)
                 if dia in self.ejercicios_completados:
+                    print(f"[DEBUG] Ejercicios completados para {dia}: {self.ejercicios_completados[dia]}")
                     for ejercicio, completado in self.ejercicios_completados[dia].items():
                         if completado:
-                            puntos += get_puntos(ejercicio)
+                            puntos_ejercicio = get_puntos(ejercicio) if get_puntos else 5  # Valor por defecto si get_puntos falla
+                            print(f"[DEBUG] Puntos para {ejercicio} ({completado}): {puntos_ejercicio}")
+                            puntos += puntos_ejercicio
                             completados += 1
                 if dia in self.km_corridos:
                     km += float(self.km_corridos[dia])
