@@ -251,17 +251,21 @@ class Modelo:
             else:
                 recompensa_categoria = "Looser"
 
-            frase_animadora = random.choice([f for f in frases_animadoras.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
-                                          if f not in self.recompensas_usadas.get(semana_actual, [])])
-            recompensa = random.choice([r for r in recompensas_categoria.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
-                                     if r not in self.recompensas_usadas.get(semana_actual, [])])
+            # Seleccionar frase animadora con fallback
+            frases_disponibles = [f for f in frases_animadoras.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
+                                if f not in self.recompensas_usadas.get(semana_actual, [])]
+            frase_animadora = random.choice(frases_disponibles) if frases_disponibles else "¡Sigue entrenando!"
+
+            # Seleccionar recompensa con fallback
+            recompensas_disponibles = [r for r in recompensas_categoria.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
+                                    if r not in self.recompensas_usadas.get(semana_actual, [])]
+            recompensa = random.choice(recompensas_disponibles) if recompensas_disponibles else "¡Sigue entrenando!"
 
             self.recompensas_usadas[semana_actual].append(frase_animadora)
             self.recompensas_usadas[semana_actual].append(recompensa)
             self.guardar_datos()
 
-            recompensas.append(frase_animadora)
-            recompensas.append(recompensa)
+            recompensas.extend([frase_animadora, recompensa])
 
             imagen_ranking = f"recompensas/{recompensa_categoria.lower()}.png"
             ranking = recompensa_categoria
