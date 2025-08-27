@@ -61,6 +61,24 @@
             border-radius: 5px;
             border: 2px solid #3498db;
         }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .table th {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
         .button {
             display: inline-block;
             padding: 12px 25px;
@@ -91,7 +109,7 @@
             <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
         {% else %}
             <p style="text-align: center; color: #7f8c8d;">No hay imagen de ranking disponible.</p>
-        {% endif %}
+        {% endif }
     </div>
     <div class="card">
         <h3>Recompensas</h3>
@@ -102,12 +120,21 @@
         </ul>
     </div>
     <div class="card">
-        <h3>Semanas pasadas</h3>
-        <ul>
+        <h3>Comparativa de Semanas</h3>
+        <table class="table">
+            <tr>
+                <th>Semana</th>
+                <th>Puntos</th>
+                <th>Kilómetros</th>
+            </tr>
             {% for semana in semanas_puntos %}
-                <li>{{ semana.inicio_semana.strftime('%d/%m/%Y') }} - {{ semana.fin_semana.strftime('%d/%m/%Y') }}: {{ semana.puntos | default(0) }} puntos, {{ semana.km | default(0) }} km</li>
+                <tr>
+                    <td>{{ semana.inicio_semana.strftime('%d/%m/%Y') }} - {{ semana.fin_semana.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ semana.puntos | default(0) }}</td>
+                    <td>{{ semana.km | default(0) }}</td>
+                </tr>
             {% endfor %}
-        </ul>
+        </table>
     </div>
     <a href="/" class="button">Volver al Menú</a>
 </body>
