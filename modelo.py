@@ -1,6 +1,6 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import os
 import random
 
@@ -239,6 +239,11 @@ class Modelo:
             if semana_actual not in self.recompensas_usadas:
                 self.recompensas_usadas[semana_actual] = []
 
+            # Limpiar recompensas de semanas muy antiguas (mantener solo las últimas 4 semanas)
+            semanas_a_mantener = [inicio_semana - timedelta(days=i*7) for i in range(4)]
+            self.recompensas_usadas = {k: v for k, v in self.recompensas_usadas.items() 
+                                     if datetime.strptime(k, '%Y-%W').date() in semanas_a_mantener}
+
             # Asignar categoría según puntos
             if puntos >= 150:
                 recompensa_categoria = "Semidios"
@@ -251,18 +256,21 @@ class Modelo:
             else:
                 recompensa_categoria = "Looser"
 
-            # Seleccionar frase animadora con fallback
+            # Seleccionar frase animadora única
             frases_disponibles = [f for f in frases_animadoras.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
                                 if f not in self.recompensas_usadas.get(semana_actual, [])]
             frase_animadora = random.choice(frases_disponibles) if frases_disponibles else "¡Sigue entrenando!"
 
-            # Seleccionar recompensa con fallback
+            # Seleccionar recompensa única
             recompensas_disponibles = [r for r in recompensas_categoria.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
                                     if r not in self.recompensas_usadas.get(semana_actual, [])]
             recompensa = random.choice(recompensas_disponibles) if recompensas_disponibles else "¡Sigue entrenando!"
 
-            self.recompensas_usadas[semana_actual].append(frase_animadora)
-            self.recompensas_usadas[semana_actual].append(recompensa)
+            # Añadir solo si no están ya en la lista de recompensas actuales
+            if frase_animadora not in self.recompensas_usadas.get(semana_actual, []):
+                self.recompensas_usadas[semana_actual].append(frase_animadora)
+            if recompensa not in self.recompensas_usadas.get(semana_actual, []):
+                self.recompensas_usadas[semana_actual].append(recompensa)
             self.guardar_datos()
 
             recompensas.extend([frase_animadora, recompensa])
