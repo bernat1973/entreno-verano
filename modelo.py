@@ -7,7 +7,6 @@ import random
 class Modelo:
     def __init__(self, config_file='entreno_verano.json', use_auth=False):
         try:
-            # Depurar variables de entorno
             project_id = os.getenv("FIREBASE_PROJECT_ID")
             client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
             private_key = os.getenv("FIREBASE_PRIVATE_KEY")
@@ -16,29 +15,22 @@ class Modelo:
             print(f"[DEBUG] FIREBASE_PRIVATE_KEY: {'[present]' if private_key else 'None'}")
             print(f"[DEBUG] Longitud de FIREBASE_PRIVATE_KEY: {len(private_key) if private_key else 0}")
 
-            # Verificar que las variables existen
             if not all([project_id, client_email, private_key]):
-                raise ValueError("Faltan variables de entorno de Firebase (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY)")
+                raise ValueError("Faltan variables de entorno de Firebase")
 
-            # Inicializar Firebase con las credenciales
-            try:
-                cred = credentials.Certificate({
-                    "type": "service_account",
-                    "project_id": project_id,
-                    "private_key": private_key.replace('\\n', '\n'),
-                    "client_email": client_email,
-                    "token_uri": "https://oauth2.googleapis.com/token",
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "client_id": "your-client-id",  # Reemplaza con el valor real
-                    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email"  # Reemplaza con el valor real
-                })
-                firebase_admin.initialize_app(cred)
-                self.db = firestore.client()
-            except Exception as e:
-                print(f"[DEBUG] Error al inicializar credenciales de Firebase: {str(e)}")
-                raise ValueError(f"Fallo al inicializar Firebase: {str(e)}")
+            cred = credentials.Certificate({
+                "type": "service_account",
+                "project_id": project_id,
+                "private_key": private_key.replace('\\n', '\n'),
+                "client_email": client_email,
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "client_id": "your-client-id",
+                "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email"
+            })
+            firebase_admin.initialize_app(cred)
+            self.db = firestore.client()
 
-            # Verificar ID del proyecto
             app_project_id = firebase_admin.get_app().options.get('projectId')
             print(f"[DEBUG] Firebase inicializado, projectId detectado: {app_project_id}")
             if app_project_id != 'entreno-verano':
@@ -58,14 +50,13 @@ class Modelo:
             self.record_puntos = 0
             self.mensaje = ""
             self.user_id = None
-            self.recompensas_usadas = {}  # Para rastrear recompensas usadas por semana
+            self.recompensas_usadas = {}
             self.cargar_datos()
         except Exception as e:
             print(f"[DEBUG] Error al inicializar Modelo: {str(e)}")
             raise
 
     def cargar_datos(self):
-        """Carga los datos del usuario_actual desde Firestore usando el self.user_id actual."""
         try:
             print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
             if not self.user_id:
@@ -90,18 +81,17 @@ class Modelo:
                 self.historial_semanal = data.get('historial_semanal', [])
                 self.record_puntos = data.get('record_puntos', 0)
                 self.mensaje = data.get('mensaje', '')
-                self.recompensas_usadas = data.get('recompensas_usadas', {})  # Cargar recompensas usadas
+                self.recompensas_usadas = data.get('recompensas_usadas', {})
                 print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
             else:
-                print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando con valores por defecto")
-                self.nombre = self.user_id
-                self.guardar_datos()
+                print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando como nuevo usuario")
+                self.nuevo_usuario(self.user_id)
+            print(f"[DEBUG] Datos finales para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
         except Exception as e:
             print(f"[DEBUG] Error al cargar datos para {self.user_id}: {str(e)}")
             raise
 
     def guardar_datos(self):
-        """Guarda los datos actuales del usuario en Firestore."""
         try:
             user_ref = self.db.collection('usuarios').document(self.user_id)
             user_ref.set({
@@ -117,7 +107,7 @@ class Modelo:
                 'historial_semanal': self.historial_semanal,
                 'record_puntos': self.record_puntos,
                 'mensaje': self.mensaje,
-                'recompensas_usadas': self.recompensas_usadas  # Guardar recompensas usadas
+                'recompensas_usadas': self.recompensas_usadas
             })
             config_ref = self.db.collection('config').document('app')
             config_ref.set({'usuario_actual': self.user_id}, merge=True)
@@ -127,7 +117,6 @@ class Modelo:
             raise
 
     def nuevo_usuario(self, nombre, uid=None):
-        """Crea un nuevo usuario con los datos iniciales."""
         self.user_id = nombre if not self.use_auth else uid
         if not self.user_id:
             raise ValueError("El ID de usuario no puede estar vacío")
@@ -147,7 +136,6 @@ class Modelo:
         self.guardar_datos()
 
     def cambiar_usuario(self, user_id):
-        """Cambia al usuario especificado y recarga sus datos."""
         try:
             print(f"[DEBUG] Intentando cambiar a usuario: {user_id}")
             if not user_id or user_id not in self.get_usuarios():
@@ -171,24 +159,20 @@ class Modelo:
             raise
 
     def registrar_km(self, fecha, km):
-        """Registra los kilómetros corridos para un día específico."""
         self.km_corridos[fecha] = km
         self.guardar_datos()
 
     def eliminar_km(self, fecha):
-        """Elimina los kilómetros registrados para un día específico."""
         if fecha in self.km_corridos:
             del self.km_corridos[fecha]
             self.guardar_datos()
 
     def registrar_ejercicios(self, fecha, ejercicios_dict):
-        """Registra los ejercicios completados para un día específico."""
         fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
         self.ejercicios_completados[fecha_str] = ejercicios_dict
         self.guardar_datos()
 
     def anadir_ejercicio_personalizado(self, fecha, ejercicio):
-        """Añade un ejercicio personalizado para un día específico."""
         fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
         if fecha_str not in self.ejercicios_personalizados_por_fecha:
             self.ejercicios_personalizados_por_fecha[fecha_str] = []
@@ -199,7 +183,6 @@ class Modelo:
             self.guardar_datos()
 
     def get_usuarios(self):
-        """Obtiene la lista de usuarios disponibles desde la colección 'usuarios'."""
         try:
             usuarios = [doc.id for doc in self.db.collection('usuarios').stream()]
             print(f"[DEBUG] Usuarios obtenidos: {usuarios}")
@@ -209,7 +192,6 @@ class Modelo:
             return []
 
     def evaluar_semana(self, get_ejercicios_dia, fecha, get_puntos):
-        """Evalúa el progreso de una semana."""
         try:
             inicio_semana = fecha - timedelta(days=fecha.weekday())
             fin_semana = inicio_semana + timedelta(days=6)
@@ -238,7 +220,6 @@ class Modelo:
                 self.guardar_datos()
                 recompensas.append("¡Nuevo récord de puntos!")
 
-            # Definir frases animadoras y recompensas por categoría
             frases_animadoras = {
                 "Semidios": ["¡Eres un dios del entreno!", "¡Dominas el gimnasio!"],
                 "Crack": ["¡Eres un crack!", "¡Sigue así, campeón!"],
@@ -254,23 +235,11 @@ class Modelo:
                 "Looser": ["Recoge la mesa 2 días seguidos", "Barre el suelo esta semana"]
             }
 
-            # Obtener semana actual para evitar repeticiones
             semana_actual = inicio_semana.strftime('%Y-%W')
             if semana_actual not in self.recompensas_usadas:
                 self.recompensas_usadas[semana_actual] = []
 
-            # Seleccionar frase animadora y recompensa sin repetir
-            frase_animadora = random.choice([f for f in frases_animadoras.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
-                                          if f not in self.recompensas_usadas.get(semana_actual, [])])
-            recompensa = random.choice([r for r in recompensas_categoria.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
-                                     if r not in self.recompensas_usadas.get(semana_actual, [])])
-
-            # Añadir al historial de usadas y guardar
-            self.recompensas_usadas[semana_actual].append(frase_animadora)
-            self.recompensas_usadas[semana_actual].append(recompensa)
-            self.guardar_datos()
-
-            # Asignar recompensa según rango de puntos
+            # Asignar categoría según puntos
             if puntos >= 150:
                 recompensa_categoria = "Semidios"
             elif puntos >= 100:
@@ -282,10 +251,18 @@ class Modelo:
             else:
                 recompensa_categoria = "Looser"
 
+            frase_animadora = random.choice([f for f in frases_animadoras.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
+                                          if f not in self.recompensas_usadas.get(semana_actual, [])])
+            recompensa = random.choice([r for r in recompensas_categoria.get(recompensa_categoria, ["¡Sigue entrenando!"]) 
+                                     if r not in self.recompensas_usadas.get(semana_actual, [])])
+
+            self.recompensas_usadas[semana_actual].append(frase_animadora)
+            self.recompensas_usadas[semana_actual].append(recompensa)
+            self.guardar_datos()
+
             recompensas.append(frase_animadora)
             recompensas.append(recompensa)
 
-            # Añadir imagen de recompensa
             imagen_ranking = f"recompensas/{recompensa_categoria.lower()}.png"
             ranking = recompensa_categoria
 
@@ -300,7 +277,6 @@ class Modelo:
             return 0, 0.0, 0, 0, [], "Sin ranking", "", 0, {}
 
     def generar_resumen(self, puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, meta_km):
-        """Genera un resumen textual del progreso."""
         try:
             porcentaje = (completados / totales * 100) if totales > 0 else 0
             texto = f"Resumen de la semana:\n"
