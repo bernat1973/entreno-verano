@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime, date, timedelta
 from modelo import Modelo
