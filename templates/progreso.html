@@ -31,16 +31,28 @@
             display: block;
             margin: 10px auto;
         }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
     <h1>Progreso - {{ fecha }}</h1>
     <div class="section">
-        <p><strong>Puntos:</strong> {{ puntos }}</p>
-        <p><strong>Kilómetros:</strong> {{ km }}</p>
-        <p><strong>Ejercicios completados:</strong> {{ completados }} / {{ totales }} ({{ estadisticas.porcentaje_completados|round(2) }}%)</p>
-        <p><strong>Ranking:</strong> {{ ranking }}</p>
-        <p><strong>Récord de puntos:</strong> {{ record_puntos }}</p>
+        <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
+        <p><strong>Kilómetros:</strong> {{ km | default(0) }}</p>
+        <p><strong>Ejercicios completados:</strong> {{ completados | default(0) }} / {{ totales | default(0) }} ({{ (estadisticas.porcentaje_completados | default(0)) | round(2) }}%)</p>
+        <p><strong>Ranking:</strong> {{ ranking | default('Sin ranking') }}</p>
+        <p><strong>Récord de puntos:</strong> {{ record_puntos | default(0) }}</p>
         {% if imagen_ranking %}
             <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
         {% else %}
@@ -49,7 +61,7 @@
         <h3>Recompensas</h3>
         <ul>
             {% for recompensa in recompensas %}
-                <li>{{ recompensa }}</li>
+                <li>{{ recompensa | default('Sin recompensa') }}</li>
             {% endfor %}
         </ul>
     </div>
@@ -57,9 +69,10 @@
         <h3>Semanas pasadas</h3>
         <ul>
             {% for semana in semanas_puntos %}
-                <li>{{ semana.inicio_semana.strftime('%d/%m/%Y') }} - {{ semana.fin_semana.strftime('%d/%m/%Y') }}: {{ semana.puntos }} puntos, {{ semana.km }} km</li>
+                <li>{{ semana.inicio_semana.strftime('%d/%m/%Y') }} - {{ semana.fin_semana.strftime('%d/%m/%Y') }}: {{ semana.puntos | default(0) }} puntos, {{ semana.km | default(0) }} km</li>
             {% endfor %}
         </ul>
     </div>
+    <a href="/" class="button">Volver al Menú</a>
 </body>
 </html>
