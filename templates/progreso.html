@@ -7,8 +7,8 @@
         body {
             font-family: 'Arial', sans-serif;
             margin: 20px;
-            background-color: #007bff; /* Cambiado a azul para unificar con la barra */
-            color: #ffffff; /* Texto blanco para legibilidad */
+            background-color: #e9ecef; /* Restaurado a fondo claro original */
+            color: #333;
         }
         .navbar {
             background-color: #007bff !important;
@@ -19,23 +19,27 @@
         .navbar .nav-link:hover {
             color: #e0e0e0 !important;
         }
+        .navbar .navbar-collapse {
+            background-color: #007bff !important; /* Elimina gris del colapso */
+        }
         h1 {
-            color: #ffffff; /* Texto blanco para el título */
+            color: #2c3e50;
             text-align: center;
             margin-bottom: 20px;
             font-size: 2.5em;
             text-transform: uppercase;
         }
         .card {
-            background-color: #007bff; /* Fondo azul para las tarjetas */
+            background-color: #ffffff; /* Fondo blanco para las tarjetas */
             padding: 20px;
             margin: 15px 0;
             border-radius: 10px;
-            /* Eliminamos la sombra para unificar el diseño */
-            transition: transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         .card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
         .stats {
             display: flex;
@@ -47,7 +51,7 @@
             min-width: 150px;
             margin: 10px;
             text-align: center;
-            background-color: #3498db; /* Mantenemos este azul más claro para contraste */
+            background-color: #3498db;
             color: white;
             padding: 10px;
             border-radius: 5px;
@@ -59,10 +63,10 @@
         li {
             margin: 10px 0;
             padding: 5px 10px;
-            background-color: #ecf0f1; /* Fondo claro para las recompensas */
+            background-color: #ecf0f1;
             border-left: 4px solid #2ecc71;
             border-radius: 5px;
-            color: #333; /* Texto oscuro para legibilidad */
+            color: #333;
         }
         img {
             max-width: 200px;
@@ -80,15 +84,15 @@
             padding: 12px;
             text-align: center;
             border: 1px solid #ddd;
-            background-color: #007bff; /* Fondo azul para la tabla */
-            color: #ffffff; /* Texto blanco */
+            background-color: #ffffff;
+            color: #333;
         }
         .table th {
-            background-color: #2ecc71; /* Verde para los encabezados */
+            background-color: #2ecc71;
             color: white;
         }
         .table tr:nth-child(even) {
-            background-color: #0056b3; /* Azul más oscuro para filas pares */
+            background-color: #f8f9fa;
         }
         .button {
             display: inline-block;
@@ -136,7 +140,7 @@
         {% if imagen_ranking %}
             <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
         {% else %}
-            <p style="text-align: center; color: #ffffff;">No hay imagen de ranking disponible.</p>
+            <p style="text-align: center; color: #7f8c8d;">No hay imagen de ranking disponible.</p>
         {% endif %}
     </div>
     <div class="card">
