@@ -36,6 +36,12 @@ class Modelo:
             if app_project_id != 'entreno-verano':
                 print(f"[WARNING] Proyecto Firebase esperado: 'entreno-verano', encontrado: {app_project_id}")
 
+            # Consultar el usuario actual desde config/app al inicio
+            config_ref = self.db.collection('config').document('app')
+            config_data = config_ref.get()
+            self.user_id = config_data.to_dict().get('usuario_actual', 'Juan') if config_data.exists else 'Juan'
+            print(f"[DEBUG] Usuario inicial cargado desde config/app: {self.user_id}")
+
             self.use_auth = use_auth
             self.nombre = ""
             self.peso = 0.0
@@ -49,7 +55,6 @@ class Modelo:
             self.historial_semanal = []
             self.record_puntos = 0
             self.mensaje = ""
-            self.user_id = None
             self.recompensas_usadas = {}
             self.cargar_datos()
         except Exception as e:
@@ -59,12 +64,6 @@ class Modelo:
     def cargar_datos(self):
         try:
             print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
-            if not self.user_id:
-                print("[DEBUG] self.user_id no está definido, usando 'Juan' como predeterminado")
-                self.user_id = 'Juan'
-                config_ref = self.db.collection('config').document('app')
-                config_ref.set({'usuario_actual': self.user_id}, merge=True)
-
             user_ref = self.db.collection('usuarios').document(self.user_id)
             user_data = user_ref.get()
             if user_data.exists:
@@ -109,6 +108,7 @@ class Modelo:
                 'mensaje': self.mensaje,
                 'recompensas_usadas': self.recompensas_usadas
             })
+            # Guardar el usuario actual en config/app
             config_ref = self.db.collection('config').document('app')
             config_ref.set({'usuario_actual': self.user_id}, merge=True)
             print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
