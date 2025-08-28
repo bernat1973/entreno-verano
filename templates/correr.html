@@ -39,17 +39,17 @@
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">Entreno Verano</a>
+            <a class="navbar-brand" href="{{ url_for('index') }}">Entreno Verano</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="/">Datos Personales</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/entreno">Entreno</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="/correr">Correr</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/progreso">Progreso</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/resumen">Resumen</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('datos_personales') }}">Datos Personales</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('entreno') }}">Entreno</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('correr') }}">Correr</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('progreso') }}">Progreso</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('resumen') }}">Resumen</a></li>
                 </ul>
             </div>
         </div>
@@ -57,14 +57,14 @@
     <div class="container">
         <div class="card">
             <div class="card-body">
-                <h1 class="card-title">Registro de Kilómetros</h1>
+                <h1 class="card-title">Registro de Correr</h1>
                 {% if error %}
                     <div class="alert alert-danger">{{ error }}</div>
                 {% endif %}
                 {% if mensaje %}
                     <div class="alert alert-success">{{ mensaje }}</div>
                 {% endif %}
-                <form method="POST" action="/correr">
+                <form method="POST" action="{{ url_for('correr') }}">
                     <div class="mb-3">
                         <label for="fecha" class="form-label">Selecciona una fecha:</label>
                         <input type="date" class="form-control" id="fecha" name="fecha" value="{{ fecha }}" required>
@@ -73,12 +73,17 @@
                         <label for="km" class="form-label">Kilómetros corridos:</label>
                         <input type="number" step="0.01" class="form-control" id="km" name="km" value="{{ km_dia }}" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="tiempo" class="form-label">Tiempo (minutos):</label>
+                        <input type="number" step="0.01" class="form-control" id="tiempo" name="tiempo" value="{{ tiempo_dia | default(0) }}" required>
+                    </div>
                     <input type="hidden" name="accion" value="registrar">
                     <button type="submit" class="btn btn-primary">Registrar</button>
                 </form>
                 <h3 class="mt-4">Estadísticas</h3>
                 <p>Kilómetros esta semana: <strong>{{ km_semanal }}</strong> de <strong>{{ meta_km }}</strong> km</p>
                 <p>Kilómetros hoy ({{ fecha | datetimeformat('%d/%m/%Y') }}): <strong>{{ km_dia }}</strong></p>
+                <p>Tiempo hoy ({{ fecha | datetimeformat('%d/%m/%Y') }}): <strong>{{ tiempo_dia | default(0) }}</strong> min</p>
                 <h3 class="mt-4">Gráfica de Kilómetros por Semana</h3>
                 {% if semanas %}
                     <canvas id="kmChart" width="400" height="200"></canvas>
@@ -92,18 +97,19 @@
                             <tr>
                                 <th>Fecha</th>
                                 <th>Kilómetros</th>
+                                <th>Tiempo (min)</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for fecha, km in km_por_dia.items() %}
+                            {% for fecha_key, data in km_tiempo_por_dia.items() %}
                                 <tr>
-                                    <td>{{ fecha | datetimeformat('%d/%m/%Y') }}</td>
-                                    <td>{{ km }}</td>
+                                    <td>{{ fecha_key | datetimeformat('%d/%m/%Y') }}</td>
+                                    <td>{{ data.km }}</td>
+                                    <td>{{ data.tiempo }}</td>
                                     <td>
-                                        <form method="POST" action="/correr" style="display:inline;">
-                                            <input type="hidden" name="fecha" value="{{ fecha }}">
-                                            <input type="hidden" name="fecha_eliminar" value="{{ fecha }}">
+                                        <form method="POST" action="{{ url_for('correr') }}" style="display:inline;">
+                                            <input type="hidden" name="fecha" value="{{ fecha_key }}">
                                             <input type="hidden" name="accion" value="eliminar">
                                             <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                                         </form>
@@ -113,16 +119,15 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <p class="text-muted">No hay kilómetros registrados.</p>
+                    <p class="text-muted">No hay registros.</p>
                 {% endif %}
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Gráfica de kilómetros
             const semanas = {{ semanas | tojson | safe }};
-            console.log('Semanas en correr:', semanas); // Debug
             if (semanas && semanas.length > 0) {
                 const ctx_km = document.getElementById('kmChart').getContext('2d');
                 new Chart(ctx_km, {
@@ -135,7 +140,7 @@
                         }),
                         datasets: [{
                             label: 'Kilómetros por Semana',
-                            data: semanas.map(item => item.km),
+                            data: semanas.map(item => item.km || 0),
                             backgroundColor: '#007bff'
                         }]
                     },
@@ -148,6 +153,5 @@
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
