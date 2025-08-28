@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Resumen - Entreno Verano</title>
+    <title>Progreso - Entreno Verano</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -28,13 +28,20 @@
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
-        .summary {
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            margin: 10px;
+            text-align: center;
             background-color: #3498db;
             color: white;
-            padding: 15px;
+            padding: 10px;
             border-radius: 5px;
-            margin: 10px 0;
-            font-size: 1.1em;
         }
         ul {
             list-style-type: none;
@@ -54,6 +61,24 @@
             border-radius: 5px;
             border: 2px solid #3498db;
         }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .table th {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
         .button {
             display: inline-block;
             padding: 12px 25px;
@@ -71,28 +96,45 @@
     </style>
 </head>
 <body>
-    <h1>Resumen - {{ fecha }}</h1>
+    <h1>Progreso - Usuario: {{ modelo.nombre }} - {{ fecha }}</h1>
     <div class="card">
-        {% if resumen %}
-            <div class="summary">{{ resumen | default('No hay resumen disponible.') | safe }}</div>
-        {% else %}
-            <p style="text-align: center; color: #7f8c8d;">No hay resumen disponible. Por favor, intenta de nuevo.</p>
-        {% endif %}
+        <div class="stats">
+            <div class="stat-item"><strong>Puntos:</strong> {{ puntos | default(0) }}</div>
+            <div class="stat-item"><strong>Kilómetros:</strong> {{ km | default(0) }}</div>
+            <div class="stat-item"><strong>Completados:</strong> {{ completados | default(0) }} / {{ totales | default(0) }} ({{ (estadisticas.porcentaje_completados | default(0)) | round(2) }}%)</div>
+            <div class="stat-item"><strong>Ranking:</strong> {{ ranking | default('Sin ranking') }}</div>
+            <div class="stat-item"><strong>Récord:</strong> {{ record_puntos | default(0) }}</div>
+        </div>
         {% if imagen_ranking %}
             <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
         {% else %}
             <p style="text-align: center; color: #7f8c8d;">No hay imagen de ranking disponible.</p>
         {% endif %}
-        <h3>Recompensas Acumuladas</h3>
+    </div>
+    <div class="card">
+        <h3>Recompensas</h3>
         <ul>
-            {% for semana, usadas in modelo.recompensas_usadas.items() %}
-                {% for recompensa in usadas %}
-                    <li>{{ recompensa }}</li>
-                {% endfor %}
+            {% for recompensa in recompensas %}
+                <li>{{ recompensa | default('Sin recompensa') }}</li>
             {% endfor %}
         </ul>
-        <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
-        <p><strong>Récord de puntos:</strong> {{ record_puntos | default(0) }}</p>
+    </div>
+    <div class="card">
+        <h3>Comparativa de Semanas</h3>
+        <table class="table">
+            <tr>
+                <th>Semana</th>
+                <th>Puntos</th>
+                <th>Kilómetros</th>
+            </tr>
+            {% for semana in semanas_puntos %}
+                <tr>
+                    <td>{{ semana.inicio_semana.strftime('%d/%m/%Y') }} - {{ semana.fin_semana.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ semana.puntos | default(0) }}</td>
+                    <td>{{ semana.km | default(0) }}</td>
+                </tr>
+            {% endfor %}
+        </table>
     </div>
     <a href="/" class="button">Volver al Menú</a>
 </body>
