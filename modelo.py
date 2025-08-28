@@ -224,20 +224,19 @@ class Modelo:
                 recompensas.append("¡Nuevo récord de puntos!")
 
             frases_animadoras = {
-                "Semidios": ["¡Eres un dios del entreno!", "¡Dominas el gimnasio!"],
-                "Crack": ["¡Eres un crack!", "¡Sigue así, campeón!"],
-                "Chill": ["¡Buen trabajo, chill!", "¡Relájate y disfruta!"],
-                "Noob": ["¡Sigue practicando, noob!", "¡Mejora poco a poco!"],
-                "Looser": ["¡Anímate, looser!", "¡No te rindas!"]
-            }
+                "Semidios": ["¡Eres un dios del entreno!", "¡Dominas el gimnasio!", "¡Leyenda del esfuerzo!", "¡Tu fuerza es imparable!", "¡Maestro del fitness!"],
+                "Crack": ["¡Eres un crack!", "¡Sigue así, campeón!", "¡Tu dedicación inspira!", "¡Un verdadero guerrero!", "¡El rey del entreno!"],
+                "Chill": ["¡Buen trabajo, chill!", "¡Relájate y disfruta!", "¡Progreso con estilo!", "¡Tómate un respiro merecido!", "¡Tu calma es poder!"],
+                "Noob": ["¡Sigue practicando, noob!", "¡Mejora poco a poco!", "¡Cada paso cuenta!", "¡Pronto serás un pro!", "¡Ánimo, estás en camino!"],
+                "Looser": ["¡Anímate, looser!", "¡No te rindas!", "¡El esfuerzo vale oro!", "¡Levántate y sigue!", "¡Tu momento llegará!"]
+           }
             recompensas_categoria = {
-                "Semidios": ["Gana un día libre de entreno", "Elige tu próxima meta especial"],
-                "Crack": ["Disfruta de un batido proteico", "Descansa con una película favorita"],
-                "Chill": ["Toma un smoothie saludable", "Escucha tu playlist de motivación"],
-                "Noob": ["Prueba un nuevo ejercicio divertido", "Gana 15 min extra de descanso"],
-                "Looser": ["¡Sigue intentándolo, recompensa sorpresa pronto!", "Elige un amigo para entrenar"]
-            }
-
+                "Semidios": ["Gana un día libre de tareas domésticas", "Elige una película familiar para ver juntos", "Dirige una sesión de estiramiento en casa", "Recibe un aplauso de la familia por tu esfuerzo", "Decide el menú de la cena especial"],
+                "Crack": ["Disfruta de una hora extra de tiempo libre", "Gana un paseo con la familia o amigos", "Elige una actividad divertida para el fin de semana", "Recibe un masaje relajante de un familiar", "Organiza un juego en familia"],
+                "Chill": ["Tómate una tarde para leer o dibujar", "Gana una hora de música relajante", "Disfruta de un postre casero especial", "Recibe ayuda con una tarea escolar o personal", "Elige un día sin lavar platos"],
+                "Noob": ["Ayuda a preparar un snack saludable", "Comparte un juego de mesa con la familia", "Organiza tus zapatillas por 10 minutos", "Lee un capítulo de un libro motivacional", "Elige una canción para el calentamiento"],
+                "Looser": ["Ordena tu mochila por 5 minutos", "Ayuda a doblar la ropa por 10 minutos", "Escribe una meta para la próxima semana", "Pasa 15 minutos paseando al aire libre", "Elige un ejercicio fácil para probar"]
+           }
             semana_actual = inicio_semana.strftime('%Y-%W')
             if semana_actual not in self.recompensas_usadas:
                 self.recompensas_usadas[semana_actual] = []
