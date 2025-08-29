@@ -165,53 +165,60 @@ def correr():
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date() if fecha_str else date.today()
         fecha_str = fecha.strftime('%Y-%m-%d')
         km_dia = modelo.km_corridos.get(fecha_str, 0.0)
-        tiempo_dia = modelo.tiempo_corridos.get(fecha_str, 0.0)  # Nuevo: tiempo por día
+        tiempo_dia = modelo.tiempo_corridos.get(fecha_str, 0.0)  # Tiempo en segundos
         km_por_dia = modelo.km_corridos
-        tiempo_por_dia = modelo.tiempo_corridos  # Nuevo: tiempo por día
+        tiempo_por_dia = modelo.tiempo_corridos  # Tiempo en segundos por día
         semana_ano = fecha.isocalendar()[1]
         meta_km = modelo.meta_km.get(str(semana_ano), 0.0)
         inicio_semana = fecha - timedelta(days=fecha.weekday())
         fin_semana = inicio_semana + timedelta(days=6)
         km_semanal = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))
-        tiempo_semanal = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))  # Nuevo: tiempo semanal
+        tiempo_semanal = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))  # Tiempo en segundos
         semanas = []
         for i in range(-1, 3):
             semana_inicio = inicio_semana + timedelta(days=i*7)
             semana_fin = semana_inicio + timedelta(days=6)
             km_semana = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
-            tiempo_semana = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))  # Nuevo: tiempo por semana
+            tiempo_semana = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))  # Tiempo en segundos
             semanas.append({
                 'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
                 'fin_semana': semana_fin.strftime('%Y-%m-%d'),
                 'km': round(km_semana, 2),
-                'tiempo': round(tiempo_semana, 2)  # Nuevo: tiempo por semana
+                'tiempo': round(tiempo_semana, 2)  # Tiempo en segundos
             })
         if request.method == 'POST':
             accion = request.form.get('accion')
             if accion == 'registrar':
                 km = float(request.form.get('km', 0))
-                tiempo = float(request.form.get('tiempo', 0))  # Nuevo: registrar tiempo
-                if km < 0 or tiempo < 0:
-                    return render_template('correr.html', error="Los kilómetros y el tiempo deben ser positivos.", fecha=fecha_str, km_semanal=km_semanal, tiempo_semanal=tiempo_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, tiempo_por_dia=tiempo_por_dia, km_dia=km_dia, tiempo_dia=tiempo_dia)
+                tiempo_str = request.form.get('tiempo', '0:00')  # Formato "minutos:segundos"
+                try:
+                    minutos, segundos = map(int, tiempo_str.split(':'))
+                    if minutos < 0 or segundos < 0 or segundos >= 60:
+                        raise ValueError("Los segundos deben estar entre 0 y 59, y los minutos no pueden ser negativos.")
+                    tiempo_segundos = minutos * 60 + segundos
+                except ValueError as e:
+                    return render_template('correr.html', error=f"Formato de tiempo inválido. Usa 'minutos:segundos' (ejemplo: '15:30'). Error: {str(e)}", fecha=fecha_str, km_semanal=km_semanal, tiempo_semanal=tiempo_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, tiempo_por_dia=tiempo_por_dia, km_dia=km_dia, tiempo_dia=tiempo_dia)
+                if km < 0:
+                    return render_template('correr.html', error="Los kilómetros deben ser positivos.", fecha=fecha_str, km_semanal=km_semanal, tiempo_semanal=tiempo_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, tiempo_por_dia=tiempo_por_dia, km_dia=km_dia, tiempo_dia=tiempo_dia)
                 modelo.registrar_km(fecha_str, modelo.km_corridos.get(fecha_str, 0.0) + km)
-                modelo.registrar_tiempo(fecha_str, modelo.tiempo_corridos.get(fecha_str, 0.0) + tiempo)  # Nuevo: registrar tiempo
+                modelo.registrar_tiempo(fecha_str, modelo.tiempo_corridos.get(fecha_str, 0.0) + tiempo_segundos)  # Almacenar en segundos
                 km_dia = modelo.km_corridos.get(fecha_str, 0.0)
-                tiempo_dia = modelo.tiempo_corridos.get(fecha_str, 0.0)  # Actualizar tiempo
+                tiempo_dia = modelo.tiempo_corridos.get(fecha_str, 0.0)  # Tiempo en segundos
                 km_por_dia = modelo.km_corridos
-                tiempo_por_dia = modelo.tiempo_corridos  # Actualizar tiempo
+                tiempo_por_dia = modelo.tiempo_corridos  # Tiempo en segundos
                 km_semanal = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))
-                tiempo_semanal = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))  # Actualizar tiempo
+                tiempo_semanal = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))  # Tiempo en segundos
                 semanas = []
                 for i in range(-1, 3):
                     semana_inicio = inicio_semana + timedelta(days=i*7)
                     semana_fin = semana_inicio + timedelta(days=6)
                     km_semana = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
-                    tiempo_semana = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))  # Actualizar tiempo
+                    tiempo_semana = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))  # Tiempo en segundos
                     semanas.append({
                         'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
                         'fin_semana': semana_fin.strftime('%Y-%m-%d'),
                         'km': round(km_semana, 2),
-                        'tiempo': round(tiempo_semana, 2)  # Actualizar tiempo
+                        'tiempo': round(tiempo_semana, 2)  # Tiempo en segundos
                     })
                 return render_template('correr.html', mensaje="¡Kilómetros y tiempo registrados!", fecha=fecha_str, km_semanal=km_semanal, tiempo_semanal=tiempo_semanal, meta_km=meta_km, semanas=semanas, km_por_dia=km_por_dia, tiempo_por_dia=tiempo_por_dia, km_dia=km_dia, tiempo_dia=tiempo_dia)
             elif accion == 'eliminar':
