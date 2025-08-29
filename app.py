@@ -274,17 +274,24 @@ def resumen():
         # Obtener los valores de la semana actual
         resultado_semana = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
         print(f"[DEBUG] Resultado de evaluar_semana: {resultado_semana}")
+        if len(resultado_semana) != 9:
+            raise ValueError(f"Esperados 9 valores de evaluar_semana, recibidos: {len(resultado_semana)}, valores: {resultado_semana}")
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = resultado_semana
         print(f"[DEBUG] Tipo de puntos: {type(puntos)}, valor: {puntos}")  # Depuración
         if not isinstance(puntos, int):
             raise ValueError(f"Esperado un entero para puntos, pero recibido: {type(puntos)}, valor: {puntos}")
         resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
-        # Datos para gráficas
+        # Datos para gráficas (usando la estructura original de semanas_puntos y semanas_km)
         inicio_semana = hoy - timedelta(days=hoy.weekday())
-        km_semanal = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if (inicio_semana - timedelta(days=21)).strftime('%Y-%m-%d') <= fecha_key <= (inicio_semana + timedelta(days=6)).strftime('%Y-%m-%d'))
-        tiempo_semanal = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if (inicio_semana - timedelta(days=21)).strftime('%Y-%m-%d') <= fecha_key <= (inicio_semana + timedelta(days=6)).strftime('%Y-%m-%d'))
-        puntos_semanal = [p for _, p, _, _, _, _, _, _, _ in [modelo.evaluar_semana(ejercicios.get_ejercicios_dia, inicio_semana + timedelta(days=i*7), ejercicios.get_puntos) for i in range(-3, 1)]]
-        return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, km_semanal=km_semanal, tiempo_semanal=tiempo_semanal, puntos_semanal=puntos_semanal, modelo=modelo)
+        semanas_puntos = [
+            {'inicio_semana': inicio_semana + timedelta(days=i*7), 'fin_semana': inicio_semana + timedelta(days=i*7 + 6), 'puntos': p}
+            for i, p, _, _, _, _, _, _, _ in [modelo.evaluar_semana(ejercicios.get_ejercicios_dia, inicio_semana + timedelta(days=i*7), ejercicios.get_puntos) for i in range(-3, 1)]
+        ]
+        semanas_km = [
+            {'inicio_semana': inicio_semana + timedelta(days=i*7), 'fin_semana': inicio_semana + timedelta(days=i*7 + 6), 'km': sum(float(km) for fecha_key, km in modelo.km_corridos.items() if (inicio_semana + timedelta(days=i*7)).strftime('%Y-%m-%d') <= fecha_key <= (inicio_semana + timedelta(days=i*7 + 6)).strftime('%Y-%m-%d'))}
+            for i in range(-3, 1)
+        ]
+        return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo)
     except Exception as e:
         print(f"[DEBUG] Error en /resumen: {str(e)}")
         return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
