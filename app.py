@@ -272,6 +272,7 @@ def resumen():
     try:
         hoy = date.today()
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
+        print(f"[DEBUG] Tipo de puntos: {type(puntos)}, valor: {puntos}")  # Depuración
         resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
         # Datos para gráficas
         inicio_semana = hoy - timedelta(days=hoy.weekday())
