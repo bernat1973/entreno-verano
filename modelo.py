@@ -49,6 +49,7 @@ class Modelo:
             self.meta_km = {}
             self.ejercicios_type = "bodyweight"
             self.km_corridos = {}
+            self.tiempo_corridos = {}  # Nuevo campo para tiempo
             self.ejercicios_completados = {}
             self.ejercicios_personalizados = []
             self.ejercicios_personalizados_por_fecha = {}
@@ -74,6 +75,7 @@ class Modelo:
                 self.meta_km = data.get('meta_km', {})
                 self.ejercicios_type = data.get('ejercicios_type', 'bodyweight')
                 self.km_corridos = data.get('km_corridos', {})
+                self.tiempo_corridos = data.get('tiempo_corridos', {})  # Cargar tiempo
                 self.ejercicios_completados = data.get('ejercicios_completados', {})
                 self.ejercicios_personalizados = data.get('ejercicios_personalizados', [])
                 self.ejercicios_personalizados_por_fecha = data.get('ejercicios_personalizados_por_fecha', {})
@@ -100,6 +102,7 @@ class Modelo:
                 'meta_km': self.meta_km,
                 'ejercicios_type': self.ejercicios_type,
                 'km_corridos': self.km_corridos,
+                'tiempo_corridos': self.tiempo_corridos,  # Guardar tiempo
                 'ejercicios_completados': self.ejercicios_completados,
                 'ejercicios_personalizados': self.ejercicios_personalizados,
                 'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
@@ -126,6 +129,7 @@ class Modelo:
         self.meta_km = {}
         self.ejercicios_type = "bodyweight"
         self.km_corridos = {}
+        self.tiempo_corridos = {}  # Inicializar tiempo
         self.ejercicios_completados = {}
         self.ejercicios_personalizados = []
         self.ejercicios_personalizados_por_fecha = {}
@@ -162,9 +166,15 @@ class Modelo:
         self.km_corridos[fecha] = km
         self.guardar_datos()
 
+    def registrar_tiempo(self, fecha, tiempo):
+        self.tiempo_corridos[fecha] = tiempo
+        self.guardar_datos()
+
     def eliminar_km(self, fecha):
         if fecha in self.km_corridos:
             del self.km_corridos[fecha]
+            if fecha in self.tiempo_corridos:
+                del self.tiempo_corridos[fecha]
             self.guardar_datos()
 
     def registrar_ejercicios(self, fecha, ejercicios_dict):
@@ -229,14 +239,14 @@ class Modelo:
                 "Chill": ["¡Buen trabajo, chill!", "¡Relájate y disfruta!", "¡Progreso con estilo!", "¡Tómate un respiro merecido!", "¡Tu calma es poder!"],
                 "Noob": ["¡Sigue practicando, noob!", "¡Mejora poco a poco!", "¡Cada paso cuenta!", "¡Pronto serás un pro!", "¡Ánimo, estás en camino!"],
                 "Looser": ["¡Anímate, looser!", "¡No te rindas!", "¡El esfuerzo vale oro!", "¡Levántate y sigue!", "¡Tu momento llegará!"]
-           }
+            }
             recompensas_categoria = {
                 "Semidios": ["Gana un día libre de tareas domésticas", "Elige una película familiar para ver juntos", "Dirige una sesión de estiramiento en casa", "Recibe un aplauso de la familia por tu esfuerzo", "Decide el menú de la cena especial"],
                 "Crack": ["Disfruta de una hora extra de tiempo libre", "Gana un paseo con la familia o amigos", "Elige una actividad divertida para el fin de semana", "Recibe un masaje relajante de un familiar", "Organiza un juego en familia"],
                 "Chill": ["Tómate una tarde para leer o dibujar", "Gana una hora de música relajante", "Disfruta de un postre casero especial", "Recibe ayuda con una tarea escolar o personal", "Elige un día sin lavar platos"],
                 "Noob": ["Ayuda a preparar un snack saludable", "Comparte un juego de mesa con la familia", "Organiza tus zapatillas por 10 minutos", "Lee un capítulo de un libro motivacional", "Elige una canción para el calentamiento"],
                 "Looser": ["Ordena tu mochila por 5 minutos", "Ayuda a doblar la ropa por 10 minutos", "Escribe una meta para la próxima semana", "Pasa 15 minutos paseando al aire libre", "Elige un ejercicio fácil para probar"]
-           }
+            }
             semana_actual = inicio_semana.strftime('%Y-%W')
             if semana_actual not in self.recompensas_usadas:
                 self.recompensas_usadas[semana_actual] = []
