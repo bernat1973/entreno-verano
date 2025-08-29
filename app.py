@@ -271,8 +271,13 @@ def progreso():
 def resumen():
     try:
         hoy = date.today()
-        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
+        # Obtener los valores de la semana actual
+        resultado_semana = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
+        print(f"[DEBUG] Resultado de evaluar_semana: {resultado_semana}")
+        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = resultado_semana
         print(f"[DEBUG] Tipo de puntos: {type(puntos)}, valor: {puntos}")  # Depuración
+        if not isinstance(puntos, int):
+            raise ValueError(f"Esperado un entero para puntos, pero recibido: {type(puntos)}, valor: {puntos}")
         resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
         # Datos para gráficas
         inicio_semana = hoy - timedelta(days=hoy.weekday())
