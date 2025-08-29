@@ -63,6 +63,7 @@
         }
         img {
             max-width: 200px;
+            height: auto;
             display: block;
             margin: 10px auto;
             border-radius: 5px;
@@ -110,10 +111,14 @@
     <h1>Resumen - {{ fecha }}</h1>
 
     <div class="card">
-        {% if resumen %}
-            <div class="summary">{{ resumen | safe }}</div>
+        {% if modelo %}
+            {% if resumen %}
+                <div class="summary">{{ resumen | safe }}</div>
+            {% else %}
+                <p style="text-align: center; color: #7f8c8d;">No hay resumen disponible. Por favor, intenta de nuevo.</p>
+            {% endif %}
         {% else %}
-            <p style="text-align: center; color: #7f8c8d;">No hay resumen disponible. Por favor, intenta de nuevo.</p>
+            <p style="text-align: center; color: #7f8c8d;">Error: No se cargaron los datos del modelo.</p>
         {% endif %}
 
         {% if imagen_ranking %}
@@ -127,12 +132,14 @@
 
         <h3>Recompensas Acumuladas</h3>
         <ul>
-            {% for semana, usadas in modelo.recompensas_usadas.items() %}
+            {% for semana, usadas in modelo.recompensas_usadas.items() if modelo %}
                 {% for recompensa in usadas %}
                     {% if recompensa != recompensas[0] %}
                         <li>{{ recompensa }}</li>
                     {% endif %}
                 {% endfor %}
+            {% else %}
+                <li>No hay recompensas acumuladas.</li>
             {% endfor %}
         </ul>
 
@@ -181,7 +188,7 @@
                 });
             }
 
-            const semanas_km = {{ semanas | tojson | safe }};
+            const semanas_km = {{ semanas_km | tojson | safe }};
             if (semanas_km && semanas_km.length > 0) {
                 const ctx_km = document.getElementById('kmChart').getContext('2d');
                 new Chart(ctx_km, {
