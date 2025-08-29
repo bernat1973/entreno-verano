@@ -132,15 +132,17 @@
 
         <h3>Recompensas Acumuladas</h3>
         <ul>
-            {% for semana, usadas in modelo.recompensas_usadas.items() if modelo %}
-                {% for recompensa in usadas %}
-                    {% if recompensa != recompensas[0] %}
-                        <li>{{ recompensa }}</li>
-                    {% endif %}
+            {% if modelo and modelo.recompensas_usadas %}
+                {% for semana, usadas in modelo.recompensas_usadas.items() %}
+                    {% for recompensa in usadas %}
+                        {% if recompensa != (recompensas[0] if recompensas and recompensas|length > 0 else '') %}
+                            <li>{{ recompensa }}</li>
+                        {% endif %}
+                    {% endfor %}
                 {% endfor %}
             {% else %}
                 <li>No hay recompensas acumuladas.</li>
-            {% endfor %}
+            {% endif %}
         </ul>
 
         <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
@@ -166,16 +168,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const semanas_puntos = {{ semanas_puntos | tojson | safe }};
+            const semanas_puntos = {{ puntos_semanal | tojson | safe }};
+            const labels = [
+                'Semana -3', 'Semana -2', 'Semana -1', 'Semana Actual'
+            ];
             if (semanas_puntos && semanas_puntos.length > 0) {
                 const ctx_points = document.getElementById('pointsChart').getContext('2d');
                 new Chart(ctx_points, {
                     type: 'line',
                     data: {
-                        labels: semanas_puntos.map(item => `${item.inicio_semana.strftime('%d/%m/%Y')} - ${item.fin_semana.strftime('%d/%m/%Y')}`),
+                        labels: labels.slice(0, semanas_puntos.length),
                         datasets: [{
                             label: 'Puntos por Semana',
-                            data: semanas_puntos.map(item => item.puntos || 0),
+                            data: semanas_puntos,
                             borderColor: '#2ecc71',
                             fill: false
                         }]
@@ -188,16 +193,17 @@
                 });
             }
 
-            const semanas_km = {{ semanas_km | tojson | safe }};
-            if (semanas_km && semanas_km.length > 0) {
+            // Derivar semanas_km a partir de km_semanal y puntos_semanal
+            const km_semanal_data = {{ [km_semanal] + [0] * 3 | tojson | safe }}; // Asumir km_semanal para la semana actual, 0 para las pasadas
+            if (km_semanal_data && km_semanal_data.length > 0) {
                 const ctx_km = document.getElementById('kmChart').getContext('2d');
                 new Chart(ctx_km, {
                     type: 'bar',
                     data: {
-                        labels: semanas_km.map(item => `${new Date(item.inicio_semana).toLocaleDateString('es-ES', { month: 'numeric', day: 'numeric' })} - ${new Date(item.fin_semana).toLocaleDateString('es-ES', { month: 'numeric', day: 'numeric' })}`),
+                        labels: labels.slice(0, km_semanal_data.length),
                         datasets: [{
                             label: 'Kilómetros por Semana',
-                            data: semanas_km.map(item => item.km || 0),
+                            data: km_semanal_data,
                             backgroundColor: '#007bff'
                         }]
                     },
