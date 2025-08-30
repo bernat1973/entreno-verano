@@ -10,7 +10,7 @@
             background-color: #f8f9fa;
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
         }
         .card {
             border: none;
@@ -19,6 +19,9 @@
         .card-header {
             background-color: #007bff;
             color: white;
+        }
+        .grafica-container {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -58,8 +61,8 @@
                     <button type="submit" class="btn btn-primary">Cambiar Usuario</button>
                 </form>
 
-                <!-- Formulario para actualizar datos personales -->
-                <h3 class="h5 mt-4">Actualizar Datos Personales</h3>
+                <!-- Formulario para actualizar datos personales y mediciones mensuales -->
+                <h3 class="h5 mt-4">Actualizar Datos Personales y Mediciones</h3>
                 <form action="{{ url_for('datos_personales') }}" method="post">
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
@@ -74,6 +77,14 @@
                         <input type="number" name="estatura" id="estatura" class="form-control" value="{{ estatura }}" min="0" required>
                     </div>
                     <div class="mb-3">
+                        <label for="talla_sentada" class="form-label">Talla Sentada (cm)</label>
+                        <input type="number" name="talla_sentada" id="talla_sentada" class="form-control" value="{{ talla_sentada }}" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="envergadura" class="form-label">Envergadura (cm)</label>
+                        <input type="number" name="envergadura" id="envergadura" class="form-control" value="{{ envergadura }}" min="0" required>
+                    </div>
+                    <div class="mb-3">
                         <label for="meta_km" class="form-label">Meta de Kilómetros Semanal</label>
                         <input type="number" name="meta_km" id="meta_km" class="form-control" value="{{ meta_km }}" step="0.1" min="0" required>
                     </div>
@@ -84,8 +95,55 @@
                             <option value="weights" {% if ejercicios_type == 'weights' %}selected{% endif %}>Con Pesas (Weights)</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="mes_medicion" class="form-label">Mes de Medición</label>
+                        <input type="month" name="mes_medicion" id="mes_medicion" class="form-control" value="{{ mes_medicion }}" required>
+                    </div>
                     <button type="submit" class="btn btn-primary">Guardar Datos</button>
                 </form>
+
+                <!-- Mostrar métricas calculadas -->
+                <h3 class="h5 mt-4">Métricas Calculadas</h3>
+                <p><strong>Segmento Inferior:</strong> {{ segmento_inferior|round(2) }} cm</p>
+                <p><strong>Índice de Masa Corporal (IMC):</strong> {{ imc|round(2) }}</p>
+                <p><strong>Velocidad de Crecimiento:</strong> {{ velocidad_crecimiento|round(2) }} cm/año</p>
+
+                <!-- Gráfica de evolución -->
+                <h3 class="h5 mt-4">Evolución de Crecimiento</h3>
+                <div class="grafica-container">
+                    ```chartjs
+                    {
+                        "type": "line",
+                        "data": {
+                            "labels": [{% for dato in datos_grafica %}"{{ dato.mes }}",{% endfor %}],
+                            "datasets": [
+                                {
+                                    "label": "Estatura (cm)",
+                                    "data": [{% for dato in datos_grafica %}{{ dato.estatura }},{% endfor %}],
+                                    "borderColor": "#36A2EB",
+                                    "backgroundColor": "rgba(54, 162, 235, 0.2)",
+                                    "fill": true
+                                },
+                                {
+                                    "label": "Velocidad de Crecimiento (cm/año)",
+                                    "data": [{% for dato in datos_grafica %}{{ dato.velocidad }},{% endfor %}],
+                                    "borderColor": "#FF6384",
+                                    "backgroundColor": "rgba(255, 99, 132, 0.2)",
+                                    "fill": true
+                                }
+                            ]
+                        },
+                        "options": {
+                            "responsive": true,
+                            "scales": {
+                                "y": {
+                                    "beginAtZero": true
+                                }
+                            }
+                        }
+                    }
+                    ```
+                </div>
 
                 <!-- Formulario para crear nuevo usuario -->
                 <h3 class="h5 mt-4">Crear Nuevo Usuario</h3>
