@@ -1,4 +1,3 @@
-```python
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime, date, timedelta
 from modelo import Modelo
@@ -470,5 +469,4 @@ def redirigir_recompensas():
     return redirect(url_for('resumen'))
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=10000)
-```
+    app.run(debug=True, host='0.0.0.0', port=10000
