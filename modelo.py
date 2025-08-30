@@ -46,14 +46,17 @@ class Modelo:
             self.nombre = ""
             self.peso = 0.0
             self.estatura = 0.0
+            self.talla_sentada = 0.0  # Nuevo campo
+            self.envergadura = 0.0    # Nuevo campo
             self.meta_km = {}
             self.ejercicios_type = "bodyweight"
             self.km_corridos = {}
-            self.tiempo_corridos = {}  # Nuevo campo para tiempo
+            self.tiempo_corridos = {}
             self.ejercicios_completados = {}
             self.ejercicios_personalizados = []
             self.ejercicios_personalizados_por_fecha = {}
             self.historial_semanal = []
+            self.historial_mediciones = {}  # Nuevo diccionario para mediciones mensuales
             self.record_puntos = 0
             self.mensaje = ""
             self.recompensas_usadas = {}
@@ -70,16 +73,19 @@ class Modelo:
             if user_data.exists:
                 data = user_data.to_dict()
                 self.nombre = data.get('nombre', '')
-                self.peso = data.get('peso', 0.0)
-                self.estatura = data.get('estatura', 0.0)
+                self.peso = float(data.get('peso', 0.0))
+                self.estatura = float(data.get('estatura', 0.0))
+                self.talla_sentada = float(data.get('talla_sentada', 0.0))  # Cargar nuevo campo
+                self.envergadura = float(data.get('envergadura', 0.0))     # Cargar nuevo campo
                 self.meta_km = data.get('meta_km', {})
                 self.ejercicios_type = data.get('ejercicios_type', 'bodyweight')
                 self.km_corridos = data.get('km_corridos', {})
-                self.tiempo_corridos = data.get('tiempo_corridos', {})  # Cargar tiempo
+                self.tiempo_corridos = data.get('tiempo_corridos', {})
                 self.ejercicios_completados = data.get('ejercicios_completados', {})
                 self.ejercicios_personalizados = data.get('ejercicios_personalizados', [])
                 self.ejercicios_personalizados_por_fecha = data.get('ejercicios_personalizados_por_fecha', {})
                 self.historial_semanal = data.get('historial_semanal', [])
+                self.historial_mediciones = data.get('historial_mediciones', {})  # Cargar mediciones mensuales
                 self.record_puntos = data.get('record_puntos', 0)
                 self.mensaje = data.get('mensaje', '')
                 self.recompensas_usadas = data.get('recompensas_usadas', {})
@@ -99,14 +105,17 @@ class Modelo:
                 'nombre': self.nombre,
                 'peso': self.peso,
                 'estatura': self.estatura,
+                'talla_sentada': self.talla_sentada,  # Guardar nuevo campo
+                'envergadura': self.envergadura,      # Guardar nuevo campo
                 'meta_km': self.meta_km,
                 'ejercicios_type': self.ejercicios_type,
                 'km_corridos': self.km_corridos,
-                'tiempo_corridos': self.tiempo_corridos,  # Guardar tiempo
+                'tiempo_corridos': self.tiempo_corridos,
                 'ejercicios_completados': self.ejercicios_completados,
                 'ejercicios_personalizados': self.ejercicios_personalizados,
                 'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
                 'historial_semanal': self.historial_semanal,
+                'historial_mediciones': self.historial_mediciones,  # Guardar mediciones mensuales
                 'record_puntos': self.record_puntos,
                 'mensaje': self.mensaje,
                 'recompensas_usadas': self.recompensas_usadas
@@ -126,14 +135,17 @@ class Modelo:
         self.nombre = nombre
         self.peso = 0.0
         self.estatura = 0.0
+        self.talla_sentada = 0.0  # Inicializar nuevo campo
+        self.envergadura = 0.0    # Inicializar nuevo campo
         self.meta_km = {}
         self.ejercicios_type = "bodyweight"
         self.km_corridos = {}
-        self.tiempo_corridos = {}  # Inicializar tiempo
+        self.tiempo_corridos = {}
         self.ejercicios_completados = {}
         self.ejercicios_personalizados = []
         self.ejercicios_personalizados_por_fecha = {}
         self.historial_semanal = []
+        self.historial_mediciones = {}  # Inicializar mediciones mensuales
         self.record_puntos = 0
         self.mensaje = ""
         self.recompensas_usadas = {}
