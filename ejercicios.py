@@ -17,7 +17,7 @@ class Ejercicios:
             ["Elevaciones de piernas suaves", "Plancha lateral con apoyo en antebrazo", "Flexiones estándar con manos anchas", "Flexiones pica para hombros", "Saltos patinador con cambio lento", "Abdominales isométricos de contracción"],
             # Sábado
             ["Abdominales crunch con rodillas dobladas", "Abdominales bicicleta lentos", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Yoga suave con posturas básicas"],
-            # Domingo
+            # Domingo (base para rotación)
             []  # Se generará dinámicamente desde el pool
         ]
         self.base_ejercicios_weights = [
@@ -157,7 +157,7 @@ class Ejercicios:
                 ejercicios_base.extend(self.modelo.ejercicios_personalizados_por_fecha[fecha_str])
                 print(f"[DEBUG] Ejercicios personalizados añadidos para {fecha_str}: {self.modelo.ejercicios_personalizados_por_fecha[fecha_str]}")
 
-            # Verificar si el día anterior (lunes a viernes) se completó para mantener el nivel
+            # Determinar si aplicar progreso_ciclo o rutina fija
             ciclo = self.modelo.progreso_ciclo if self.modelo else 0
             if 0 <= dia_semana <= 5:  # Lunes a sábado
                 dia_anterior = fecha - timedelta(days=1)
@@ -169,6 +169,7 @@ class Ejercicios:
                 else:
                     ciclo = self.modelo.progreso_ciclo if self.modelo else 0  # Sin datos del día anterior, mantener ciclo
             elif dia_semana == 6 and self.modelo and self.modelo.ejercicios_type == 'bodyweight':  # Domingo
+                # Seleccionar 6 ejercicios aleatorios del pool para variedad
                 random.shuffle(self.pool_estiramientos_abdominales)
                 ejercicios_base = self.pool_estiramientos_abdominales[:6]
 
