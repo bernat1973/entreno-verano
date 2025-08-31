@@ -134,9 +134,7 @@
         <ul>
             {% for semana, usadas in modelo.recompensas_usadas.items() if modelo %}
                 {% for recompensa in usadas %}
-                    {% if recompensa != recompensas[0] %}
-                        <li>{{ recompensa }}</li>
-                    {% endif %}
+                    <li>{{ recompensa }}</li>
                 {% endfor %}
             {% else %}
                 <li>No hay recompensas acumuladas.</li>
@@ -172,7 +170,7 @@
                 new Chart(ctx_points, {
                     type: 'line',
                     data: {
-                        labels: semanas_puntos.map(item => `${item.inicio_semana.strftime('%d/%m/%Y')} - ${item.fin_semana.strftime('%d/%m/%Y')}`),
+                        labels: semanas_puntos.map(item => `${item.inicio_semana} - ${item.fin_semana}`.split('-').map(date => new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })).join(' - ')),
                         datasets: [{
                             label: 'Puntos por Semana',
                             data: semanas_puntos.map(item => item.puntos || 0),
@@ -194,7 +192,7 @@
                 new Chart(ctx_km, {
                     type: 'bar',
                     data: {
-                        labels: semanas_km.map(item => `${new Date(item.inicio_semana).toLocaleDateString('es-ES', { month: 'numeric', day: 'numeric' })} - ${new Date(item.fin_semana).toLocaleDateString('es-ES', { month: 'numeric', day: 'numeric' })}`),
+                        labels: semanas_km.map(item => `${item.inicio_semana} - ${item.fin_semana}`.split('-').map(date => new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })).join(' - ')),
                         datasets: [{
                             label: 'Kilómetros por Semana',
                             data: semanas_km.map(item => item.km || 0),
@@ -212,3 +210,4 @@
     </script>
 </body>
 </html>
+
