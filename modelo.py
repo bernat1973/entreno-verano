@@ -60,6 +60,7 @@ class Modelo:
             self.record_puntos = 0
             self.mensaje = ""
             self.recompensas_usadas = {}
+            self.progreso_ciclo = 0  # Nuevo atributo para rastrear el ciclo de dificultad
             self.cargar_datos()
         except Exception as e:
             print(f"[DEBUG] Error al inicializar Modelo: {str(e)}")
@@ -89,7 +90,8 @@ class Modelo:
                 self.record_puntos = data.get('record_puntos', 0)
                 self.mensaje = data.get('mensaje', '')
                 self.recompensas_usadas = data.get('recompensas_usadas', {})
-                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}")
+                self.progreso_ciclo = data.get('progreso_ciclo', 0)  # Cargar el ciclo de dificultad
+                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}, progreso_ciclo={self.progreso_ciclo}")
             else:
                 print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando como nuevo usuario")
                 self.nuevo_usuario(self.user_id)
@@ -118,7 +120,8 @@ class Modelo:
                 'historial_mediciones': self.historial_mediciones,  # Guardar mediciones mensuales
                 'record_puntos': self.record_puntos,
                 'mensaje': self.mensaje,
-                'recompensas_usadas': self.recompensas_usadas
+                'recompensas_usadas': self.recompensas_usadas,
+                'progreso_ciclo': self.progreso_ciclo  # Guardar el ciclo de dificultad
             })
             # Guardar el usuario actual en config/app
             config_ref = self.db.collection('config').document('app')
@@ -149,6 +152,7 @@ class Modelo:
         self.record_puntos = 0
         self.mensaje = ""
         self.recompensas_usadas = {}
+        self.progreso_ciclo = 0  # Inicializar el ciclo de dificultad
         self.guardar_datos()
 
     def cambiar_usuario(self, user_id):
@@ -192,6 +196,14 @@ class Modelo:
     def registrar_ejercicios(self, fecha, ejercicios_dict):
         fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
         self.ejercicios_completados[fecha_str] = ejercicios_dict
+        
+        # Verificar si todos los ejercicios se completaron para avanzar el ciclo
+        if all(completado for completado in ejercicios_dict.values()):
+            self.progreso_ciclo += 1
+            if self.progreso_ciclo > 15:  # Reiniciar ciclo después de 16 fases
+                self.progreso_ciclo = 0
+            print(f"[DEBUG] Todos los ejercicios completados en {fecha_str}, progreso_ciclo aumentado a {self.progreso_ciclo}")
+        
         self.guardar_datos()
 
     def anadir_ejercicio_personalizado(self, fecha, ejercicio):
