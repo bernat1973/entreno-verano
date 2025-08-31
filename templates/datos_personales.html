@@ -113,11 +113,13 @@
                 <p><strong>Índice de Masa Corporal (IMC):</strong> {{ imc|round(2) }}</p>
                 <p><strong>Velocidad de Crecimiento Actual:</strong> {{ velocidad_crecimiento|round(2) }} cm/año</p>
 
-                <!-- Gráfica de evolución -->
+                <!-- Dos gráficas de evolución -->
                 <h3 class="h5 mt-4">Evolución de Crecimiento</h3>
                 <div class="grafica-container">
-                    <!-- 2. REEMPLAZAR EL BLOQUE chartjs POR UN ELEMENTO CANVAS -->
-                    <canvas id="evolucionCrecimientoChart"></canvas>
+                    <canvas id="estaturaChart"></canvas>
+                </div>
+                <div class="grafica-container mt-4">
+                    <canvas id="velocidadChart"></canvas>
                 </div>
 
                 <!-- Formulario para crear nuevo usuario -->
@@ -139,79 +141,71 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- 3. AÑADIR SCRIPT PARA INICIALIZAR LA GRÁFICA -->
+    <!-- 3. AÑADIR SCRIPT PARA INICIALIZAR LAS DOS GRÁFICAS -->
     <script>
-        // Este código se ejecuta cuando la página ha cargado completamente
         document.addEventListener('DOMContentLoaded', function () {
-            // Solo intentar crear la gráfica si hay datos y no están vacíos
             {% if datos_grafica and datos_grafica|length > 0 %}
-                const ctx = document.getElementById('evolucionCrecimientoChart').getContext('2d');
-                
-                // Forma segura de pasar datos de Flask a JavaScript usando el filtro tojson
                 const datosJSON = {{ datos_grafica|tojson|safe }};
-
-                // Mapear los datos para que Chart.js los pueda usar
                 const labels = datosJSON.map(d => d.mes);
                 const estaturaData = datosJSON.map(d => d.estatura);
                 const velocidadData = datosJSON.map(d => d.velocidad);
-                
-                const chartData = {
-                    labels: labels,
-                    datasets: [
-                        {
+
+                // Gráfica de Estatura
+                const estaturaCtx = document.getElementById('estaturaChart').getContext('2d');
+                new Chart(estaturaCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
                             label: 'Estatura (cm)',
                             data: estaturaData,
                             borderColor: '#36A2EB',
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            fill: true,
-                            yAxisID: 'y' // Asignar al eje Y principal
-                        },
-                        {
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Estatura (cm)'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Gráfica de Velocidad
+                const velocidadCtx = document.getElementById('velocidadChart').getContext('2d');
+                new Chart(velocidadCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
                             label: 'Velocidad de Crecimiento (cm/año)',
                             data: velocidadData,
                             borderColor: '#FF6384',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            fill: true,
-                            yAxisID: 'y1' // Asignar a un segundo eje Y
-                        }
-                    ]
-                };
-
-                const chartOptions = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            beginAtZero: false, // La estatura no empieza en cero
-                            title: {
-                                display: true,
-                                text: 'Estatura (cm)'
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Velocidad (cm/año)'
+                                }
                             }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Velocidad (cm/año)'
-                            },
-                            // Para que no se solape con el otro eje
-                            grid: {
-                                drawOnChartArea: false, 
-                            },
                         }
                     }
-                };
-
-                new Chart(ctx, {
-                    type: 'line',
-                    data: chartData,
-                    options: chartOptions
                 });
             {% endif %}
         });
