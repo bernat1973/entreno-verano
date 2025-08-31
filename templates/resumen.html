@@ -88,6 +88,12 @@
             margin: 20px auto;
             padding: 20px;
         }
+        .grafica-container {
+            margin-top: 20px;
+            position: relative;
+            height: 40vh;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -160,6 +166,20 @@
         </div>
     </div>
 
+    <!-- Gráficas de Datos Personales -->
+    <div class="card">
+        <h3>Evolución de Crecimiento</h3>
+        <div class="grafica-container">
+            <canvas id="estaturaChart"></canvas>
+        </div>
+        <div class="grafica-container mt-4">
+            <canvas id="velocidadChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Botón para informe detallado -->
+    <a href="{{ url_for('informe_semanal') }}" class="button">Generar Informe Detallado</a>
+
     <a href="{{ url_for('index') }}" class="button">Volver al Menú</a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -223,6 +243,72 @@
                     }
                 });
             }
+
+            // Gráficas de Datos Personales
+            {% if datos_grafica and datos_grafica|length > 0 %}
+                const datosJSON = {{ datos_grafica|tojson|safe }};
+                const labels = datosJSON.map(d => d.mes);
+                const estaturaData = datosJSON.map(d => d.estatura);
+                const velocidadData = datosJSON.map(d => d.velocidad || 0);
+
+                // Gráfica de Estatura
+                const estaturaCtx = document.getElementById('estaturaChart').getContext('2d');
+                new Chart(estaturaCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Estatura (cm)',
+                            data: estaturaData,
+                            borderColor: '#36A2EB',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Estatura (cm)'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Gráfica de Velocidad
+                const velocidadCtx = document.getElementById('velocidadChart').getContext('2d');
+                new Chart(velocidadCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Crecimiento Mensual (cm)',
+                            data: velocidadData,
+                            borderColor: '#FF6384',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Crecimiento Mensual (cm)'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% endif %}
         });
     </script>
 </body>
