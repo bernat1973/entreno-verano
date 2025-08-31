@@ -17,7 +17,7 @@ class Ejercicios:
             ["Elevaciones de piernas suaves", "Plancha lateral con apoyo en antebrazo", "Flexiones estándar con manos anchas", "Flexiones pica para hombros", "Saltos patinador con cambio lento", "Abdominales isométricos de contracción"],
             # Sábado
             ["Abdominales crunch con rodillas dobladas", "Abdominales bicicleta lentos", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Yoga suave con posturas básicas"],
-            # Domingo (base para rotación)
+            # Domingo
             []  # Se generará dinámicamente desde el pool
         ]
         self.base_ejercicios_weights = [
@@ -157,12 +157,21 @@ class Ejercicios:
                 ejercicios_base.extend(self.modelo.ejercicios_personalizados_por_fecha[fecha_str])
                 print(f"[DEBUG] Ejercicios personalizados añadidos para {fecha_str}: {self.modelo.ejercicios_personalizados_por_fecha[fecha_str]}")
 
-            # Determinar si aplicar progreso_ciclo o rutina específica
+            # Verificar si el día anterior (lunes a viernes) se completó para mantener el nivel
             ciclo = self.modelo.progreso_ciclo if self.modelo else 0
-            if self.modelo and self.modelo.ejercicios_type == 'bodyweight' and dia_semana == 6:  # Domingo
-                # Seleccionar 6 ejercicios aleatorios del pool para variedad
+            if 0 <= dia_semana <= 5:  # Lunes a sábado
+                dia_anterior = fecha - timedelta(days=1)
+                dia_anterior_str = dia_anterior.strftime('%Y-%m-%d')
+                if dia_anterior_str in self.modelo.ejercicios_completados:
+                    if not all(self.modelo.ejercicios_completados[dia_anterior_str].values()):
+                        ciclo = self.modelo.progreso_ciclo if self.modelo else 0  # Mantener el mismo ciclo
+                        print(f"[DEBUG] Ejercicios del día anterior ({dia_anterior_str}) no completados, manteniendo ciclo {ciclo}")
+                else:
+                    ciclo = self.modelo.progreso_ciclo if self.modelo else 0  # Sin datos del día anterior, mantener ciclo
+            elif dia_semana == 6 and self.modelo and self.modelo.ejercicios_type == 'bodyweight':  # Domingo
                 random.shuffle(self.pool_estiramientos_abdominales)
                 ejercicios_base = self.pool_estiramientos_abdominales[:6]
+
             if ciclo < 4:
                 series, repeticiones, segundos = 3, 10, 60
             elif ciclo < 8:
