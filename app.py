@@ -90,7 +90,11 @@ def datos_personales():
             if not nombre:
                 return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=mes_medicion, datos_grafica=[])
 
-            if any(v < 0 for v in [peso, estatura, talla_sentada, envergadura, meta_km]):
+            # Reemplazar any() con una verificación manual
+            valores_negativos = False
+            if peso < 0 or estatura < 0 or talla_sentada < 0 or envergadura < 0 or meta_km < 0:
+                valores_negativos = True
+            if valores_negativos:
                 return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="Los valores deben ser positivos.", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=mes_medicion, datos_grafica=[])
 
             modelo.nombre = nombre
@@ -439,6 +443,7 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
 
 
