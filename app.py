@@ -405,17 +405,18 @@ def informe_semanal():
                     for ejercicio, completado in modelo.ejercicios_completados[dia_str].items():
                         if completado:
                             base_name = ejercicios.get_base_exercise_name(ejercicio)
-                            if any(g in base_name.lower() for g in ['pecho', 'press', 'apertura', 'cruces']):
+                            base_name_lower = base_name.lower() if base_name else ""
+                            if any(word in base_name_lower for word in ['pecho', 'press', 'apertura', 'cruces']):
                                 informe[semana_str]['pecho'].append(base_name)
-                            elif any(g in base_name.lower() for g in ['hombro', 'elevacion', 'press militar']):
+                            elif any(word in base_name_lower for word in ['hombro', 'elevacion', 'press militar']):
                                 informe[semana_str]['hombros'].append(base_name)
-                            elif any(g in base_name.lower() for g in ['espalda', 'remo', 'dominada', 'pull-over']):
+                            elif any(word in base_name_lower for word in ['espalda', 'remo', 'dominada', 'pull-over']):
                                 informe[semana_str]['espalda'].append(base_name)
-                            elif any(g in base_name.lower() for g in ['bíceps', 'tríceps', 'curl', 'extensión']):
+                            elif any(word in base_name_lower for word in ['bíceps', 'tríceps', 'curl', 'extensión']):
                                 informe[semana_str]['brazos'].append(base_name)
-                            elif any(g in base_name.lower() for g in ['pierna', 'glúteo', 'puente', 'saltos']):
+                            elif any(word in base_name_lower for word in ['pierna', 'glúteo', 'puente', 'saltos']):
                                 informe[semana_str]['piernas'].append(base_name)
-                            elif any(g in base_name.lower() for g in ['abdominal', 'plancha', 'core']):
+                            elif any(word in base_name_lower for word in ['abdominal', 'plancha', 'core']):
                                 informe[semana_str]['core'].append(base_name)
                             else:
                                 informe[semana_str]['otros'].append(base_name)
@@ -424,6 +425,9 @@ def informe_semanal():
         datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
 
         return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), datos_grafica=datos_grafica)
+    except NameError as e:
+        print(f"[DEBUG] Error de nombre no definido: {str(e)}")
+        return render_template('error.html', error=f"Error al generar informe: función no definida ({str(e)}). Asegúrate de que el entorno sea compatible con Python estándar."), 500
     except Exception as e:
         print(f"[DEBUG] Error en /informe_semanal: {str(e)}")
         return render_template('error.html', error=f"Error al generar informe: {str(e)}"), 500
@@ -434,4 +438,5 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
