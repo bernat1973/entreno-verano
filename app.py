@@ -368,10 +368,65 @@ def resumen():
                 'km': round(km_semana_total, 2)
             })
 
-        return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo)
+        # Añadir datos de la gráfica
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
+
+        return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo, datos_grafica=datos_grafica)
     except Exception as e:
         print(f"[DEBUG] Error en /resumen: {str(e)}")
         return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
+
+@app.route('/informe_semanal', methods=['GET'])
+def informe_semanal():
+    try:
+        hoy = date.today()
+        inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
+
+        # Agrupar ejercicios por semanas y grupos musculares
+        informe = {}
+        for i in range(-3, 1):  # Últimas 3 semanas + actual
+            semana_inicio = inicio_semana + timedelta(days=i*7)
+            semana_fin = semana_inicio + timedelta(days=6)
+            semana_str = f"{semana_inicio.strftime('%d/%m/%Y')} - {semana_fin.strftime('%d/%m/%Y')}"
+            informe[semana_str] = {
+                'pecho': [],
+                'hombros': [],
+                'espalda': [],
+                'brazos': [],
+                'piernas': [],
+                'core': [],
+                'otros': []
+            }
+
+            # Recorrer días de la semana
+            for dia in (semana_inicio + timedelta(days=d) for d in range(7)):
+                dia_str = dia.strftime('%Y-%m-%d')
+                if dia_str in modelo.ejercicios_completados:
+                    for ejercicio, completado in modelo.ejercicios_completados[dia_str].items():
+                        if completado:
+                            base_name = ejercicios.get_base_exercise_name(ejercicio)
+                            if any(g in base_name.lower() for g in ['pecho', 'press', 'apertura', 'cruces']):
+                                informe[semana_str]['pecho'].append(base_name)
+                            elif any(g in base_name.lower() for g in ['hombro', 'elevacion', 'press militar']):
+                                informe[semana_str]['hombros'].append(base_name)
+                            elif any(g in base_name.lower() for g in ['espalda', 'remo', 'dominada', 'pull-over']):
+                                informe[semana_str]['espalda'].append(base_name)
+                            elif any(g in base_name.lower() for g in ['bíceps', 'tríceps', 'curl', 'extensión']):
+                                informe[semana_str]['brazos'].append(base_name)
+                            elif any(g in base_name.lower() for g in ['pierna', 'glúteo', 'puente', 'saltos']):
+                                informe[semana_str]['piernas'].append(base_name)
+                            elif any(g in base_name.lower() for g in ['abdominal', 'plancha', 'core']):
+                                informe[semana_str]['core'].append(base_name)
+                            else:
+                                informe[semana_str]['otros'].append(base_name)
+
+        # Añadir datos de la gráfica
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
+
+        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), datos_grafica=datos_grafica)
+    except Exception as e:
+        print(f"[DEBUG] Error en /informe_semanal: {str(e)}")
+        return render_template('error.html', error=f"Error al generar informe: {str(e)}"), 500
 
 @app.route('/recompensas', methods=['GET'])
 def redirigir_recompensas():
