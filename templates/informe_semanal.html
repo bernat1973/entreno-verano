@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -73,6 +74,22 @@
         </div>
     </div>
 
+    <!-- Gráfica de Puntos -->
+    <div class="card">
+        <h3>Evolución de Puntos</h3>
+        <div class="grafica-container">
+            <canvas id="puntosChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfica de Correr (Kilómetros) -->
+    <div class="card">
+        <h3>Evolución de Kilómetros</h3>
+        <div class="grafica-container">
+            <canvas id="kmChart"></canvas>
+        </div>
+    </div>
+
     <a href="{{ url_for('resumen') }}" class="btn btn-primary">Volver a Resumen</a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -136,6 +153,74 @@
                                 title: {
                                     display: true,
                                     text: 'Crecimiento Mensual (cm)'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% endif %}
+
+            {% if semanas_puntos and semanas_puntos|length > 0 %}
+                const puntosLabels = {{ semanas_puntos|map(attribute='semana')|list|tojson|safe }};
+                const puntosData = {{ semanas_puntos|map(attribute='puntos')|list|tojson|safe }};
+
+                // Gráfica de Puntos
+                const puntosCtx = document.getElementById('puntosChart').getContext('2d');
+                new Chart(puntosCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: puntosLabels,
+                        datasets: [{
+                            label: 'Puntos',
+                            data: puntosData,
+                            backgroundColor: '#4BC0C0',
+                            borderColor: '#4BC0C0',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Puntos'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% endif %}
+
+            {% if semanas_km and semanas_km|length > 0 %}
+                const kmLabels = {{ semanas_km|map(attribute='semana')|list|tojson|safe }};
+                const kmData = {{ semanas_km|map(attribute='km')|list|tojson|safe }};
+
+                // Gráfica de Kilómetros
+                const kmCtx = document.getElementById('kmChart').getContext('2d');
+                new Chart(kmCtx, {
+                    type: 'line',
+                    data: {
+                        labels: kmLabels,
+                        datasets: [{
+                            label: 'Kilómetros',
+                            data: kmData,
+                            borderColor: '#FF9F40',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Kilómetros'
                                 }
                             }
                         }
