@@ -15,21 +15,32 @@
         }
         .navbar {
             background-color: #1E90FF !important;
-            border: none !important; /* Elimina bordes que puedan crear recuadros */
+            border: none !important;
+        }
+        .navbar-collapse {
+            background-color: #1E90FF !important;
+            border: none !important;
+        }
+        .navbar-nav {
+            background-color: #1E90FF !important;
+            border: none !important;
         }
         .navbar-brand, .nav-link {
             color: #ffffff !important;
+            background-color: transparent !important;
+            border: none !important;
         }
         .nav-link:hover {
             color: #ffffff !important;
-            background-color: #000080;
+            background-color: #000080 !important;
+            border: none !important;
         }
         .navbar-toggler {
-            border: none !important; /* Asegura que el botón no tenga borde */
             background-color: #1E90FF !important;
+            border: none !important;
         }
         .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important; /* Icono blanco */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
         h1 {
             color: #000080;
@@ -208,7 +219,7 @@
                         datasets: [{
                             label: 'Puntos por Semana',
                             data: semanas_puntos.map(item => item.puntos || 0),
-                            borderColor: '#FF6384', // Rosa para la línea
+                            borderColor: '#FF6384',
                             fill: false
                         }]
                     },
@@ -238,7 +249,7 @@
                         datasets: [{
                             label: 'Kilómetros por Semana',
                             data: semanas_km.map(item => item.km || 0),
-                            backgroundColor: '#4BC0C0' // Turquesa para las barras
+                            backgroundColor: '#4BC0C0'
                         }]
                     },
                     options: {
@@ -269,7 +280,7 @@
                         datasets: [{
                             label: 'Estatura (cm)',
                             data: estaturaData,
-                            borderColor: '#FF6384', // Rosa para estatura
+                            borderColor: '#FF6384',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
                             fill: true
                         }]
@@ -299,7 +310,7 @@
                         datasets: [{
                             label: 'Crecimiento Mensual (cm)',
                             data: velocidadData,
-                            borderColor: '#4BC0C0', // Turquesa para velocidad
+                            borderColor: '#4BC0C0',
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
                             fill: true
                         }]
@@ -324,5 +335,6 @@
     </script>
 </body>
 </html>
+
 
 
