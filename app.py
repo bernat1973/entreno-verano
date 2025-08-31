@@ -388,6 +388,8 @@ def informe_semanal():
 
         # Agrupar ejercicios por semanas y grupos musculares
         informe = {}
+        semanas_puntos = []
+        semanas_km = []
         for i in range(-3, 1):  # Últimas 3 semanas + actual
             semana_inicio = inicio_semana + timedelta(days=i*7)
             semana_fin = semana_inicio + timedelta(days=6)
@@ -426,10 +428,16 @@ def informe_semanal():
                                     grupo = 'core'
                             informe[semana_str][grupo].append(base_name)
 
-        # Añadir datos de la gráfica
+            # Calcular puntos y kilómetros para esta semana
+            puntos_semana, km_semana, _, _, _, _, _, _, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
+            km_semana_total = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
+            semanas_puntos.append({'semana': semana_str, 'puntos': puntos_semana})
+            semanas_km.append({'semana': semana_str, 'km': round(km_semana_total, 2)})
+
+        # Añadir datos de la gráfica de crecimiento
         datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
 
-        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), datos_grafica=datos_grafica)
+        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), datos_grafica=datos_grafica, semanas_puntos=semanas_puntos, semanas_km=semanas_km)
     except NameError as e:
         print(f"[DEBUG] Error de nombre no definido: {str(e)}")
         return render_template('error.html', error=f"Error al generar informe: función no definida ({str(e)}). Asegúrate de que el entorno sea compatible con Python estándar."), 500
@@ -443,7 +451,3 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
-
-
-
-
