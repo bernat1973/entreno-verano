@@ -10,20 +10,21 @@
         body {
             font-family: 'Arial', sans-serif;
             margin: 20px;
-            background-color: #e9ecef;
-            color: #333;
+            background-color: #ffffff;
+            color: #000000;
         }
         .navbar {
-            background-color: #007bff !important;
+            background-color: #1E90FF !important;
         }
         .navbar-brand, .nav-link {
-            color: #333 !important;
+            color: #000000 !important;
         }
         .nav-link:hover {
-            color: #000 !important;
+            color: #ffffff !important;
+            background-color: #000080;
         }
         h1 {
-            color: #2c3e50;
+            color: #000080;
             text-align: center;
             margin-bottom: 20px;
             font-size: 2.5em;
@@ -34,16 +35,16 @@
             padding: 20px;
             margin: 15px 0;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 128, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 15px rgba(0, 0, 128, 0.2);
         }
         .summary {
-            background-color: #3498db;
-            color: white;
+            background-color: #1E90FF;
+            color: #ffffff;
             padding: 15px;
             border-radius: 5px;
             margin: 10px 0;
@@ -56,10 +57,10 @@
         li {
             margin: 10px 0;
             padding: 5px 10px;
-            background-color: #ecf0f1;
-            border-left: 4px solid #2ecc71;
+            background-color: #f0f8ff;
+            border-left: 4px solid #1E90FF;
             border-radius: 5px;
-            color: #333;
+            color: #000000;
         }
         img {
             max-width: 200px;
@@ -67,13 +68,13 @@
             display: block;
             margin: 10px auto;
             border-radius: 5px;
-            border: 2px solid #3498db;
+            border: 2px solid #1E90FF;
         }
         .button {
             display: inline-block;
             padding: 12px 25px;
-            background-color: #2ecc71;
-            color: white;
+            background-color: #1E90FF;
+            color: #ffffff;
             text-decoration: none;
             border-radius: 5px;
             margin: 20px 0;
@@ -81,7 +82,7 @@
             transition: background-color 0.3s;
         }
         .button:hover {
-            background-color: #27ae60;
+            background-color: #000080;
         }
         .chart-container {
             max-width: 1000px;
@@ -122,16 +123,16 @@
             {% if resumen %}
                 <div class="summary">{{ resumen | safe }}</div>
             {% else %}
-                <p style="text-align: center; color: #7f8c8d;">No hay resumen disponible. Por favor, intenta de nuevo.</p>
+                <p style="text-align: center; color: #000080;">No hay resumen disponible. Por favor, intenta de nuevo.</p>
             {% endif %}
         {% else %}
-            <p style="text-align: center; color: #7f8c8d;">Error: No se cargaron los datos del modelo.</p>
+            <p style="text-align: center; color: #000080;">Error: No se cargaron los datos del modelo.</p>
         {% endif %}
 
         {% if imagen_ranking %}
             <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
         {% else %}
-            <p style="text-align: center; color: #7f8c8d;">No hay imagen de ranking disponible.</p>
+            <p style="text-align: center; color: #000080;">No hay imagen de ranking disponible.</p>
         {% endif %}
 
         <p><strong>Ranking:</strong> {{ ranking | default('Sin ranking') }}</p>
@@ -199,7 +200,7 @@
                         datasets: [{
                             label: 'Puntos por Semana',
                             data: semanas_puntos.map(item => item.puntos || 0),
-                            borderColor: '#2ecc71',
+                            borderColor: '#1E90FF',
                             fill: false
                         }]
                     },
@@ -229,7 +230,7 @@
                         datasets: [{
                             label: 'Kilómetros por Semana',
                             data: semanas_km.map(item => item.km || 0),
-                            backgroundColor: '#007bff'
+                            backgroundColor: '#1E90FF'
                         }]
                     },
                     options: {
@@ -260,8 +261,8 @@
                         datasets: [{
                             label: 'Estatura (cm)',
                             data: estaturaData,
-                            borderColor: '#36A2EB',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: '#1E90FF',
+                            backgroundColor: 'rgba(30, 144, 255, 0.2)',
                             fill: true
                         }]
                     },
@@ -273,7 +274,8 @@
                                 beginAtZero: false,
                                 title: {
                                     display: true,
-                                    text: 'Estatura (cm)'
+                                    text: 'Estatura (cm)',
+                                    color: '#000080'
                                 }
                             }
                         }
@@ -289,8 +291,8 @@
                         datasets: [{
                             label: 'Crecimiento Mensual (cm)',
                             data: velocidadData,
-                            borderColor: '#FF6384',
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: '#1E90FF',
+                            backgroundColor: 'rgba(30, 144, 255, 0.2)',
                             fill: true
                         }]
                     },
@@ -302,7 +304,8 @@
                                 beginAtZero: true,
                                 title: {
                                     display: true,
-                                    text: 'Crecimiento Mensual (cm)'
+                                    text: 'Crecimiento Mensual (cm)',
+                                    color: #000080
                                 }
                             }
                         }
@@ -313,3 +316,4 @@
     </script>
 </body>
 </html>
+
