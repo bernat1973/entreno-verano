@@ -93,35 +93,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for grupo, ejercicios in grupos.items() %}
-                        {% if ejercicios %}
-                            <tr>
-                                <td>{{ grupo|capitalize }}</td>
-                                <td>
-                                    {% if ejercicios %}
-                                        <ul style="margin: 0; padding-left: 20px;">
-                                            {% for ej in ejercicios %}
-                                                <li>{{ ej }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% else %}
-                                        Ninguno
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                    {% set all_empty = true %}
-                    {% for grupo_ejercicios in grupos.values() %}
-                        {% if grupo_ejercicios|length > 0 %}
-                            {% set all_empty = false %}
-                        {% endif %}
-                    {% endfor %}
-                    {% if all_empty %}
+                    <!-- Grupos musculares fijos -->
+                    {% set grupos_fijos = ['pectorales', 'espalda', 'abdominales', 'hombros', 'brazos', 'piernas', 'core', 'otros'] %}
+                    {% for grupo in grupos_fijos %}
                         <tr>
-                            <td colspan="2">No se realizaron ejercicios esta semana.</td>
+                            <td>{{ grupo|capitalize }}</td>
+                            <td>
+                                {% if grupos[grupo] %}
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        {% for ej in grupos[grupo] %}
+                                            <li>{{ ej }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    Ninguno
+                                {% endif %}
+                            </td>
                         </tr>
-                    {% endif %}
+                    {% endfor %}
                 </tbody>
             </table>
             {% if semanas_puntos and semanas_puntos|length > 0 and loop.index0 < semanas_puntos|length %}
@@ -296,3 +285,4 @@
     </script>
 </body>
 </html>
+
