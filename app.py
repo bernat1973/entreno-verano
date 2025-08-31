@@ -17,6 +17,7 @@ def _calcular_datos_grafica(historial_mediciones):
 
     datos_grafica = []
     historial_fechas = sorted(historial_mediciones.keys())
+    crecimiento_total = 0  # Acumula el crecimiento total en cm
 
     for i, mes in enumerate(historial_fechas):
         medicion_actual = historial_mediciones[mes]
@@ -26,16 +27,9 @@ def _calcular_datos_grafica(historial_mediciones):
         if i > 0:
             mes_anterior = historial_fechas[i-1]
             medicion_anterior = historial_mediciones[mes_anterior]
-
-            fecha_actual = datetime.strptime(mes, '%Y-%m')
-            fecha_anterior = datetime.strptime(mes_anterior, '%Y-%m')
-            
             diferencia_estatura = medicion_actual.get('estatura', 0) - medicion_anterior.get('estatura', 0)
-            meses_diferencia = (fecha_actual.year - fecha_anterior.year) * 12 + (fecha_actual.month - fecha_anterior.month)
-            
-            if meses_diferencia > 0:
-                # Velocidad anualizada en cm/año
-                velocidad = (diferencia_estatura * 100 / meses_diferencia) * 12
+            velocidad = diferencia_estatura * 100  # Crecimiento mensual en cm
+            crecimiento_total += diferencia_estatura * 100  # Acumular en cm
 
         datos_grafica.append({
             'mes': mes,
@@ -119,6 +113,9 @@ def datos_personales():
             # Usar la nueva función para calcular los datos de la gráfica
             datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
             velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
+            if datos_grafica:
+                crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales (excluyendo el primer mes que es 0)
+                velocidad_crecimiento_actual = crecimiento_total * 12  # Proyección anual
 
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=estatura * 100, talla_sentada=talla_sentada * 100, envergadura=envergadura * 100, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje="¡Datos guardados correctamente!", semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior * 100, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=mes_medicion, datos_grafica=datos_grafica)
         
@@ -133,7 +130,10 @@ def datos_personales():
         
         datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
         velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
-        
+        if datos_grafica:
+            crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales (excluyendo el primer mes que es 0)
+            velocidad_crecimiento_actual = crecimiento_total * 12  # Proyección anual
+
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=datos_grafica)
 
 @app.route('/cambiar_usuario', methods=['POST'])
@@ -156,6 +156,9 @@ def cambiar_usuario():
             
             datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
             velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
+            if datos_grafica:
+                crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales
+                velocidad_crecimiento_actual = crecimiento_total * 12  # Proyección anual
 
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=datos_grafica)
         else:
@@ -376,3 +379,4 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
