@@ -84,8 +84,9 @@
             background-color: #27ae60;
         }
         .chart-container {
-            max-width: 900px; /* Aumentado para mayor espacio */
+            max-width: 1000px; /* Aumentado para más espacio */
             margin: 20px auto;
+            padding: 20px;
         }
     </style>
 </head>
@@ -148,14 +149,14 @@
     <div class="card">
         <h3>Gráfica de Puntos por Semana</h3>
         <div class="chart-container">
-            <canvas id="pointsChart" width="800" height="400"></canvas> <!-- Aumentado el tamaño -->
+            <canvas id="pointsChart" width="800" height="400"></canvas>
         </div>
     </div>
 
     <div class="card">
         <h3>Gráfica de Kilómetros por Semana</h3>
         <div class="chart-container">
-            <canvas id="kmChart" width="800" height="400"></canvas> <!-- Aumentado el tamaño -->
+            <canvas id="kmChart" width="800" height="400"></canvas>
         </div>
     </div>
 
@@ -170,7 +171,11 @@
                 new Chart(ctx_points, {
                     type: 'line',
                     data: {
-                        labels: semanas_puntos.map(item => `${item.inicio_semana} - ${item.fin_semana}`.split('-').map(date => new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })).join(' - ')),
+                        labels: semanas_puntos.map(item => {
+                            const start = new Date(item.inicio_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                            const end = new Date(item.fin_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                            return `${start} - ${end}`;
+                        }),
                         datasets: [{
                             label: 'Puntos por Semana',
                             data: semanas_puntos.map(item => item.puntos || 0),
@@ -180,7 +185,11 @@
                     },
                     options: {
                         scales: {
-                            x: { ticks: { font: { size: 14 } } }, // Ajuste de tamaño de fuente para las etiquetas
+                            x: {
+                                ticks: { font: { size: 16 } },
+                                maxRotation: 0,
+                                minRotation: 0
+                            },
                             y: { beginAtZero: true }
                         }
                     }
@@ -193,7 +202,11 @@
                 new Chart(ctx_km, {
                     type: 'bar',
                     data: {
-                        labels: semanas_km.map(item => `${item.inicio_semana} - ${item.fin_semana}`.split('-').map(date => new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })).join(' - ')),
+                        labels: semanas_km.map(item => {
+                            const start = new Date(item.inicio_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                            const end = new Date(item.fin_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                            return `${start} - ${end}`;
+                        }),
                         datasets: [{
                             label: 'Kilómetros por Semana',
                             data: semanas_km.map(item => item.km || 0),
@@ -202,7 +215,11 @@
                     },
                     options: {
                         scales: {
-                            x: { ticks: { font: { size: 14 } } }, // Ajuste de tamaño de fuente para las etiquetas
+                            x: {
+                                ticks: { font: { size: 16 } },
+                                maxRotation: 0,
+                                minRotation: 0
+                            },
                             y: { beginAtZero: true }
                         }
                     }
@@ -212,4 +229,3 @@
     </script>
 </body>
 </html>
-
