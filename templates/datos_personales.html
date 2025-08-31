@@ -147,7 +147,7 @@
                 const datosJSON = {{ datos_grafica|tojson|safe }};
                 const labels = datosJSON.map(d => d.mes);
                 const estaturaData = datosJSON.map(d => d.estatura);
-                const velocidadData = datosJSON.map(d => d.velocidad || 0); // Asegurar 0 si no hay velocidad
+                const velocidadData = datosJSON.map(d => d.velocidad || 0); // Crecimiento mensual en cm
 
                 // Gráfica de Estatura
                 const estaturaCtx = document.getElementById('estaturaChart').getContext('2d');
@@ -185,7 +185,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Velocidad de Crecimiento (cm/año)',
+                            label: 'Crecimiento Mensual (cm)',
                             data: velocidadData,
                             borderColor: '#FF6384',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -200,7 +200,7 @@
                                 beginAtZero: true,
                                 title: {
                                     display: true,
-                                    text: 'Velocidad (cm/año)'
+                                    text: 'Crecimiento Mensual (cm)'
                                 }
                             }
                         }
@@ -211,4 +211,3 @@
     </script>
 </body>
 </html>
-
