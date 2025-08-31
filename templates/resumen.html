@@ -84,7 +84,7 @@
             background-color: #27ae60;
         }
         .chart-container {
-            max-width: 1000px; /* Aumentado para más espacio */
+            max-width: 1000px;
             margin: 20px auto;
             padding: 20px;
         }
@@ -172,8 +172,8 @@
                     type: 'line',
                     data: {
                         labels: semanas_puntos.map(item => {
-                            const start = new Date(item.inicio_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
-                            const end = new Date(item.fin_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                            const start = new Date(item.inicio_semana).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            const end = new Date(item.fin_semana).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
                             return `${start} - ${end}`;
                         }),
                         datasets: [{
@@ -186,9 +186,8 @@
                     options: {
                         scales: {
                             x: {
-                                ticks: { font: { size: 16 } },
-                                maxRotation: 0,
-                                minRotation: 0
+                                ticks: { font: { size: 12 }, autoSkip: true, maxTicksLimit: 10 },
+                                padding: 10
                             },
                             y: { beginAtZero: true }
                         }
@@ -203,8 +202,8 @@
                     type: 'bar',
                     data: {
                         labels: semanas_km.map(item => {
-                            const start = new Date(item.inicio_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
-                            const end = new Date(item.fin_semana).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                            const start = new Date(item.inicio_semana).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            const end = new Date(item.fin_semana).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
                             return `${start} - ${end}`;
                         }),
                         datasets: [{
@@ -216,9 +215,8 @@
                     options: {
                         scales: {
                             x: {
-                                ticks: { font: { size: 16 } },
-                                maxRotation: 0,
-                                minRotation: 0
+                                ticks: { font: { size: 12 }, autoSkip: true, maxTicksLimit: 10 },
+                                padding: 10
                             },
                             y: { beginAtZero: true }
                         }
