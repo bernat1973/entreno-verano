@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,29 +8,74 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12pt;
             margin: 20px;
-            background-color: #e9ecef;
-            color: #333;
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 2.5em;
+            margin-bottom: 30px;
+            font-size: 24pt;
+            font-weight: 600;
+        }
+        h2 {
+            color: #34495e;
+            font-size: 16pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        h3 {
+            color: #34495e;
+            font-size: 14pt;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-weight: 500;
         }
         .card {
-            background-color: #ffffff;
+            background-color: #f9f9f9;
             padding: 20px;
             margin: 15px 0;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .table th, .table td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f1f1f1;
+            font-weight: 500;
         }
         .grafica-container {
             margin-top: 20px;
             position: relative;
-            height: 40vh;
+            height: 300px;
             width: 100%;
+            max-width: 100%;
+        }
+        @media (max-width: 768px) {
+            .grafica-container {
+                height: 200px;
+            }
+            .table {
+                font-size: 10pt;
+            }
+            h1 { font-size: 18pt; }
+            h2 { font-size: 14pt; }
+            h3 { font-size: 12pt; }
+            body { font-size: 10pt; }
         }
     </style>
 </head>
@@ -41,24 +85,50 @@
     <div class="card">
         {% for semana, grupos in informe.items() %}
             <h2>{{ semana }}</h2>
-            {% for grupo, ejercicios in grupos.items() %}
-                {% if ejercicios %}
-                    <h4>{{ grupo|capitalize }}</h4>
-                    <ul>
-                        {% for ej in ejercicios %}
-                            <li>{{ ej }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endfor %}
-            {% set all_empty = true %}
-            {% for grupo_ejercicios in grupos.values() %}
-                {% if grupo_ejercicios|length > 0 %}
-                    {% set all_empty = false %}
-                {% endif %}
-            {% endfor %}
-            {% if all_empty %}
-                <p>No se realizaron ejercicios esta semana.</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Grupo Muscular</th>
+                        <th>Ejercicios Realizados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grupo, ejercicios in grupos.items() %}
+                        {% if ejercicios %}
+                            <tr>
+                                <td>{{ grupo|capitalize }}</td>
+                                <td>
+                                    {% if ejercicios %}
+                                        <ul style="margin: 0; padding-left: 20px;">
+                                            {% for ej in ejercicios %}
+                                                <li>{{ ej }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        Ninguno
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    {% set all_empty = true %}
+                    {% for grupo_ejercicios in grupos.values() %}
+                        {% if grupo_ejercicios|length > 0 %}
+                            {% set all_empty = false %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if all_empty %}
+                        <tr>
+                            <td colspan="2">No se realizaron ejercicios esta semana.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            {% if semanas_puntos and semanas_puntos|length > 0 and loop.index0 < semanas_puntos|length %}
+                <p><strong>Total Puntos:</strong> {{ semanas_puntos[loop.index0].puntos }}</p>
+            {% endif %}
+            {% if semanas_km and semanas_km|length > 0 and loop.index0 < semanas_km|length %}
+                <p><strong>Total Kilómetros:</strong> {{ semanas_km[loop.index0].km }} km</p>
             {% endif %}
         {% endfor %}
     </div>
@@ -112,7 +182,8 @@
                             data: estaturaData,
                             borderColor: '#36A2EB',
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            fill: true
+                            fill: true,
+                            tension: 0.1
                         }]
                     },
                     options: {
@@ -121,12 +192,10 @@
                         scales: {
                             y: {
                                 beginAtZero: false,
-                                title: {
-                                    display: true,
-                                    text: 'Estatura (cm)'
-                                }
+                                title: { display: true, text: 'Estatura (cm)' }
                             }
-                        }
+                        },
+                        plugins: { legend: { position: 'top' } }
                     }
                 });
 
@@ -141,7 +210,8 @@
                             data: velocidadData,
                             borderColor: '#FF6384',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            fill: true
+                            fill: true,
+                            tension: 0.1
                         }]
                     },
                     options: {
@@ -150,12 +220,10 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Crecimiento Mensual (cm)'
-                                }
+                                title: { display: true, text: 'Crecimiento Mensual (cm)' }
                             }
-                        }
+                        },
+                        plugins: { legend: { position: 'top' } }
                     }
                 });
             {% endif %}
@@ -184,12 +252,10 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Puntos'
-                                }
+                                title: { display: true, text: 'Puntos' }
                             }
-                        }
+                        },
+                        plugins: { legend: { position: 'top' } }
                     }
                 });
             {% endif %}
@@ -209,7 +275,8 @@
                             data: kmData,
                             borderColor: '#FF9F40',
                             backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                            fill: true
+                            fill: true,
+                            tension: 0.1
                         }]
                     },
                     options: {
@@ -218,12 +285,10 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Kilómetros'
-                                }
+                                title: { display: true, text: 'Kilómetros' }
                             }
-                        }
+                        },
+                        plugins: { legend: { position: 'top' } }
                     }
                 });
             {% endif %}
