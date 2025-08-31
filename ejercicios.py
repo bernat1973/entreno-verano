@@ -150,7 +150,8 @@ class Ejercicios:
                 ejercicios_base.extend(self.modelo.ejercicios_personalizados_por_fecha[fecha_str])
                 print(f"[DEBUG] Ejercicios personalizados añadidos para {fecha_str}: {self.modelo.ejercicios_personalizados_por_fecha[fecha_str]}")
 
-            ciclo = (fecha.isocalendar()[1] - 1) % 16
+            # Usar el progreso_ciclo del modelo en lugar de la semana ISO
+            ciclo = self.modelo.progreso_ciclo if self.modelo else 0
             if ciclo < 4:
                 series, repeticiones, segundos = 3, 10, 60
             elif ciclo < 8:
@@ -167,7 +168,7 @@ class Ejercicios:
                 else:
                     ejercicios_progresivos.append(f"{series} series de {repeticiones} {ej}")
             random.shuffle(ejercicios_progresivos)
-            print(f"[DEBUG] Ejercicios progresivos para {fecha_str}: {ejercicios_progresivos}")
+            print(f"[DEBUG] Ejercicios progresivos para {fecha_str} (ciclo {ciclo}): {ejercicios_progresivos}")
             return ejercicios_progresivos
         except Exception as e:
             print(f"[DEBUG] Error en get_ejercicios_dia: {str(e)}")
