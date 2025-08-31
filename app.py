@@ -406,20 +406,21 @@ def informe_semanal():
                         if completado:
                             base_name = ejercicios.get_base_exercise_name(ejercicio)
                             base_name_lower = base_name.lower() if base_name else ""
-                            if any(word in base_name_lower for word in ['pecho', 'press', 'apertura', 'cruces']):
-                                informe[semana_str]['pecho'].append(base_name)
-                            elif any(word in base_name_lower for word in ['hombro', 'elevacion', 'press militar']):
-                                informe[semana_str]['hombros'].append(base_name)
-                            elif any(word in base_name_lower for word in ['espalda', 'remo', 'dominada', 'pull-over']):
-                                informe[semana_str]['espalda'].append(base_name)
-                            elif any(word in base_name_lower for word in ['bíceps', 'tríceps', 'curl', 'extensión']):
-                                informe[semana_str]['brazos'].append(base_name)
-                            elif any(word in base_name_lower for word in ['pierna', 'glúteo', 'puente', 'saltos']):
-                                informe[semana_str]['piernas'].append(base_name)
-                            elif any(word in base_name_lower for word in ['abdominal', 'plancha', 'core']):
-                                informe[semana_str]['core'].append(base_name)
-                            else:
-                                informe[semana_str]['otros'].append(base_name)
+                            grupo = 'otros'
+                            if base_name_lower:
+                                if 'pecho' in base_name_lower or 'press' in base_name_lower or 'apertura' in base_name_lower or 'cruces' in base_name_lower:
+                                    grupo = 'pecho'
+                                elif 'hombro' in base_name_lower or 'elevacion' in base_name_lower or 'press militar' in base_name_lower:
+                                    grupo = 'hombros'
+                                elif 'espalda' in base_name_lower or 'remo' in base_name_lower or 'dominada' in base_name_lower or 'pull-over' in base_name_lower:
+                                    grupo = 'espalda'
+                                elif 'bíceps' in base_name_lower or 'tríceps' in base_name_lower or 'curl' in base_name_lower or 'extensión' in base_name_lower:
+                                    grupo = 'brazos'
+                                elif 'pierna' in base_name_lower or 'glúteo' in base_name_lower or 'puente' in base_name_lower or 'saltos' in base_name_lower:
+                                    grupo = 'piernas'
+                                elif 'abdominal' in base_name_lower or 'plancha' in base_name_lower or 'core' in base_name_lower:
+                                    grupo = 'core'
+                            informe[semana_str][grupo].append(base_name)
 
         # Añadir datos de la gráfica
         datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
@@ -438,5 +439,6 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
 
