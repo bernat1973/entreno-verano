@@ -1,0 +1,144 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Semanal - Entreno Verano</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #e9ecef;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .card {
+            background-color: #ffffff;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .grafica-container {
+            margin-top: 20px;
+            position: relative;
+            height: 40vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Informe Semanal - {{ fecha }}</h1>
+
+    <div class="card">
+        {% for semana, grupos in informe.items() %}
+            <h2>{{ semana }}</h2>
+            {% for grupo, ejercicios in grupos.items() %}
+                {% if ejercicios %}
+                    <h4>{{ grupo|capitalize }}</h4>
+                    <ul>
+                        {% for ej in ejercicios %}
+                            <li>{{ ej }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+            {% if not any(grupos.values()) %}
+                <p>No se realizaron ejercicios esta semana.</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Gráficas de Datos Personales -->
+    <div class="card">
+        <h3>Evolución de Crecimiento</h3>
+        <div class="grafica-container">
+            <canvas id="estaturaChart"></canvas>
+        </div>
+        <div class="grafica-container mt-4">
+            <canvas id="velocidadChart"></canvas>
+        </div>
+    </div>
+
+    <a href="{{ url_for('resumen') }}" class="btn btn-primary">Volver a Resumen</a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if datos_grafica and datos_grafica|length > 0 %}
+                const datosJSON = {{ datos_grafica|tojson|safe }};
+                const labels = datosJSON.map(d => d.mes);
+                const estaturaData = datosJSON.map(d => d.estatura);
+                const velocidadData = datosJSON.map(d => d.velocidad || 0);
+
+                // Gráfica de Estatura
+                const estaturaCtx = document.getElementById('estaturaChart').getContext('2d');
+                new Chart(estaturaCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Estatura (cm)',
+                            data: estaturaData,
+                            borderColor: '#36A2EB',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Estatura (cm)'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Gráfica de Velocidad
+                const velocidadCtx = document.getElementById('velocidadChart').getContext('2d');
+                new Chart(velocidadCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Crecimiento Mensual (cm)',
+                            data: velocidadData,
+                            borderColor: '#FF6384',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Crecimiento Mensual (cm)'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% endif %}
+        });
+    </script>
+</body>
+</html>
+```
