@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -51,7 +50,13 @@
                     </ul>
                 {% endif %}
             {% endfor %}
-            {% if not any(grupos.values()) %}
+            {% set all_empty = true %}
+            {% for grupo_ejercicios in grupos.values() %}
+                {% if grupo_ejercicios|length > 0 %}
+                    {% set all_empty = false %}
+                {% endif %}
+            {% endfor %}
+            {% if all_empty %}
                 <p>No se realizaron ejercicios esta semana.</p>
             {% endif %}
         {% endfor %}
@@ -141,4 +146,3 @@
     </script>
 </body>
 </html>
-```
