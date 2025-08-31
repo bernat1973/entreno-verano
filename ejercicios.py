@@ -17,8 +17,8 @@ class Ejercicios:
             ["Elevaciones de piernas suaves", "Plancha lateral con apoyo en antebrazo", "Flexiones estándar con manos anchas", "Flexiones pica para hombros", "Saltos patinador con cambio lento", "Abdominales isométricos de contracción"],
             # Sábado
             ["Abdominales crunch con rodillas dobladas", "Abdominales bicicleta lentos", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Yoga suave con posturas básicas"],
-            # Domingo (base para rotación)
-            []  # Se generará dinámicamente desde el pool
+            # Domingo
+            ["Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Flexiones diamante para tríceps", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con fuerza", "Movilidad articular de cadera"]
         ]
         self.base_ejercicios_weights = [
             # Lunes: Pectorales y hombros
@@ -35,13 +35,6 @@ class Ejercicios:
             ["Peso muerto con barra", "Remo con barra T", "Curl de bíceps con barra recta", "Extensiones de tríceps con mancuerna a una mano", "Dominadas supinas con peso", "Curl concentrado con mancuerna"],
             # Domingo: Recuperación activa
             ["Press de banca ligero con mancuernas", "Elevaciones laterales ligeras con mancuernas", "Remo ligero con mancuernas", "Curl de bíceps ligero con mancuernas", "Extensiones de tríceps ligero en polea", "Face pulls ligeros con polea"]
-        ]
-        # Pool de ejercicios de estiramientos y abdominales para domingos (bodyweight)
-        self.pool_estiramientos_abdominales = [
-            "Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Abdominales crunch con rodillas dobladas",
-            "Movilidad articular de cadera", "Gato-vaca para movilidad espinal", "Respiración diafragmática profunda",
-            "Plancha lateral con apoyo en antebrazo", "Abdominales bicicleta lentos", "Puente de glúteos con rodillas dobladas",
-            "Yoga suave con posturas básicas", "Estiramientos dinámicos de cuerpo completo", "Abdominales isométricos de contracción"
         ]
         print(f"[DEBUG] Inicializado Ejercicios con modelo.ejercicios_type: {self.modelo.ejercicios_type if self.modelo else 'None'}")
 
@@ -157,22 +150,7 @@ class Ejercicios:
                 ejercicios_base.extend(self.modelo.ejercicios_personalizados_por_fecha[fecha_str])
                 print(f"[DEBUG] Ejercicios personalizados añadidos para {fecha_str}: {self.modelo.ejercicios_personalizados_por_fecha[fecha_str]}")
 
-            # Determinar si aplicar progreso_ciclo o rutina fija
-            ciclo = self.modelo.progreso_ciclo if self.modelo else 0
-            if 0 <= dia_semana <= 5:  # Lunes a sábado
-                dia_anterior = fecha - timedelta(days=1)
-                dia_anterior_str = dia_anterior.strftime('%Y-%m-%d')
-                if dia_anterior_str in self.modelo.ejercicios_completados:
-                    if not all(self.modelo.ejercicios_completados[dia_anterior_str].values()):
-                        ciclo = self.modelo.progreso_ciclo if self.modelo else 0  # Mantener el mismo ciclo
-                        print(f"[DEBUG] Ejercicios del día anterior ({dia_anterior_str}) no completados, manteniendo ciclo {ciclo}")
-                else:
-                    ciclo = self.modelo.progreso_ciclo if self.modelo else 0  # Sin datos del día anterior, mantener ciclo
-            elif dia_semana == 6 and self.modelo and self.modelo.ejercicios_type == 'bodyweight':  # Domingo
-                # Seleccionar 6 ejercicios aleatorios del pool para variedad
-                random.shuffle(self.pool_estiramientos_abdominales)
-                ejercicios_base = self.pool_estiramientos_abdominales[:6]
-
+            ciclo = (fecha.isocalendar()[1] - 1) % 16
             if ciclo < 4:
                 series, repeticiones, segundos = 3, 10, 60
             elif ciclo < 8:
@@ -189,7 +167,7 @@ class Ejercicios:
                 else:
                     ejercicios_progresivos.append(f"{series} series de {repeticiones} {ej}")
             random.shuffle(ejercicios_progresivos)
-            print(f"[DEBUG] Ejercicios progresivos para {fecha_str} (ciclo {ciclo}): {ejercicios_progresivos}")
+            print(f"[DEBUG] Ejercicios progresivos para {fecha_str}: {ejercicios_progresivos}")
             return ejercicios_progresivos
         except Exception as e:
             print(f"[DEBUG] Error en get_ejercicios_dia: {str(e)}")
