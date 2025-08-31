@@ -312,19 +312,21 @@ def correr():
 def progreso():
     try:
         hoy = date.today()
-        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
-
+        inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
         semanas_puntos = []
         for i in range(-3, 1):  # Últimas 3 semanas + actual
-            semana_inicio = hoy - timedelta(days=(hoy.weekday() + 7 * (i + 1)))
+            semana_inicio = inicio_semana + timedelta(days=i*7)
             semana_fin = semana_inicio + timedelta(days=6)
-            p, k, _, _, _, _, _, _, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
+            puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
             semanas_puntos.append({
                 'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
                 'fin_semana': semana_fin.strftime('%Y-%m-%d'),
-                'puntos': p,
-                'km': k
+                'puntos': puntos,
+                'km': km
             })
+
+        # Semana actual
+        puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, inicio_semana, ejercicios.get_puntos)
 
         return render_template('progreso.html', puntos=puntos, km=km, completados=completados, totales=totales, ranking=ranking, imagen_ranking=imagen_ranking, record_puntos=record_puntos, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), semanas_puntos=semanas_puntos)
     except Exception as e:
@@ -335,7 +337,8 @@ def progreso():
 def resumen():
     try:
         hoy = date.today()
-        resultado_semana = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, hoy, ejercicios.get_puntos)
+        inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
+        resultado_semana = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, inicio_semana, ejercicios.get_puntos)
         if len(resultado_semana) != 9:
             raise ValueError(f"Esperados 9 valores de evaluar_semana, recibidos: {len(resultado_semana)}")
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = resultado_semana
@@ -343,9 +346,24 @@ def resumen():
             raise ValueError(f"Esperado un número para puntos, recibido: {type(puntos)}")
         resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
 
-        inicio_semana = hoy - timedelta(days=hoy.weekday())
-        semanas_puntos = [{'inicio_semana': (inicio_semana + timedelta(days=i*7)).strftime('%Y-%m-%d'), 'fin_semana': (inicio_semana + timedelta(days=i*7 + 6)).strftime('%Y-%m-%d'), 'puntos': p} for i, (p, _, _, _, _, _, _, _, _) in enumerate([modelo.evaluar_semana(ejercicios.get_ejercicios_dia, inicio_semana + timedelta(days=i*7), ejercicios.get_puntos) for i in range(-3, 1)])]
-        semanas_km = [{'inicio_semana': (inicio_semana + timedelta(days=i*7)).strftime('%Y-%m-%d'), 'fin_semana': (inicio_semana + timedelta(days=i*7 + 6)).strftime('%Y-%m-%d'), 'km': sum(float(km) for fecha_key, km in modelo.km_corridos.items() if (inicio_semana + timedelta(days=i*7)).strftime('%Y-%m-%d') <= fecha_key <= (inicio_semana + timedelta(days=i*7 + 6)).strftime('%Y-%m-%d'))} for i in range(-3, 1)]
+        # Calcular semanas_puntos y semanas_km correctamente
+        semanas_puntos = []
+        semanas_km = []
+        for i in range(-3, 1):  # Últimas 3 semanas + actual
+            semana_inicio = inicio_semana + timedelta(days=i*7)
+            semana_fin = semana_inicio + timedelta(days=6)
+            puntos_semana, km_semana, _, _, _, _, _, _, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
+            km_semana_total = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
+            semanas_puntos.append({
+                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
+                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
+                'puntos': puntos_semana
+            })
+            semanas_km.append({
+                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
+                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
+                'km': round(km_semana_total, 2)
+            })
 
         return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo)
     except Exception as e:
@@ -358,4 +376,3 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
-
