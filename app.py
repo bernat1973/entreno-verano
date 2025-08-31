@@ -395,9 +395,10 @@ def informe_semanal():
             semana_fin = semana_inicio + timedelta(days=6)
             semana_str = f"{semana_inicio.strftime('%d/%m/%Y')} - {semana_fin.strftime('%d/%m/%Y')}"
             informe[semana_str] = {
-                'pecho': [],
-                'hombros': [],
+                'pectorales': [],
                 'espalda': [],
+                'abdominales': [],
+                'hombros': [],
                 'brazos': [],
                 'piernas': [],
                 'core': [],
@@ -414,17 +415,19 @@ def informe_semanal():
                             base_name_lower = base_name.lower() if base_name else ""
                             grupo = 'otros'
                             if base_name_lower:
-                                if 'pecho' in base_name_lower or 'press' in base_name_lower or 'apertura' in base_name_lower or 'cruces' in base_name_lower:
-                                    grupo = 'pecho'
-                                elif 'hombro' in base_name_lower or 'elevacion' in base_name_lower or 'press militar' in base_name_lower:
-                                    grupo = 'hombros'
-                                elif 'espalda' in base_name_lower or 'remo' in base_name_lower or 'dominada' in base_name_lower or 'pull-over' in base_name_lower:
+                                if any(keyword in base_name_lower for keyword in ['pectorales', 'pecho', 'press de banca', 'apertura', 'cruces', 'fondos']):
+                                    grupo = 'pectorales'
+                                elif any(keyword in base_name_lower for keyword in ['espalda', 'remo', 'dominada', 'pull-over', 'jalón']):
                                     grupo = 'espalda'
-                                elif 'bíceps' in base_name_lower or 'tríceps' in base_name_lower or 'curl' in base_name_lower or 'extensión' in base_name_lower:
+                                elif any(keyword in base_name_lower for keyword in ['abdominal', 'abdominales', 'plancha', 'crunch', 'elevación de piernas']):
+                                    grupo = 'abdominales'
+                                elif any(keyword in base_name_lower for keyword in ['hombro', 'hombros', 'press militar', 'elevación lateral', 'elevación frontal']):
+                                    grupo = 'hombros'
+                                elif any(keyword in base_name_lower for keyword in ['bíceps', 'tríceps', 'curl', 'extensión', 'press francés']):
                                     grupo = 'brazos'
-                                elif 'pierna' in base_name_lower or 'glúteo' in base_name_lower or 'puente' in base_name_lower or 'saltos' in base_name_lower:
+                                elif any(keyword in base_name_lower for keyword in ['pierna', 'piernas', 'sentadilla', 'zancada', 'peso muerto', 'prensa']):
                                     grupo = 'piernas'
-                                elif 'abdominal' in base_name_lower or 'plancha' in base_name_lower or 'core' in base_name_lower:
+                                elif any(keyword in base_name_lower for keyword in ['core', 'russian twist', 'mountain climbers']):
                                     grupo = 'core'
                             informe[semana_str][grupo].append(base_name)
 
@@ -451,3 +454,4 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
