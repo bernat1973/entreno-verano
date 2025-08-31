@@ -197,8 +197,8 @@ class Modelo:
         fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
         self.ejercicios_completados[fecha_str] = ejercicios_dict
         
-        # Verificar si todos los ejercicios se completaron para avanzar el ciclo
-        if all(completado for completado in ejercicios_dict.values()):
+        # Verificar si todos los ejercicios se completaron para avanzar el ciclo (solo de lunes a sábado)
+        if 0 <= fecha.weekday() <= 5 and all(completado for completado in ejercicios_dict.values()):
             self.progreso_ciclo += 1
             if self.progreso_ciclo > 15:  # Reiniciar ciclo después de 16 fases
                 self.progreso_ciclo = 0
