@@ -14,45 +14,46 @@
             color: #000000;
         }
 
-        /* === CÓDIGO CORREGIDO PARA LA NAVBAR === */
+        /* === CÓDIGO REFORZADO PARA LA NAVBAR === */
 
-        /* 1. Estilo base de la barra de navegación */
         #main-navbar {
-            background-color: #1E90FF; /* Color de fondo azul principal */
-            padding: 0.5rem 1rem;
+            background-color: #1E90FF !important;
         }
 
-        /* 2. Estilo para los enlaces (links) del menú y el logo */
-        #main-navbar .nav-link,
-        #main-navbar .navbar-brand {
-            color: white; /* Color del texto blanco */
-            background-color: transparent; /* SIN color de fondo propio */
-            border-radius: 5px; /* Bordes redondeados para el efecto hover */
-            transition: background-color 0.3s; /* Transición suave al pasar el ratón */
+        /* Quitamos el fondo a los contenedores de los enlaces */
+        #main-navbar .nav-item {
+            background: none !important;
         }
 
-        /* 3. Estilo para el enlace de la página ACTIVA (el que salía blanco) */
+        /* Quitamos el fondo a TODOS los enlaces y ponemos el texto en blanco */
+        #main-navbar .nav-link {
+            background-color: transparent !important; /* FORZAMOS el fondo transparente */
+            color: white !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Estilo para el enlace ACTIVO */
         #main-navbar .nav-link.active {
-            font-weight: bold; /* Lo ponemos en negrita para que destaque */
-            /* Ya no necesita un color de fondo, se queda transparente */
+            font-weight: bold;
+            background-color: transparent !important; /* TAMBIÉN forzamos el fondo transparente aquí */
         }
 
-        /* 4. Estilo al pasar el ratón por encima de un enlace */
+        /* Estilo al pasar el ratón por encima */
         #main-navbar .nav-link:hover {
-            background-color: #000080; /* Azul más oscuro al pasar el ratón */
-            color: white;
+            color: white !important;
+            background-color: #000080 !important; /* Azul más oscuro al pasar el ratón */
         }
 
-        /* 5. Estilos para el botón responsive (hamburguesa) */
+        /* Estilos para el botón responsive (hamburguesa) */
         #main-navbar .navbar-toggler {
-            border-color: rgba(255, 255, 255, 0.5); /* Borde blanco semitransparente */
+            border-color: rgba(255, 255, 255, 0.5) !important;
         }
-
         #main-navbar .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
-
-        /* === FIN DEL CÓDIGO CORREGIDO === */
+        
+        /* === FIN DEL CÓDIGO REFORZADO === */
 
         h1 {
             color: #000080;
@@ -85,7 +86,8 @@
             list-style-type: none;
             padding: 0;
         }
-        li {
+        /* Estilo específico para los <li> de recompensas, para que no afecte a la navbar */
+        body > .card li {
             margin: 10px 0;
             padding: 5px 10px;
             background-color: #f0f8ff;
@@ -198,6 +200,7 @@
         </div>
     </div>
 
+    <!-- Gráficas de Datos Personales -->
     <div class="card">
         <h3>Evolución de Crecimiento</h3>
         <div class="grafica-container">
@@ -208,6 +211,7 @@
         </div>
     </div>
 
+    <!-- Botón para informe detallado -->
     <a href="{{ url_for('informe_semanal') }}" class="button">Generar Informe Detallado</a>
 
     <a href="{{ url_for('index') }}" class="button">Volver al Menú</a>
@@ -345,5 +349,6 @@
     </script>
 </body>
 </html>
+
 
 
