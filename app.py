@@ -209,6 +209,7 @@ def entreno():
                 ejercicios_dia = []
             ejercicios_dict = {ejercicios.get_base_exercise_name(ej): (ej in ejercicios_seleccionados) for ej in ejercicios_dia}
             modelo.registrar_ejercicios(fecha, ejercicios_dict)
+            modelo.guardar_datos()  # Asegura persistencia en Firebase
             puntos_totales = sum(ejercicios.get_puntos(ejercicios.get_base_exercise_name(ejercicio)) for ejercicio in ejercicios_dia if modelo.ejercicios_completados.get(fecha_str, {}).get(ejercicios.get_base_exercise_name(ejercicio), False))
             fecha_anterior = (fecha - timedelta(days=1)).strftime('%Y-%m-%d')
             fecha_siguiente = (fecha + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -235,11 +236,12 @@ def anadir_ejercicio():
         fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         if request.method == 'POST':
-            ejercicio = request.form.get('ejercicio')  # Corregido a 'ejercicio'
-            if not ejercicio or not ejercicio.strip():  # Verificar si está vacío o solo espacios
+            ejercicio = request.form.get('ejercicio')
+            if not ejercicio or not ejercicio.strip():
                 return render_template('anadir_ejercicio.html', error="El ejercicio no puede estar vacío.", fecha=fecha_str)
-            ejercicio_limpio = ejercicio.strip()  # Limpiar espacios
+            ejercicio_limpio = ejercicio.strip()
             modelo.anadir_ejercicio_personalizado(fecha, ejercicio_limpio)
+            modelo.guardar_datos()  # Asegura persistencia en Firebase
             return redirect(url_for('entreno', fecha=fecha_str))
         return render_template('anadir_ejercicio.html', fecha=fecha_str)
     except ValueError as e:
@@ -476,4 +478,4 @@ def redirigir_recompensas():
     return redirect(url_for('resumen'))
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=10000)
+    app.run
