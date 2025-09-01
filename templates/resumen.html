@@ -110,6 +110,20 @@
             height: 40vh;
             width: 100%;
         }
+        .stats-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .stats-table th, .stats-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .stats-table th {
+            background-color: #1E90FF;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -184,6 +198,26 @@
 
         <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
         <p><strong>Récord de puntos:</strong> {{ record_puntos | default(0) }}</p>
+
+        <!-- Nueva sección de estadísticas -->
+        <h3>Estadísticas</h3>
+        <table class="stats-table">
+            <tr>
+                <th>Métrica</th>
+                <th>Valor</th>
+            </tr>
+            <tr>
+                <td>Porcentaje de ejercicios completados</td>
+                <td>{{ '%.1f' % estadisticas.porcentaje_completados }}%</td>
+            </tr>
+            <tr>
+                <td>Porcentaje de meta de kilómetros</td>
+                <td>{{ '%.1f' % estadisticas.km_porcentaje }}%</td>
+            </tr>
+        </table>
+
+        <!-- Ajuste de recompensa específica -->
+        <p><strong>Recompensa:</strong> {% if recompensas and recompensas|length > 1 %}{{ recompensas[1] }}{% else %}Sin recompensa disponible{% endif %}</p>
     </div>
 
     <div class="card">
@@ -234,7 +268,8 @@
                             label: 'Puntos por Semana',
                             data: semanas_puntos.map(item => item.puntos || 0),
                             borderColor: '#FF6384',
-                            fill: false
+                            fill: false,
+                            tension: 0.1
                         }]
                     },
                     options: {
@@ -300,7 +335,8 @@
                             data: estaturaData,
                             borderColor: '#FF6384',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            fill: true
+                            fill: true,
+                            tension: 0.1
                         }]
                     },
                     options: {
@@ -333,7 +369,8 @@
                             data: velocidadData,
                             borderColor: '#4BC0C0',
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            fill: true
+                            fill: true,
+                            tension: 0.1
                         }]
                     },
                     options: {
