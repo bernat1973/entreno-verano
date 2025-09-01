@@ -104,11 +104,6 @@
         .button:hover {
             background-color: #000080;
         }
-        .chart-container {
-            max-width: 1000px;
-            margin: 20px auto;
-            padding: 20px;
-        }
         .grafica-container {
             margin-top: 20px;
             position: relative;
@@ -137,6 +132,24 @@
     </nav>
 
     <h1>Resumen - {{ fecha }}</h1>
+
+    <!-- Formulario para seleccionar semana -->
+    <div class="card">
+        <h3>Seleccionar Semana</h3>
+        <form method="POST" action="{{ url_for('resumen') }}">
+            <div class="mb-3">
+                <label for="semana_seleccionada" class="form-label">Elige una semana:</label>
+                <select name="semana_seleccionada" id="semana_seleccionada" class="form-select" onchange="this.form.submit()">
+                    <option value="">Semana actual</option>
+                    {% for semana in semanas_pasadas %}
+                        <option value="{{ semana.inicio_semana }}" {% if semana_seleccionada == semana.inicio_semana %}selected{% endif %}>
+                            {{ semana.inicio_semana|datetimeformat('%d/%m/%Y') }} - {{ semana.fin_semana|datetimeformat('%d/%m/%Y') }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
 
     <div class="card">
         {% if modelo %}
@@ -302,7 +315,7 @@
                                     color: '#000080'
                                 },
                                 ticks: {
-                                    stepSize: 0.5 // Incremento de 0.5 en 0.5
+                                    stepSize: 0.5
                                 }
                             }
                         }
@@ -335,7 +348,7 @@
                                     color: '#000080'
                                 },
                                 ticks: {
-                                    stepSize: 0.5 // Incremento de 0.5 en 0.5
+                                    stepSize: 0.5
                                 }
                             }
                         }
