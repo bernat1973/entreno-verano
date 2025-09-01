@@ -90,7 +90,6 @@ def datos_personales():
             if not nombre:
                 return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El nombre no puede estar vacío.", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=mes_medicion, datos_grafica=[])
 
-            # Reemplazar any() con una verificación manual
             valores_negativos = False
             if peso < 0 or estatura < 0 or talla_sentada < 0 or envergadura < 0 or meta_km < 0:
                 valores_negativos = True
@@ -114,7 +113,6 @@ def datos_personales():
             segmento_inferior = estatura - talla_sentada if estatura and talla_sentada else 0
             imc = peso / (estatura ** 2) if estatura and peso else 0
             
-            # Usar la nueva función para calcular los datos de la gráfica
             datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
             velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
             if datos_grafica:
@@ -166,7 +164,6 @@ def cambiar_usuario():
 
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=datos_grafica)
         else:
-            # Manejar el caso de que cambiar_usuario falle
             return render_template('datos_personales.html', error=f"Error al cambiar a usuario '{nombre_usuario}'.", semana_actual=semana_actual, usuarios=usuarios)
 
     except Exception as e:
@@ -188,7 +185,7 @@ def nuevo_usuario():
         if nuevo_nombre in usuarios:
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error="El usuario ya existe.", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'))
         modelo.nuevo_usuario(nuevo_nombre)
-        usuarios_actualizados = modelo.get_usuarios() # Recargar la lista de usuarios
+        usuarios_actualizados = modelo.get_usuarios()
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Usuario '{nuevo_nombre}' creado correctamente!", semana_actual=semana_actual, usuarios=usuarios_actualizados, mes_medicion=date.today().strftime('%Y-%m'))
     except ValueError as e:
         return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=str(e), semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'))
@@ -294,7 +291,6 @@ def correr():
                 modelo.registrar_km(fecha_str, modelo.km_corridos.get(fecha_str, 0.0) + km)
                 modelo.registrar_tiempo(fecha_str, modelo.tiempo_corridos.get(fecha_str, 0.0) + tiempo_segundos)
                 modelo.guardar_datos()
-                # Recalcular después de registrar
                 km_semanal = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))
                 tiempo_semanal = sum(float(t) for fecha_key, t in modelo.tiempo_corridos.items() if inicio_semana.strftime('%Y-%m-%d') <= fecha_key <= fin_semana.strftime('%Y-%m-%d'))
                 km_dia = modelo.km_corridos.get(fecha_str, 0.0)
@@ -340,11 +336,19 @@ def progreso():
         print(f"[DEBUG] Error en /progreso: {str(e)}")
         return render_template('error.html', error=f"Error al cargar progreso: {str(e)}"), 500
 
-@app.route('/resumen', methods=['GET'])
+@app.route('/resumen', methods=['GET', 'POST'])
 def resumen():
     try:
         hoy = date.today()
         inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
+        semana_seleccionada = request.form.get('semana_seleccionada', '')
+
+        # Determinar la semana a evaluar
+        if semana_seleccionada:
+            inicio_semana = datetime.strptime(semana_seleccionada, '%Y-%m-%d').date()
+        fin_semana = inicio_semana + timedelta(days=6)
+
+        # Evaluar la semana seleccionada o actual
         resultado_semana = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, inicio_semana, ejercicios.get_puntos)
         if len(resultado_semana) != 9:
             raise ValueError(f"Esperados 9 valores de evaluar_semana, recibidos: {len(resultado_semana)}")
@@ -353,7 +357,17 @@ def resumen():
             raise ValueError(f"Esperado un número para puntos, recibido: {type(puntos)}")
         resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
 
-        # Calcular semanas_puntos y semanas_km correctamente
+        # Calcular semanas pasadas para el selector
+        semanas_pasadas = []
+        for i in range(-4, 1):  # Últimas 4 semanas + actual
+            semana_inicio = hoy - timedelta(days=(hoy.weekday() + 7 * (i + 1)))
+            semana_fin = semana_inicio + timedelta(days=6)
+            semanas_pasadas.append({
+                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
+                'fin_semana': semana_fin.strftime('%Y-%m-%d')
+            })
+
+        # Calcular semanas_puntos y semanas_km
         semanas_puntos = []
         semanas_km = []
         for i in range(-3, 1):  # Últimas 3 semanas + actual
@@ -375,7 +389,7 @@ def resumen():
         # Añadir datos de la gráfica
         datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
 
-        return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=hoy.strftime('%d/%m/%Y'), puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo, datos_grafica=datos_grafica)
+        return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=f"{inicio_semana.strftime('%d/%m/%Y')} - {fin_semana.strftime('%d/%m/%Y')}", puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo, datos_grafica=datos_grafica, semanas_pasadas=semanas_pasadas, semana_seleccionada=semana_seleccionada)
     except Exception as e:
         print(f"[DEBUG] Error en /resumen: {str(e)}")
         return render_template('error.html', error=f"Error al generar resumen: {str(e)}"), 500
@@ -461,5 +475,3 @@ def redirigir_recompensas():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
-
-
