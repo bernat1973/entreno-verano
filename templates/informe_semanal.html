@@ -181,7 +181,10 @@
                         scales: {
                             y: {
                                 beginAtZero: false,
-                                title: { display: true, text: 'Estatura (cm)' }
+                                title: { display: true, text: 'Estatura (cm)' },
+                                ticks: {
+                                    stepSize: 0.5  <!-- Corregido a 0.5 -->
+                                }
                             }
                         },
                         plugins: { legend: { position: 'top' } }
@@ -209,7 +212,10 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                title: { display: true, text: 'Crecimiento Mensual (cm)' }
+                                title: { display: true, text: 'Crecimiento Mensual (cm)' },
+                                ticks: {
+                                    stepSize: 0.5  <!-- Corregido a 0.5 -->
+                                }
                             }
                         },
                         plugins: { legend: { position: 'top' } }
