@@ -353,18 +353,16 @@ def resumen():
         if len(resultado_semana) != 9:
             raise ValueError(f"Esperados 9 valores de evaluar_semana, recibidos: {len(resultado_semana)}")
         puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, estadisticas = resultado_semana
-        if not isinstance(puntos, (int, float)):
-            raise ValueError(f"Esperado un número para puntos, recibido: {type(puntos)}")
         resumen = modelo.generar_resumen(puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, modelo.meta_km.get(str(hoy.isocalendar()[1]), 0.0))
 
-        # Calcular semanas pasadas para el selector
+        # Calcular semanas pasadas para el selector (últimas 4 semanas + actual)
         semanas_pasadas = []
-        for i in range(-4, 1):  # Últimas 4 semanas + actual
+        for i in range(-4, 1):  # Desde 4 semanas atrás hasta la actual
             semana_inicio = hoy - timedelta(days=(hoy.weekday() + 7 * (i + 1)))
             semana_fin = semana_inicio + timedelta(days=6)
             semanas_pasadas.append({
                 'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
-                'fin_semana': semana_fin.strftime('%Y-%m-%d')
+                'fin_semana': semana_fin.strftime('%d/%m/%Y')
             })
 
         # Calcular semanas_puntos y semanas_km
