@@ -235,12 +235,16 @@ def anadir_ejercicio():
         fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         if request.method == 'POST':
-            nuevo_ejercicio = request.form.get('nuevo_ejercicio').strip()
-            if nuevo_ejercicio:
-                modelo.anadir_ejercicio_personalizado(fecha, nuevo_ejercicio)
-                return redirect(url_for('entreno', fecha=fecha_str))
-            return render_template('anadir_ejercicio.html', error="El ejercicio no puede estar vacío.", fecha=fecha_str)
+            ejercicio = request.form.get('ejercicio')  # Corregido a 'ejercicio'
+            if not ejercicio or not ejercicio.strip():  # Verificar si está vacío o solo espacios
+                return render_template('anadir_ejercicio.html', error="El ejercicio no puede estar vacío.", fecha=fecha_str)
+            ejercicio_limpio = ejercicio.strip()  # Limpiar espacios
+            modelo.anadir_ejercicio_personalizado(fecha, ejercicio_limpio)
+            return redirect(url_for('entreno', fecha=fecha_str))
         return render_template('anadir_ejercicio.html', fecha=fecha_str)
+    except ValueError as e:
+        print(f"[DEBUG] Error de formato en /anadir_ejercicio: {str(e)}")
+        return render_template('error.html', error=f"Error al procesar la fecha: {str(e)}"), 500
     except Exception as e:
         print(f"[DEBUG] Error en /anadir_ejercicio: {str(e)}")
         return render_template('error.html', error=f"Error al añadir ejercicio: {str(e)}"), 500
