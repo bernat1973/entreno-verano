@@ -15,44 +15,32 @@
         }
 
         /* === CÓDIGO REFORZADO PARA LA NAVBAR === */
-
         #main-navbar {
             background-color: #1E90FF !important;
         }
-
-        /* Quitamos el fondo a los contenedores de los enlaces */
         #main-navbar .nav-item {
             background: none !important;
         }
-
-        /* Quitamos el fondo a TODOS los enlaces y ponemos el texto en blanco */
         #main-navbar .nav-link {
-            background-color: transparent !important; /* FORZAMOS el fondo transparente */
+            background-color: transparent !important;
             color: white !important;
             border: none !important;
             box-shadow: none !important;
         }
-
-        /* Estilo para el enlace ACTIVO */
         #main-navbar .nav-link.active {
             font-weight: bold;
-            background-color: transparent !important; /* TAMBIÉN forzamos el fondo transparente aquí */
+            background-color: transparent !important;
         }
-
-        /* Estilo al pasar el ratón por encima */
         #main-navbar .nav-link:hover {
             color: white !important;
-            background-color: #000080 !important; /* Azul más oscuro al pasar el ratón */
+            background-color: #000080 !important;
         }
-
-        /* Estilos para el botón responsive (hamburguesa) */
         #main-navbar .navbar-toggler {
             border-color: rgba(255, 255, 255, 0.5) !important;
         }
         #main-navbar .navbar-toggler-icon {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
-        
         /* === FIN DEL CÓDIGO REFORZADO === */
 
         h1 {
@@ -86,7 +74,6 @@
             list-style-type: none;
             padding: 0;
         }
-        /* Estilo específico para los <li> de recompensas, para que no afecte a la navbar */
         body > .card li {
             margin: 10px 0;
             padding: 5px 10px;
@@ -188,15 +175,15 @@
 
     <div class="card">
         <h3>Gráfica de Puntos por Semana</h3>
-        <div class="chart-container">
-            <canvas id="pointsChart" width="800" height="400"></canvas>
+        <div class="grafica-container">
+            <canvas id="pointsChart"></canvas>
         </div>
     </div>
 
     <div class="card">
         <h3>Gráfica de Kilómetros por Semana</h3>
-        <div class="chart-container">
-            <canvas id="kmChart" width="800" height="400"></canvas>
+        <div class="grafica-container">
+            <canvas id="kmChart"></canvas>
         </div>
     </div>
 
@@ -238,6 +225,8 @@
                         }]
                     },
                     options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
                         scales: {
                             x: {
                                 ticks: { font: { size: 12 }, autoSkip: true, maxTicksLimit: 10 },
@@ -267,6 +256,8 @@
                         }]
                     },
                     options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
                         scales: {
                             x: {
                                 ticks: { font: { size: 12 }, autoSkip: true, maxTicksLimit: 10 },
@@ -309,6 +300,9 @@
                                     display: true,
                                     text: 'Estatura (cm)',
                                     color: '#000080'
+                                },
+                                ticks: {
+                                    stepSize: 0.5 // Incremento de 0.5 en 0.5
                                 }
                             }
                         }
@@ -339,6 +333,9 @@
                                     display: true,
                                     text: 'Crecimiento Mensual (cm)',
                                     color: '#000080'
+                                },
+                                ticks: {
+                                    stepSize: 0.5 // Incremento de 0.5 en 0.5
                                 }
                             }
                         }
