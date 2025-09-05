@@ -4,7 +4,6 @@ import random
 class Ejercicios:
     def __init__(self, modelo=None):
         self.modelo = modelo
-        # Bodyweight (original)
         self.base_ejercicios_bodyweight = [
             # Lunes
             ["Abdominales crunch con rodillas dobladas", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con aterrizaje controlado", "Puente de glúteos con rodillas dobladas"],
@@ -21,7 +20,6 @@ class Ejercicios:
             # Domingo
             ["Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Flexiones diamante para tríceps", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con fuerza", "Movilidad articular de cadera"]
         ]
-        # Weight (original)
         self.base_ejercicios_weights = [
             # Lunes: Pectorales y hombros
             ["Press de banca con barra", "Press inclinado con mancuernas", "Press militar con barra", "Elevaciones laterales con mancuernas", "Aperturas con mancuernas en banco plano", "Face pulls con polea"],
@@ -38,49 +36,7 @@ class Ejercicios:
             # Domingo: Recuperación activa
             ["Press de banca ligero con mancuernas", "Elevaciones laterales ligeras con mancuernas", "Remo ligero con mancuernas", "Curl de bíceps ligero con mancuernas", "Extensiones de tríceps ligero en polea", "Face pulls ligeros con polea"]
         ]
-        # Nueva Bodyweight (original con sustituciones nuevas)
-        self.nuevos_ejercicios_bodyweight = [
-            # Lunes: Sustituye algunos por core avanzado
-            ["Wiper (piernas a 90°)", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves", "Puente de glúteos"],
-            # Martes: Enfocado en oblicuos y rotación
-            ["Russian Twist (sin peso)", "Heel Toucher", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados", "Estiramientos dinámicos"],
-            # Miércoles: Core y estabilidad
-            ["Plancha lateral", "Wiper (piernas a 90°)", "Flexiones diamante", "Rotaciones de hombros", "Escaladores pliométricos", "Gato-vaca"],
-            # Jueves: Rotación y fuerza
-            ["Rotacional Punch Up", "Plancha frontal", "Aperturas de pecho", "Elevaciones laterales sin peso", "Saltos laterales suaves", "Respiración diafragmática"],
-            # Viernes: Core y hombros
-            ["Heel Toucher", "Plancha lateral", "Flexiones estándar", "Flexiones pica", "Saltos patinador", "Abdominales isométricos"],
-            # Sábado: Mix de nuevos y originales
-            ["Russian Twist (sin peso)", "Abdominales bicicleta", "Fondos en silla", "Plancha con toques", "Burpees modificados", "Yoga suave"],
-            # Domingo: Recuperación con nuevos
-            ["Plancha frontal", "Rotacional Punch Up", "Flexiones diamante", "Elevaciones frontales sin peso", "Saltos verticales suaves", "Movilidad articular"]
-        ]
-        # Mixta (pesas y sin pesas)
-        self.ejercicios_mixta = [
-            # Lunes: Pectorales y core
-            ["Press de banca con barra", "Plancha frontal", "Press inclinado con mancuernas", "Flexiones estándar", "Elevaciones laterales", "Puente de glúteos"],
-            # Martes: Espalda y brazos
-            ["Remo con barra", "Abdominales bicicleta", "Dominadas asistidas", "Fondos en silla", "Curl de bíceps", "Plancha con toques"],
-            # Miércoles: Pectorales y estabilidad
-            ["Press declinado", "Plancha lateral", "Aperturas con mancuernas", "Flexiones diamante", "Press Arnold", "Gato-vaca"],
-            # Jueves: Espalda y rotación
-            ["Remo en polea", "Russian Twist", "Pull-over", "Elevaciones laterales sin peso", "Curl predicador", "Saltos laterales"],
-            # Viernes: Hombros y core
-            ["Press de hombros", "Heel Toucher", "Elevaciones laterales", "Flexiones pica", "Fondos en banco", "Abdominales isométricos"],
-            # Sábado: Fuerza mixta
-            ["Peso muerto", "Wiper (piernas a 90°)", "Remo con mancuerna", "Burpees modificados", "Curl martillo", "Yoga suave"],
-            # Domingo: Recuperación mixta
-            ["Press ligero", "Plancha frontal", "Elevaciones ligeras", "Rotacional Punch Up", "Curl ligero", "Movilidad articular"]
-        ]
-        print(f"[DEBUG] Inicializado Ejercicios con modelo.categoria_entrenamiento: {self.modelo.categoria_entrenamiento if self.modelo else 'None'}")
-
-    def get_todos_ejercicios(self):
-        """Devuelve una lista plana de todos los ejercicios predefinidos."""
-        todos_ejercicios = []
-        for lista in [self.base_ejercicios_bodyweight, self.base_ejercicios_weights, self.nuevos_ejercicios_bodyweight, self.ejercicios_mixta]:
-            for dia in lista:
-                todos_ejercicios.extend(dia)
-        return list(set(todos_ejercicios))  # Elimina duplicados
+        print(f"[DEBUG] Inicializado Ejercicios con modelo.ejercicios_type: {self.modelo.ejercicios_type if self.modelo else 'None'}")
 
     def get_base_exercise_name(self, ejercicio):
         try:
@@ -96,7 +52,7 @@ class Ejercicios:
         try:
             base_name = self.get_base_exercise_name(ejercicio)
             puntos = {
-                # Bodyweight original
+                # Bodyweight
                 "Abdominales crunch con rodillas dobladas": 6,
                 "Plancha frontal en antebrazos": 8,
                 "Flexiones estándar con manos anchas": 10,
@@ -122,7 +78,7 @@ class Ejercicios:
                 "Abdominales isométricos de contracción": 6,
                 "Yoga suave con posturas básicas": 5,
                 "Movilidad articular de cadera": 5,
-                # Weight original
+                # Weights
                 "Press de banca con barra": 15,
                 "Press inclinado con mancuernas": 14,
                 "Press militar con barra": 15,
@@ -164,21 +120,14 @@ class Ejercicios:
                 "Remo ligero con mancuernas": 10,
                 "Curl de bíceps ligero con mancuernas": 8,
                 "Extensiones de tríceps ligero en polea": 8,
-                "Face pulls ligeros con polea": 8,
-                # Nueva Bodyweight y Mixta
-                "Wiper (piernas a 90°)": 10,
-                "Russian Twist (sin peso)": 8,
-                "Heel Toucher": 7,
-                "Rotacional Punch Up": 9,
-                "Press declinado": 15,
-                "Remo en polea": 14,
-                "Press ligero": 10,
-                "Elevaciones ligeras": 8,
-                "Curl ligero": 8
+                "Face pulls ligeros con polea": 8
             }
             puntos = puntos.get(base_name, 5)  # 5 puntos por defecto para ejercicios personalizados
             print(f"[DEBUG] Puntos para {ejercicio} ({base_name}): {puntos}")
             return puntos
+        except Exception as e:
+            print(f"[DEBUG] Error en get_puntos: {str(e)}")
+            return 5
 
     def get_ejercicios_dia(self, fecha, historial_semanal=None):
         try:
@@ -191,18 +140,10 @@ class Ejercicios:
                     raise ValueError(f"Formato de fecha no válido: {fecha}")
             
             dia_semana = fecha.weekday()
-            # Seleccionar ejercicios según la categoría del usuario
-            if self.modelo and self.modelo.categoria_entrenamiento == 'weights':
-                base_ejercicios = self.base_ejercicios_weights
-            elif self.modelo and self.modelo.categoria_entrenamiento == 'nueva_bodyweight':
-                base_ejercicios = self.nuevos_ejercicios_bodyweight
-            elif self.modelo and self.modelo.categoria_entrenamiento == 'mixta':
-                base_ejercicios = self.ejercicios_mixta
-            else:  # Default a bodyweight original
-                base_ejercicios = self.base_ejercicios_bodyweight
-            
+            # Seleccionar ejercicios según el tipo del usuario
+            base_ejercicios = self.base_ejercicios_weights if self.modelo and self.modelo.ejercicios_type == 'weights' else self.base_ejercicios_bodyweight
             ejercicios_base = base_ejercicios[dia_semana].copy()
-            print(f"[DEBUG] Ejercicios base para {fecha.strftime('%Y-%m-%d')} (categoria: {self.modelo.categoria_entrenamiento if self.modelo else 'None'}): {ejercicios_base}")
+            print(f"[DEBUG] Ejercicios base para {fecha.strftime('%Y-%m-%d')} (tipo: {self.modelo.ejercicios_type if self.modelo else 'None'}): {ejercicios_base}")
 
             fecha_str = fecha.strftime('%Y-%m-%d')
             if self.modelo and self.modelo.ejercicios_personalizados_por_fecha.get(fecha_str):
@@ -227,7 +168,7 @@ class Ejercicios:
                     ejercicios_progresivos.append(f"{series} series de {repeticiones} {ej}")
             random.shuffle(ejercicios_progresivos)
             print(f"[DEBUG] Ejercicios progresivos para {fecha_str}: {ejercicios_progresivos}")
-            return ejercicios_progresivos[:6]  # Limita a 6 por día
+            return ejercicios_progresivos
         except Exception as e:
             print(f"[DEBUG] Error en get_ejercicios_dia: {str(e)}")
             return ["Ejercicio no disponible"]
