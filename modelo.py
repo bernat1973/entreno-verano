@@ -1,174 +1,336 @@
-from datetime import datetime, date
+import firebase_admin
+from firebase_admin import credentials, firestore
+from datetime import date, timedelta, datetime
+import os
 import random
 
-class Ejercicios:
-    def __init__(self, modelo=None):
-        self.modelo = modelo
-        self.base_ejercicios_bodyweight = [
-            # Lunes
-            ["Abdominales crunch con rodillas dobladas", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con aterrizaje controlado", "Puente de glúteos con rodillas dobladas"],
-            # Martes
-            ["Abdominales bicicleta lentos", "Elevaciones de piernas suaves", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Estiramientos dinámicos de cuerpo completo"],
-            # Miércoles
-            ["Plancha lateral con apoyo en antebrazo", "Abdominales crunch con rodillas dobladas", "Flexiones diamante para tríceps", "Rotaciones de hombros con brazos en L", "Escaladores pliométricos lentos", "Gato-vaca para movilidad espinal"],
-            # Jueves
-            ["Abdominales bicicleta lentos", "Plancha frontal en antebrazos", "Aperturas de pecho con brazos en T", "Elevaciones laterales de hombros sin peso", "Saltos laterales suaves sobre línea", "Respiración diafragmática profunda"],
-            # Viernes
-            ["Elevaciones de piernas suaves", "Plancha lateral con apoyo en antebrazo", "Flexiones estándar con manos anchas", "Flexiones pica para hombros", "Saltos patinador con cambio lento", "Abdominales isométricos de contracción"],
-            # Sábado
-            ["Abdominales crunch con rodillas dobladas", "Abdominales bicicleta lentos", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Yoga suave con posturas básicas"],
-            # Domingo
-            ["Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Flexiones diamante para tríceps", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con fuerza", "Movilidad articular de cadera"]
-        ]
-        self.base_ejercicios_weights = [
-            # Lunes: Pectorales y hombros
-            ["Press de banca con barra", "Press inclinado con mancuernas", "Press militar con barra", "Elevaciones laterales con mancuernas", "Aperturas con mancuernas en banco plano", "Face pulls con polea"],
-            # Martes: Espalda y brazos
-            ["Remo con barra inclinado", "Dominadas con peso asistido", "Curl de bíceps con mancuernas", "Extensiones de tríceps por encima de la cabeza con mancuerna", "Remo con mancuerna a una mano", "Curl martillo con mancuernas"],
-            # Miércoles: Pectorales y hombros
-            ["Press de banca declinado con barra", "Aperturas en banco inclinado con mancuernas", "Press Arnold con mancuernas", "Elevaciones frontales con barra", "Fondos en paralelas con peso", "Elevaciones traseras para deltoides con mancuernas"],
-            # Jueves: Espalda y brazos
-            ["Remo sentado en polea baja", "Pull-over con mancuerna", "Curl de bíceps en banco predicador", "Press francés con barra EZ", "Remo invertido con barra", "Extensiones de tríceps en polea alta"],
-            # Viernes: Pectorales y hombros
-            ["Press de banca con mancuernas", "Cruces en polea para pecho", "Press de hombros con mancuernas", "Elevaciones laterales en banco inclinado", "Fondos en banco con peso", "Elevaciones frontales con disco"],
-            # Sábado: Espalda y brazos
-            ["Peso muerto con barra", "Remo con barra T", "Curl de bíceps con barra recta", "Extensiones de tríceps con mancuerna a una mano", "Dominadas supinas con peso", "Curl concentrado con mancuerna"],
-            # Domingo: Recuperación activa
-            ["Press de banca ligero con mancuernas", "Elevaciones laterales ligeras con mancuernas", "Remo ligero con mancuernas", "Curl de bíceps ligero con mancuernas", "Extensiones de tríceps ligero en polea", "Face pulls ligeros con polea"]
-        ]
-        print(f"[DEBUG] Inicializado Ejercicios con modelo.ejercicios_type: {self.modelo.ejercicios_type if self.modelo else 'None'}")
-
-    def get_base_exercise_name(self, ejercicio):
+class Modelo:
+    def __init__(self, config_file='entreno_verano.json', use_auth=False):
         try:
-            for prefix in [" series de ", " segundos "]:
-                if prefix in ejercicio:
-                    return ejercicio.split(prefix)[-1].strip()
-            return ejercicio
+            project_id = os.getenv("FIREBASE_PROJECT_ID")
+            client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
+            private_key = os.getenv("FIREBASE_PRIVATE_KEY")
+            print(f"[DEBUG] FIREBASE_PROJECT_ID: {project_id}")
+            print(f"[DEBUG] FIREBASE_CLIENT_EMAIL: {client_email}")
+            print(f"[DEBUG] FIREBASE_PRIVATE_KEY: {'[present]' if private_key else 'None'}")
+            print(f"[DEBUG] Longitud de FIREBASE_PRIVATE_KEY: {len(private_key) if private_key else 0}")
+
+            if not all([project_id, client_email, private_key]):
+                raise ValueError("Faltan variables de entorno de Firebase")
+
+            cred = credentials.Certificate({
+                "type": "service_account",
+                "project_id": project_id,
+                "private_key": private_key.replace('\\n', '\n'),
+                "client_email": client_email,
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "client_id": "your-client-id",
+                "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email"
+            })
+            firebase_admin.initialize_app(cred)
+            self.db = firestore.client()
+
+            app_project_id = firebase_admin.get_app().options.get('projectId')
+            print(f"[DEBUG] Firebase inicializado, projectId detectado: {app_project_id}")
+            if app_project_id != 'entreno-verano':
+                print(f"[WARNING] Proyecto Firebase esperado: 'entreno-verano', encontrado: {app_project_id}")
+
+            # Consultar el usuario actual desde config/app al inicio
+            config_ref = self.db.collection('config').document('app')
+            config_data = config_ref.get()
+            self.user_id = config_data.to_dict().get('usuario_actual', 'Juan') if config_data.exists else 'Juan'
+            print(f"[DEBUG] Usuario inicial cargado desde config/app: {self.user_id}")
+
+            self.use_auth = use_auth
+            self.nombre = ""
+            self.peso = 0.0
+            self.estatura = 0.0
+            self.talla_sentada = 0.0  # Nuevo campo
+            self.envergadura = 0.0    # Nuevo campo
+            self.meta_km = {}
+            self.ejercicios_type = "bodyweight"
+            self.km_corridos = {}
+            self.tiempo_corridos = {}
+            self.ejercicios_completados = {}
+            self.ejercicios_personalizados = []
+            self.ejercicios_personalizados_por_fecha = {}
+            self.historial_semanal = []
+            self.historial_mediciones = {}  # Nuevo diccionario para mediciones mensuales
+            self.record_puntos = 0
+            self.mensaje = ""
+            self.recompensas_usadas = {}
+            self.progreso_ciclo = 0  # Nuevo atributo para rastrear el ciclo de dificultad
+            self.cargar_datos()
         except Exception as e:
-            print(f"[DEBUG] Error al extraer nombre base de {ejercicio}: {str(e)}")
-            return ejercicio
+            print(f"[DEBUG] Error al inicializar Modelo: {str(e)}")
+            raise
 
-    def get_puntos(self, ejercicio):
+    def cargar_datos(self):
         try:
-            base_name = self.get_base_exercise_name(ejercicio)
-            puntos = {
-                # Bodyweight
-                "Abdominales crunch con rodillas dobladas": 6,
-                "Plancha frontal en antebrazos": 8,
-                "Flexiones estándar con manos anchas": 10,
-                "Elevaciones frontales de hombros sin peso": 5,
-                "Saltos verticales suaves con aterrizaje controlado": 7,
-                "Puente de glúteos con rodillas dobladas": 6,
-                "Abdominales bicicleta lentos": 7,
-                "Elevaciones de piernas suaves": 6,
-                "Fondos en silla para tríceps": 8,
-                "Plancha con toques de hombros": 8,
-                "Burpees modificados sin flexión": 10,
-                "Estiramientos dinámicos de cuerpo completo": 5,
-                "Plancha lateral con apoyo en antebrazo": 8,
-                "Flexiones diamante para tríceps": 10,
-                "Rotaciones de hombros con brazos en L": 5,
-                "Escaladores pliométricos lentos": 7,
-                "Gato-vaca para movilidad espinal": 5,
-                "Aperturas de pecho con brazos en T": 5,
-                "Saltos laterales suaves sobre línea": 7,
-                "Respiración diafragmática profunda": 5,
-                "Flexiones pica para hombros": 10,
-                "Saltos patinador con cambio lento": 7,
-                "Abdominales isométricos de contracción": 6,
-                "Yoga suave con posturas básicas": 5,
-                "Movilidad articular de cadera": 5,
-                # Weights
-                "Press de banca con barra": 15,
-                "Press inclinado con mancuernas": 14,
-                "Press militar con barra": 15,
-                "Elevaciones laterales con mancuernas": 12,
-                "Aperturas con mancuernas en banco plano": 12,
-                "Face pulls con polea": 10,
-                "Remo con barra inclinado": 15,
-                "Dominadas con peso asistido": 16,
-                "Curl de bíceps con mancuernas": 10,
-                "Extensiones de tríceps por encima de la cabeza con mancuerna": 10,
-                "Remo con mancuerna a una mano": 12,
-                "Curl martillo con mancuernas": 10,
-                "Press de banca declinado con barra": 15,
-                "Aperturas en banco inclinado con mancuernas": 12,
-                "Press Arnold con mancuernas": 14,
-                "Elevaciones frontales con barra": 12,
-                "Fondos en paralelas con peso": 15,
-                "Elevaciones traseras para deltoides con mancuernas": 12,
-                "Remo sentado en polea baja": 14,
-                "Pull-over con mancuerna": 12,
-                "Curl de bíceps en banco predicador": 10,
-                "Press francés con barra EZ": 10,
-                "Remo invertido con barra": 14,
-                "Extensiones de tríceps en polea alta": 10,
-                "Press de banca con mancuernas": 14,
-                "Cruces en polea para pecho": 12,
-                "Press de hombros con mancuernas": 14,
-                "Elevaciones laterales en banco inclinado": 12,
-                "Fondos en banco con peso": 12,
-                "Elevaciones frontales con disco": 12,
-                "Peso muerto con barra": 16,
-                "Remo con barra T": 14,
-                "Curl de bíceps con barra recta": 10,
-                "Extensiones de tríceps con mancuerna a una mano": 10,
-                "Dominadas supinas con peso": 16,
-                "Curl concentrado con mancuerna": 10,
-                "Press de banca ligero con mancuernas": 10,
-                "Elevaciones laterales ligeras con mancuernas": 8,
-                "Remo ligero con mancuernas": 10,
-                "Curl de bíceps ligero con mancuernas": 8,
-                "Extensiones de tríceps ligero en polea": 8,
-                "Face pulls ligeros con polea": 8
-            }
-            puntos = puntos.get(base_name, 5)  # 5 puntos por defecto para ejercicios personalizados
-            print(f"[DEBUG] Puntos para {ejercicio} ({base_name}): {puntos}")
-            return puntos
-        except Exception as e:
-            print(f"[DEBUG] Error en get_puntos: {str(e)}")
-            return 5
-
-    def get_ejercicios_dia(self, fecha, historial_semanal=None):
-        try:
-            if not isinstance(fecha, date):
-                if isinstance(fecha, datetime):
-                    fecha = fecha.date()
-                elif isinstance(fecha, str):
-                    fecha = datetime.strptime(fecha, "%Y-%m-%d").date()
-                else:
-                    raise ValueError(f"Formato de fecha no válido: {fecha}")
-            
-            dia_semana = fecha.weekday()
-            # Seleccionar ejercicios según el tipo del usuario
-            base_ejercicios = self.base_ejercicios_weights if self.modelo and self.modelo.ejercicios_type == 'weights' else self.base_ejercicios_bodyweight
-            ejercicios_base = base_ejercicios[dia_semana].copy()
-            print(f"[DEBUG] Ejercicios base para {fecha.strftime('%Y-%m-%d')} (tipo: {self.modelo.ejercicios_type if self.modelo else 'None'}): {ejercicios_base}")
-
-            fecha_str = fecha.strftime('%Y-%m-%d')
-            if self.modelo and self.modelo.ejercicios_personalizados_por_fecha.get(fecha_str):
-                ejercicios_base.extend(self.modelo.ejercicios_personalizados_por_fecha[fecha_str])
-                print(f"[DEBUG] Ejercicios personalizados añadidos para {fecha_str}: {self.modelo.ejercicios_personalizados_por_fecha[fecha_str]}")
-
-            ciclo = (fecha.isocalendar()[1] - 1) % 16
-            if ciclo < 4:
-                series, repeticiones, segundos = 3, 10, 60
-            elif ciclo < 8:
-                series, repeticiones, segundos = 3, 12, 70
-            elif ciclo < 12:
-                series, repeticiones, segundos = 4, 12, 70
+            print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
+            user_ref = self.db.collection('usuarios').document(self.user_id)
+            user_data = user_ref.get()
+            if user_data.exists:
+                data = user_data.to_dict()
+                self.nombre = data.get('nombre', '')
+                self.peso = float(data.get('peso', 0.0))
+                self.estatura = float(data.get('estatura', 0.0))
+                self.talla_sentada = float(data.get('talla_sentada', 0.0))  # Cargar nuevo campo
+                self.envergadura = float(data.get('envergadura', 0.0))     # Cargar nuevo campo
+                self.meta_km = data.get('meta_km', {})
+                self.ejercicios_type = data.get('ejercicios_type', 'bodyweight')
+                self.km_corridos = data.get('km_corridos', {})
+                self.tiempo_corridos = data.get('tiempo_corridos', {})
+                self.ejercicios_completados = data.get('ejercicios_completados', {})
+                self.ejercicios_personalizados = data.get('ejercicios_personalizados', [])
+                self.ejercicios_personalizados_por_fecha = data.get('ejercicios_personalizados_por_fecha', {})
+                self.historial_semanal = data.get('historial_semanal', [])
+                self.historial_mediciones = data.get('historial_mediciones', {})  # Cargar mediciones mensuales
+                self.record_puntos = data.get('record_puntos', 0)
+                self.mensaje = data.get('mensaje', '')
+                self.recompensas_usadas = data.get('recompensas_usadas', {})
+                self.progreso_ciclo = data.get('progreso_ciclo', 0)  # Cargar el ciclo de dificultad
+                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}, progreso_ciclo={self.progreso_ciclo}")
             else:
-                series, repeticiones, segundos = 4, 15, 80
-
-            ejercicios_progresivos = []
-            for ej in ejercicios_base:
-                if any(palabra in ej.lower() for palabra in ["estiramiento", "movilidad", "respiración", "yoga", "isométrico", "gato-vaca", "puente"]):
-                    ejercicios_progresivos.append(f"{series} series de {segundos} segundos {ej}")
-                else:
-                    ejercicios_progresivos.append(f"{series} series de {repeticiones} {ej}")
-            random.shuffle(ejercicios_progresivos)
-            print(f"[DEBUG] Ejercicios progresivos para {fecha_str}: {ejercicios_progresivos}")
-            return ejercicios_progresivos
+                print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando como nuevo usuario")
+                self.nuevo_usuario(self.user_id)
+            print(f"[DEBUG] Datos finales para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
         except Exception as e:
-            print(f"[DEBUG] Error en get_ejercicios_dia: {str(e)}")
-            return ["Ejercicio no disponible"]
+            print(f"[DEBUG] Error al cargar datos para {self.user_id}: {str(e)}")
+            raise
+
+    def guardar_datos(self):
+        try:
+            user_ref = self.db.collection('usuarios').document(self.user_id)
+            user_ref.set({
+                'nombre': self.nombre,
+                'peso': self.peso,
+                'estatura': self.estatura,
+                'talla_sentada': self.talla_sentada,  # Guardar nuevo campo
+                'envergadura': self.envergadura,      # Guardar nuevo campo
+                'meta_km': self.meta_km,
+                'ejercicios_type': self.ejercicios_type,
+                'km_corridos': self.km_corridos,
+                'tiempo_corridos': self.tiempo_corridos,
+                'ejercicios_completados': self.ejercicios_completados,
+                'ejercicios_personalizados': self.ejercicios_personalizados,
+                'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
+                'historial_semanal': self.historial_semanal,
+                'historial_mediciones': self.historial_mediciones,  # Guardar mediciones mensuales
+                'record_puntos': self.record_puntos,
+                'mensaje': self.mensaje,
+                'recompensas_usadas': self.recompensas_usadas,
+                'progreso_ciclo': self.progreso_ciclo  # Guardar el ciclo de dificultad
+            })
+            # Guardar el usuario actual en config/app
+            config_ref = self.db.collection('config').document('app')
+            config_ref.set({'usuario_actual': self.user_id}, merge=True)
+            print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
+        except Exception as e:
+            print(f"[DEBUG] Error al guardar datos: {str(e)}")
+            raise
+
+    def nuevo_usuario(self, nombre, uid=None):
+        self.user_id = nombre if not self.use_auth else uid
+        if not self.user_id:
+            raise ValueError("El ID de usuario no puede estar vacío")
+        self.nombre = nombre
+        self.peso = 0.0
+        self.estatura = 0.0
+        self.talla_sentada = 0.0  # Inicializar nuevo campo
+        self.envergadura = 0.0    # Inicializar nuevo campo
+        self.meta_km = {}
+        self.ejercicios_type = "bodyweight"
+        self.km_corridos = {}
+        self.tiempo_corridos = {}
+        self.ejercicios_completados = {}
+        self.ejercicios_personalizados = []
+        self.ejercicios_personalizados_por_fecha = {}
+        self.historial_semanal = []
+        self.historial_mediciones = {}  # Inicializar mediciones mensuales
+        self.record_puntos = 0
+        self.mensaje = ""
+        self.recompensas_usadas = {}
+        self.progreso_ciclo = 0  # Inicializar el ciclo de dificultad
+        self.guardar_datos()
+
+    def cambiar_usuario(self, user_id):
+        try:
+            print(f"[DEBUG] Intentando cambiar a usuario: {user_id}")
+            if not user_id or user_id not in self.get_usuarios():
+                print(f"[DEBUG] Usuario {user_id} no encontrado o inválido. Usuarios disponibles: {self.get_usuarios()}")
+                raise ValueError(f"Usuario '{user_id}' no encontrado en la lista: {self.get_usuarios()}")
+
+            old_user_id = self.user_id
+            self.user_id = user_id
+            print(f"[DEBUG] user_id actualizado a {self.user_id} antes de cargar datos")
+
+            self.cargar_datos()
+            print(f"[DEBUG] Datos recargados para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
+
+            if self.user_id != old_user_id:
+                print(f"[DEBUG] Cambio a usuario {self.user_id} realizado exitosamente")
+            self.guardar_datos()
+            return self.user_id != old_user_id
+        except Exception as e:
+            print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
+            self.user_id = old_user_id if 'old_user_id' in locals() else self.user_id
+            raise
+
+    def registrar_km(self, fecha, km):
+        self.km_corridos[fecha] = km
+        self.guardar_datos()
+
+    def registrar_tiempo(self, fecha, tiempo):
+        self.tiempo_corridos[fecha] = tiempo
+        self.guardar_datos()
+
+    def eliminar_km(self, fecha):
+        if fecha in self.km_corridos:
+            del self.km_corridos[fecha]
+            if fecha in self.tiempo_corridos:
+                del self.tiempo_corridos[fecha]
+            self.guardar_datos()
+
+    def registrar_ejercicios(self, fecha, ejercicios_dict):
+        fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
+        self.ejercicios_completados[fecha_str] = ejercicios_dict
+        
+        # Verificar si todos los ejercicios se completaron para avanzar el ciclo (solo de lunes a sábado)
+        if 0 <= fecha.weekday() <= 5 and all(completado for completado in ejercicios_dict.values()):
+            self.progreso_ciclo += 1
+            if self.progreso_ciclo > 15:  # Reiniciar ciclo después de 16 fases
+                self.progreso_ciclo = 0
+            print(f"[DEBUG] Todos los ejercicios completados en {fecha_str}, progreso_ciclo aumentado a {self.progreso_ciclo}")
+        
+        self.guardar_datos()
+
+    def anadir_ejercicio_personalizado(self, fecha, ejercicio):
+        fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
+        if fecha_str not in self.ejercicios_personalizados_por_fecha:
+            self.ejercicios_personalizados_por_fecha[fecha_str] = []
+        if ejercicio not in self.ejercicios_personalizados_por_fecha[fecha_str]:
+            self.ejercicios_personalizados_por_fecha[fecha_str].append(ejercicio)
+            if ejercicio not in self.ejercicios_personalizados:
+                self.ejercicios_personalizados.append(ejercicio)
+            self.guardar_datos()
+
+    def get_usuarios(self):
+        try:
+            usuarios = [doc.id for doc in self.db.collection('usuarios').stream()]
+            print(f"[DEBUG] Usuarios obtenidos: {usuarios}")
+            return usuarios
+        except Exception as e:
+            print(f"[DEBUG] Error al obtener usuarios: {str(e)}")
+            return []
+
+    def evaluar_semana(self, get_ejercicios_dia, fecha, get_puntos):
+        try:
+            inicio_semana = fecha - timedelta(days=fecha.weekday())
+            fin_semana = inicio_semana + timedelta(days=6)
+            puntos = 0
+            km = 0.0
+            completados = 0
+            totales = 0
+            for i in range(7):
+                dia = (inicio_semana + timedelta(days=i)).strftime('%Y-%m-%d')
+                ejercicios_dia = get_ejercicios_dia(dia, self.historial_semanal)
+                totales += len(ejercicios_dia)
+                if dia in self.ejercicios_completados:
+                    print(f"[DEBUG] Ejercicios completados para {dia}: {self.ejercicios_completados[dia]}")
+                    for ejercicio, completado in self.ejercicios_completados[dia].items():
+                        if completado:
+                            puntos_ejercicio = get_puntos(ejercicio) if get_puntos else 5
+                            print(f"[DEBUG] Puntos para {ejercicio} ({completado}): {puntos_ejercicio}")
+                            puntos += puntos_ejercicio
+                            completados += 1
+                if dia in self.km_corridos:
+                    km += float(self.km_corridos[dia])
+            semana_ano = fecha.isocalendar()[1]
+            meta_km = self.meta_km.get(str(semana_ano), 0.0)
+            recompensas = []
+            if km >= meta_km and meta_km > 0:
+                recompensas.append("¡Meta de km alcanzada!")
+            if puntos > self.record_puntos:
+                self.record_puntos = puntos
+                self.guardar_datos()
+                recompensas.append("¡Nuevo récord de puntos!")
+
+            frases_animadoras = {
+                "Semidios": ["¡Eres un dios del entreno!", "¡Dominas el gimnasio!", "¡Leyenda del esfuerzo!", "¡Tu fuerza es imparable!", "¡Maestro del fitness!"],
+                "Crack": ["¡Eres un crack!", "¡Sigue así, campeón!", "¡Tu dedicación inspira!", "¡Un verdadero guerrero!", "¡El rey del entreno!"],
+                "Chill": ["¡Buen trabajo, chill!", "¡Relájate y disfruta!", "¡Progreso con estilo!", "¡Tómate un respiro merecido!", "¡Tu calma es poder!"],
+                "Noob": ["¡Sigue practicando, noob!", "¡Mejora poco a poco!", "¡Cada paso cuenta!", "¡Pronto serás un pro!", "¡Ánimo, estás en camino!"],
+                "Looser": ["¡Anímate, looser!", "¡No te rindas!", "¡El esfuerzo vale oro!", "¡Levántate y sigue!", "¡Tu momento llegará!"]
+            }
+            recompensas_categoria = {
+                "Semidios": ["Gana un día libre de tareas domésticas", "Elige una película familiar para ver juntos", "Dirige una sesión de estiramiento en casa", "Recibe un aplauso de la familia por tu esfuerzo", "Decide el menú de la cena especial"],
+                "Crack": ["Disfruta de una hora extra de tiempo libre", "Gana un paseo con la familia o amigos", "Elige una actividad divertida para el fin de semana", "Recibe un masaje relajante de un familiar", "Organiza un juego en familia"],
+                "Chill": ["Tómate una tarde para leer o dibujar", "Gana una hora de música relajante", "Disfruta de un postre casero especial", "Recibe ayuda con una tarea escolar o personal", "Elige un día sin lavar platos"],
+                "Noob": ["Ayuda a preparar un snack saludable", "Comparte un juego de mesa con la familia", "Organiza tus zapatillas por 10 minutos", "Lee un capítulo de un libro motivacional", "Elige una canción para el calentamiento"],
+                "Looser": ["Ordena tu mochila por 5 minutos", "Ayuda a doblar la ropa por 10 minutos", "Escribe una meta para la próxima semana", "Pasa 15 minutos paseando al aire libre", "Elige un ejercicio fácil para probar"]
+            }
+            semana_actual = inicio_semana.strftime('%Y-%W')
+            if semana_actual not in self.recompensas_usadas:
+                self.recompensas_usadas[semana_actual] = []
+
+            # Limpiar recompensas de semanas antiguas (mantener solo la semana actual)
+            self.recompensas_usadas = {semana_actual: self.recompensas_usadas.get(semana_actual, [])}
+
+            # Asignar categoría según puntos
+            if puntos >= 150:
+                recompensa_categoria = "Semidios"
+            elif puntos >= 100:
+                recompensa_categoria = "Crack"
+            elif puntos >= 50:
+                recompensa_categoria = "Chill"
+            elif puntos >= 25:
+                recompensa_categoria = "Noob"
+            else:
+                recompensa_categoria = "Looser"
+
+            # Seleccionar una frase animadora única
+            frases_disponibles = [f for f in frases_animadoras[recompensa_categoria] 
+                                if f not in self.recompensas_usadas[semana_actual]]
+            frase_animadora = random.choice(frases_disponibles) if frases_disponibles else random.choice(frases_animadoras[recompensa_categoria])
+
+            # Seleccionar una recompensa única
+            recompensas_disponibles = [r for r in recompensas_categoria[recompensa_categoria] 
+                                    if r not in self.recompensas_usadas[semana_actual]]
+            recompensa = random.choice(recompensas_disponibles) if recompensas_disponibles else random.choice(recompensas_categoria[recompensa_categoria])
+
+            # Añadir solo la frase y la recompensa seleccionadas
+            self.recompensas_usadas[semana_actual].append(frase_animadora)
+            self.recompensas_usadas[semana_actual].append(recompensa)
+            self.guardar_datos()
+
+            recompensas = [frase_animadora, recompensa]  # Reemplazar en lugar de extender
+
+            imagen_ranking = f"recompensas/{recompensa_categoria.lower()}.png"
+            ranking = recompensa_categoria
+
+            estadisticas = {
+                'porcentaje_completados': (completados / totales * 100) if totales > 0 else 0,
+                'km_porcentaje': (km / meta_km * 100) if meta_km > 0 else 0
+            }
+            print(f"[DEBUG] Evaluación semana {semana_ano}: puntos={puntos}, km={km}, completados={completados}, totales={totales}, ranking={ranking}, recompensas={recompensas}")
+            return puntos, km, completados, totales, recompensas, ranking, imagen_ranking, self.record_puntos, estadisticas
+        except Exception as e:
+            print(f"[DEBUG] Error en evaluar_semana: {str(e)}")
+            return 0, 0.0, 0, 0, [], "Sin ranking", "", 0, {}
+
+    def generar_resumen(self, puntos, km, completados, totales, recompensas, ranking, imagen_ranking, record_puntos, meta_km):
+        try:
+            porcentaje = (completados / totales * 100) if totales > 0 else 0
+            texto = f"Resumen de la semana:\n"
+            texto += f"- Puntos: {puntos} (Récord: {record_puntos})\n"
+            texto += f"- Ejercicios completados: {completados}/{totales} ({porcentaje:.1f}%)\n"
+            texto += f"- Kilómetros corridos: {km:.1f}/{meta_km:.1f} km\n"
+            texto += f"- Ranking: {ranking}\n"
+            if recompensas:
+                texto += "- Recompensas:\n" + "\n".join([f"  * {r}" for r in recompensas])
+            return texto
+        except Exception as e:
+            print(f"[DEBUG] Error en generar_resumen: {str(e)}")
+            return "Error al generar el resumen."
