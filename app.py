@@ -84,7 +84,7 @@ def datos_personales():
             talla_sentada = float(request.form.get('talla_sentada', 0)) / 100  # Convertir cm a m
             envergadura = float(request.form.get('envergadura', 0)) / 100  # Convertir cm a m
             meta_km = float(request.form.get('meta_km', 0))
-            ejercicios_type = request.form.get('ejercicios_type', 'bodyweight')  # Añadidas nuevas opciones
+            ejercicios_type = request.form.get('ejercicios_type', 'bodyweight')
             mes_medicion = request.form.get('mes_medicion', date.today().strftime('%Y-%m'))
 
             if not nombre:
@@ -102,7 +102,7 @@ def datos_personales():
             modelo.talla_sentada = talla_sentada
             modelo.envergadura = envergadura
             modelo.meta_km[semana_ano] = meta_km
-            modelo.ejercicios_type = ejercicios_type  # Añadidas nuevas opciones
+            modelo.ejercicios_type = ejercicios_type
 
             modelo.historial_mediciones[mes_medicion] = {
                 'estatura': estatura, 'peso': peso,
@@ -113,7 +113,7 @@ def datos_personales():
             segmento_inferior = estatura - talla_sentada if estatura and talla_sentada else 0
             imc = peso / (estatura ** 2) if estatura and peso else 0
             
-            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
+            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
             velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
             if datos_grafica:
                 crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales (excluyendo el primer mes que es 0)
@@ -122,15 +122,15 @@ def datos_personales():
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=estatura * 100, talla_sentada=talla_sentada * 100, envergadura=envergadura * 100, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje="¡Datos guardados correctamente!", semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior * 100, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=mes_medicion, datos_grafica=datos_grafica)
         
         except ValueError as e:
-            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error en los datos: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=mes_medicion, datos_grafica=[])
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error en los datos: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=[])
         except Exception as e:
-            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error interno: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=mes_medicion, datos_grafica=[])
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error interno: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=[])
 
     else:  # GET
         segmento_inferior = (modelo.estatura - modelo.talla_sentada) * 100 if modelo.estatura and modelo.talla_sentada else 0
         imc = modelo.peso / (modelo.estatura ** 2) if modelo.estatura and modelo.peso else 0
         
-        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
         velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
         if datos_grafica:
             crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales (excluyendo el primer mes que es 0)
@@ -156,7 +156,7 @@ def cambiar_usuario():
             segmento_inferior = (modelo.estatura - modelo.talla_sentada) * 100 if modelo.estatura and modelo.talla_sentada else 0
             imc = modelo.peso / (modelo.estatura ** 2) if modelo.estatura and modelo.peso else 0
             
-            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
+            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
             velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
             if datos_grafica:
                 crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales
@@ -391,7 +391,7 @@ def resumen():
             })
 
         # Añadir datos de la gráfica
-        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
 
         return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=f"{inicio_semana.strftime('%d/%m/%Y')} - {fin_semana.strftime('%d/%m/%Y')}", puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo, datos_grafica=datos_grafica, semanas_pasadas=semanas_pasadas, semana_seleccionada=semana_seleccionada)
     except Exception as e:
@@ -475,5 +475,9 @@ def informe_semanal():
         print(f"[DEBUG] Error en /informe_semanal: {str(e)}")
         return render_template('error.html', error=f"Error al generar informe: {str(e)}"), 500
 
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=8080)
+@app.route('/recompensas', methods=['GET'])
+def redirigir_recompensas():
+    return redirect(url_for('resumen'))
+
+if __name__ == '__main__':
+    app.run()
