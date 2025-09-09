@@ -80,10 +80,10 @@
     </style>
 </head>
 <body>
-    <h1>Informe Semanal - {{ fecha }}</h1>
+    <h1>Informe Semanal - {{ fecha|default('Sin fecha') }}</h1>
 
     <div class="card">
-        {% for semana, grupos in informe.items() %}
+        {% for semana, grupos in informe.items()|default({}) %}
             <h2>{{ semana }}</h2>
             <table class="table">
                 <thead>
@@ -114,10 +114,14 @@
                 </tbody>
             </table>
             {% if semanas_puntos and semanas_puntos|length > 0 and loop.index0 < semanas_puntos|length %}
-                <p><strong>Total Puntos:</strong> {{ semanas_puntos[loop.index0].puntos }}</p>
+                <p><strong>Total Puntos:</strong> {{ semanas_puntos[loop.index0].puntos|default(0) }}</p>
+            {% else %}
+                <p><strong>Total Puntos:</strong> 0</p>
             {% endif %}
             {% if semanas_km and semanas_km|length > 0 and loop.index0 < semanas_km|length %}
-                <p><strong>Total Kilómetros:</strong> {{ semanas_km[loop.index0].km }} km</p>
+                <p><strong>Total Kilómetros:</strong> {{ semanas_km[loop.index0].km|default(0) }} km</p>
+            {% else %}
+                <p><strong>Total Kilómetros:</strong> 0 km</p>
             {% endif %}
         {% endfor %}
     </div>
@@ -156,8 +160,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             {% if datos_grafica and datos_grafica|length > 0 %}
                 const datosJSON = {{ datos_grafica|tojson|safe }};
-                const labels = datosJSON.map(d => d.mes);
-                const estaturaData = datosJSON.map(d => d.estatura);
+                const labels = datosJSON.map(d => d.mes || 'Sin fecha');
+                const estaturaData = datosJSON.map(d => d.estatura || 0);
                 const velocidadData = datosJSON.map(d => d.velocidad || 0);
 
                 // Gráfica de Estatura
@@ -183,7 +187,7 @@
                                 beginAtZero: false,
                                 title: { display: true, text: 'Estatura (cm)' },
                                 ticks: {
-                                    stepSize: 0.5  <!-- Corregido a 0.5 -->
+                                    stepSize: 0.5
                                 }
                             }
                         },
@@ -214,25 +218,39 @@
                                 beginAtZero: true,
                                 title: { display: true, text: 'Crecimiento Mensual (cm)' },
                                 ticks: {
-                                    stepSize: 0.5  <!-- Corregido a 0.5 -->
+                                    stepSize: 0.5
                                 }
                             }
                         },
                         plugins: { legend: { position: 'top' } }
                     }
                 });
+            {% else %}
+                // Placeholder si no hay datos de crecimiento
+                const estaturaCtx = document.getElementById('estaturaChart').getContext('2d');
+                new Chart(estaturaCtx, {
+                    type: 'line',
+                    data: { labels: ['Sin datos'], datasets: [{ label: 'Estatura (cm)', data: [0], borderColor: '#36A2EB', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } } }
+                });
+                const velocidadCtx = document.getElementById('velocidadChart').getContext('2d');
+                new Chart(velocidadCtx, {
+                    type: 'line',
+                    data: { labels: ['Sin datos'], datasets: [{ label: 'Crecimiento Mensual (cm)', data: [0], borderColor: '#FF6384', backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
             {% endif %}
 
             {% if semanas_puntos and semanas_puntos|length > 0 %}
-                const puntosLabels = {{ semanas_puntos|map(attribute='semana')|list|tojson|safe }};
-                const puntosData = {{ semanas_puntos|map(attribute='puntos')|list|tojson|safe }};
+                const puntosLabels = {{ semanas_puntos|map(attribute='inicio_semana')|list|tojson|safe }};
+                const puntosData = {{ semanas_puntos|map(attribute='puntos')|list|default([0])|tojson|safe }};
 
                 // Gráfica de Puntos
                 const puntosCtx = document.getElementById('puntosChart').getContext('2d');
                 new Chart(puntosCtx, {
                     type: 'bar',
                     data: {
-                        labels: puntosLabels,
+                        labels: puntosLabels.map(date => new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })),
                         datasets: [{
                             label: 'Puntos',
                             data: puntosData,
@@ -253,18 +271,26 @@
                         plugins: { legend: { position: 'top' } }
                     }
                 });
+            {% else %}
+                // Placeholder si no hay datos de puntos
+                const puntosCtx = document.getElementById('puntosChart').getContext('2d');
+                new Chart(puntosCtx, {
+                    type: 'bar',
+                    data: { labels: ['Sin datos'], datasets: [{ label: 'Puntos', data: [0], backgroundColor: '#4BC0C0' }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
             {% endif %}
 
             {% if semanas_km and semanas_km|length > 0 %}
-                const kmLabels = {{ semanas_km|map(attribute='semana')|list|tojson|safe }};
-                const kmData = {{ semanas_km|map(attribute='km')|list|tojson|safe }};
+                const kmLabels = {{ semanas_km|map(attribute='inicio_semana')|list|tojson|safe }};
+                const kmData = {{ semanas_km|map(attribute='km')|list|default([0])|tojson|safe }};
 
                 // Gráfica de Kilómetros
                 const kmCtx = document.getElementById('kmChart').getContext('2d');
                 new Chart(kmCtx, {
                     type: 'line',
                     data: {
-                        labels: kmLabels,
+                        labels: kmLabels.map(date => new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })),
                         datasets: [{
                             label: 'Kilómetros',
                             data: kmData,
@@ -286,9 +312,16 @@
                         plugins: { legend: { position: 'top' } }
                     }
                 });
+            {% else %}
+                // Placeholder si no hay datos de kilómetros
+                const kmCtx = document.getElementById('kmChart').getContext('2d');
+                new Chart(kmCtx, {
+                    type: 'line',
+                    data: { labels: ['Sin datos'], datasets: [{ label: 'Kilómetros', data: [0], borderColor: '#FF9F40', backgroundColor: 'rgba(255, 159, 64, 0.2)', fill: true }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
             {% endif %}
         });
     </script>
 </body>
 </html>
-
