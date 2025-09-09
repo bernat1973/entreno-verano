@@ -49,7 +49,7 @@ class Modelo:
             self.talla_sentada = 0.0  # Nuevo campo
             self.envergadura = 0.0    # Nuevo campo
             self.meta_km = {}
-            self.ejercicios_type = "bodyweight"
+            self.categoria_entrenamiento = "bodyweight"  # Cambiado de ejercicios_type
             self.km_corridos = {}
             self.tiempo_corridos = {}
             self.ejercicios_completados = {}
@@ -79,7 +79,7 @@ class Modelo:
                 self.talla_sentada = float(data.get('talla_sentada', 0.0))  # Cargar nuevo campo
                 self.envergadura = float(data.get('envergadura', 0.0))     # Cargar nuevo campo
                 self.meta_km = data.get('meta_km', {})
-                self.ejercicios_type = data.get('ejercicios_type', 'bodyweight')
+                self.categoria_entrenamiento = data.get('categoria_entrenamiento', 'bodyweight')  # Cambiado de ejercicios_type
                 self.km_corridos = data.get('km_corridos', {})
                 self.tiempo_corridos = data.get('tiempo_corridos', {})
                 self.ejercicios_completados = data.get('ejercicios_completados', {})
@@ -91,7 +91,7 @@ class Modelo:
                 self.mensaje = data.get('mensaje', '')
                 self.recompensas_usadas = data.get('recompensas_usadas', {})
                 self.progreso_ciclo = data.get('progreso_ciclo', 0)  # Cargar el ciclo de dificultad
-                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}, progreso_ciclo={self.progreso_ciclo}")
+                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, categoria_entrenamiento={self.categoria_entrenamiento}, progreso_ciclo={self.progreso_ciclo}")
             else:
                 print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando como nuevo usuario")
                 self.nuevo_usuario(self.user_id)
@@ -110,7 +110,7 @@ class Modelo:
                 'talla_sentada': self.talla_sentada,  # Guardar nuevo campo
                 'envergadura': self.envergadura,      # Guardar nuevo campo
                 'meta_km': self.meta_km,
-                'ejercicios_type': self.ejercicios_type,
+                'categoria_entrenamiento': self.categoria_entrenamiento,  # Cambiado de ejercicios_type
                 'km_corridos': self.km_corridos,
                 'tiempo_corridos': self.tiempo_corridos,
                 'ejercicios_completados': self.ejercicios_completados,
@@ -141,7 +141,7 @@ class Modelo:
         self.talla_sentada = 0.0  # Inicializar nuevo campo
         self.envergadura = 0.0    # Inicializar nuevo campo
         self.meta_km = {}
-        self.ejercicios_type = "bodyweight"
+        self.categoria_entrenamiento = "bodyweight"  # Cambiado de ejercicios_type
         self.km_corridos = {}
         self.tiempo_corridos = {}
         self.ejercicios_completados = {}
