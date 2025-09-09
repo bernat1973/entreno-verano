@@ -470,7 +470,10 @@ def informe_semanal():
                 'km': round(km_semana_total, 2)
             })
 
-        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), semanas_puntos=semanas_puntos, semanas_km=semanas_km)
+        # Calcular datos_grafica
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []
+
+        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), semanas_puntos=semanas_puntos, semanas_km=semanas_km, datos_grafica=datos_grafica)
     except Exception as e:
         print(f"[DEBUG] Error en /informe_semanal: {str(e)}")
         return render_template('error.html', error=f"Error al generar informe: {str(e)}"), 500
