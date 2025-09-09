@@ -36,55 +36,7 @@ class Ejercicios:
             # Domingo: Recuperación activa
             ["Press de banca ligero con mancuernas", "Elevaciones laterales ligeras con mancuernas", "Remo ligero con mancuernas", "Curl de bíceps ligero con mancuernas", "Extensiones de tríceps ligero en polea", "Face pulls ligeros con polea"]
         ]
-        self.base_ejercicios_new_bodyweight = [
-            # Lunes
-            ["Tuck L-sit", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves", "Puente de glúteos"],
-            # Martes
-            ["Russian Twist", "Up Wipers", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados", "Estiramientos dinámicos"],
-            # Miércoles
-            ["Handstand contra pared", "Tuck Front Lever", "Flexiones diamante", "Rotaciones de hombros", "Escaladores pliométricos", "Gato-vaca"],
-            # Jueves
-            ["Heel Toucher", "Plancha frontal", "Aperturas de pecho", "Elevaciones laterales sin peso", "Saltos laterales suaves", "Respiración diafragmática"],
-            # Viernes
-            ["Rotacional Punch", "Plancha lateral", "Flexiones estándar", "Flexiones pica", "Saltos patinador", "Abdominales isométricos"],
-            # Sábado
-            ["Tuck L-sit", "Russian Twist", "Fondos en silla", "Plancha con toques", "Burpees modificados", "Yoga suave"],
-            # Domingo
-            ["Handstand contra pared", "Up Wipers", "Flexiones diamante", "Elevaciones frontales sin peso", "Saltos verticales", "Movilidad articular"]
-        ]
-        self.base_ejercicios_mixta = [
-            # Lunes
-            ["Press de banca con barra", "Plancha frontal", "Elevaciones laterales con mancuernas", "Flexiones estándar", "Russian Twist", "Puente de glúteos"],
-            # Martes
-            ["Remo con barra", "Heel Toucher", "Curl de bíceps", "Fondos en silla", "Burpees modificados", "Estiramientos dinámicos"],
-            # Miércoles
-            ["Press inclinado con mancuernas", "Handstand contra pared", "Press militar", "Tuck Front Lever", "Escaladores pliométricos", "Gato-vaca"],
-            # Jueves
-            ["Remo sentado en polea", "Plancha frontal", "Curl de bíceps en banco", "Aperturas de pecho", "Saltos laterales", "Respiración"],
-            # Viernes
-            ["Press de hombros", "Plancha lateral", "Elevaciones laterales", "Flexiones pica", "Saltos patinador", "Abdominales isométricos"],
-            # Sábado
-            ["Peso muerto", "Russian Twist", "Curl martillo", "Plancha con toques", "Burpees", "Yoga suave"],
-            # Domingo
-            ["Press ligero", "Up Wipers", "Remo ligero", "Flexiones diamante", "Saltos verticales", "Movilidad articular"]
-        ]
-        self.base_ejercicios_correccion = [
-            # Lunes
-            ["Estiramientos de pecho en puerta", "Remo con banda elástica", "Elevaciones de hombros con peso ligero", "Plancha con rotación", "Cat-Cow", "Aperturas de pecho"],
-            # Martes
-            ["Estiramientos de espalda inclinada", "Pull-over ligero", "Rotaciones de hombros", "Plancha lateral", "Movilidad espinal", "Press de hombros suave"],
-            # Miércoles
-            ["Estiramientos de pecho", "Remo con mancuerna ligera", "Elevaciones frontales", "Plancha con apoyo", "Cat-Cow", "Aperturas de pecho con manos atrás"],
-            # Jueves
-            ["Estiramientos de espalda", "Pull-over con banda", "Rotaciones de hombros", "Plancha lateral", "Movilidad espinal", "Press de hombros ligero"],
-            # Viernes
-            ["Estiramientos de pecho en puerta", "Remo con banda", "Elevaciones laterales ligeras", "Plancha con rotación", "Cat-Cow", "Aperturas de pecho"],
-            # Sábado
-            ["Estiramientos de espalda inclinada", "Pull-over ligero", "Rotaciones de hombros", "Plancha lateral", "Movilidad espinal", "Press de hombros suave"],
-            # Domingo
-            ["Estiramientos de pecho", "Remo con mancuerna", "Elevaciones frontales", "Plancha con apoyo", "Cat-Cow", "Aperturas de pecho con manos atrás"]
-        ]
-        print(f"[DEBUG] Inicializado Ejercicios con modelo.categoria_entrenamiento: {self.modelo.categoria_entrenamiento if self.modelo else 'None'}")
+        print(f"[DEBUG] Inicializado Ejercicios con modelo.ejercicios_type: {self.modelo.ejercicios_type if self.modelo else 'None'}")
 
     def get_base_exercise_name(self, ejercicio):
         try:
@@ -99,8 +51,78 @@ class Ejercicios:
     def get_puntos(self, ejercicio):
         try:
             base_name = self.get_base_exercise_name(ejercicio)
-            # Todos los ejercicios valen 5 puntos por defecto
-            puntos = 5
+            puntos = {
+                # Bodyweight
+                "Abdominales crunch con rodillas dobladas": 6,
+                "Plancha frontal en antebrazos": 8,
+                "Flexiones estándar con manos anchas": 10,
+                "Elevaciones frontales de hombros sin peso": 5,
+                "Saltos verticales suaves con aterrizaje controlado": 7,
+                "Puente de glúteos con rodillas dobladas": 6,
+                "Abdominales bicicleta lentos": 7,
+                "Elevaciones de piernas suaves": 6,
+                "Fondos en silla para tríceps": 8,
+                "Plancha con toques de hombros": 8,
+                "Burpees modificados sin flexión": 10,
+                "Estiramientos dinámicos de cuerpo completo": 5,
+                "Plancha lateral con apoyo en antebrazo": 8,
+                "Flexiones diamante para tríceps": 10,
+                "Rotaciones de hombros con brazos en L": 5,
+                "Escaladores pliométricos lentos": 7,
+                "Gato-vaca para movilidad espinal": 5,
+                "Aperturas de pecho con brazos en T": 5,
+                "Saltos laterales suaves sobre línea": 7,
+                "Respiración diafragmática profunda": 5,
+                "Flexiones pica para hombros": 10,
+                "Saltos patinador con cambio lento": 7,
+                "Abdominales isométricos de contracción": 6,
+                "Yoga suave con posturas básicas": 5,
+                "Movilidad articular de cadera": 5,
+                # Weights
+                "Press de banca con barra": 15,
+                "Press inclinado con mancuernas": 14,
+                "Press militar con barra": 15,
+                "Elevaciones laterales con mancuernas": 12,
+                "Aperturas con mancuernas en banco plano": 12,
+                "Face pulls con polea": 10,
+                "Remo con barra inclinado": 15,
+                "Dominadas con peso asistido": 16,
+                "Curl de bíceps con mancuernas": 10,
+                "Extensiones de tríceps por encima de la cabeza con mancuerna": 10,
+                "Remo con mancuerna a una mano": 12,
+                "Curl martillo con mancuernas": 10,
+                "Press de banca declinado con barra": 15,
+                "Aperturas en banco inclinado con mancuernas": 12,
+                "Press Arnold con mancuernas": 14,
+                "Elevaciones frontales con barra": 12,
+                "Fondos en paralelas con peso": 15,
+                "Elevaciones traseras para deltoides con mancuernas": 12,
+                "Remo sentado en polea baja": 14,
+                "Pull-over con mancuerna": 12,
+                "Curl de bíceps en banco predicador": 10,
+                "Press francés con barra EZ": 10,
+                "Remo invertido con barra": 14,
+                "Extensiones de tríceps en polea alta": 10,
+                "Press de banca con mancuernas": 14,
+                "Cruces en polea para pecho": 12,
+                "Press de hombros con mancuernas": 14,
+                "Elevaciones laterales en banco inclinado": 12,
+                "Fondos en banco con peso": 12,
+                "Elevaciones frontales con disco": 12,
+                "Peso muerto con barra": 16,
+                "Remo con barra T": 14,
+                "Curl de bíceps con barra recta": 10,
+                "Extensiones de tríceps con mancuerna a una mano": 10,
+                "Dominadas supinas con peso": 16,
+                "Curl concentrado con mancuerna": 10,
+                "Press de banca ligero con mancuernas": 10,
+                "Elevaciones laterales ligeras con mancuernas": 8,
+                "Remo ligero con mancuernas": 10,
+                "Curl de bíceps ligero con mancuernas": 8,
+                "Extensiones de tríceps ligero en polea": 8,
+                "Face pulls ligeros con polea": 8
+            }
+            puntos = puntos.get(base_name, 5)  # 5 puntos por defecto para ejercicios personalizados
             print(f"[DEBUG] Puntos para {ejercicio} ({base_name}): {puntos}")
             return puntos
         except Exception as e:
@@ -118,17 +140,10 @@ class Ejercicios:
                     raise ValueError(f"Formato de fecha no válido: {fecha}")
             
             dia_semana = fecha.weekday()
-            # Seleccionar ejercicios según la categoría
-            categoria = self.modelo.categoria_entrenamiento if self.modelo and self.modelo.categoria_entrenamiento else "bodyweight"
-            base_ejercicios = {
-                "bodyweight": self.base_ejercicios_bodyweight,
-                "weight": self.base_ejercicios_weights,
-                "new_bodyweight": self.base_ejercicios_new_bodyweight,
-                "mixta": self.base_ejercicios_mixta,
-                "correccion": self.base_ejercicios_correccion
-            }.get(categoria, self.base_ejercicios_bodyweight)
+            # Seleccionar ejercicios según el tipo del usuario
+            base_ejercicios = self.base_ejercicios_weights if self.modelo and self.modelo.ejercicios_type == 'weights' else self.base_ejercicios_bodyweight
             ejercicios_base = base_ejercicios[dia_semana].copy()
-            print(f"[DEBUG] Ejercicios base para {fecha.strftime('%Y-%m-%d')} (categoria: {categoria}): {ejercicios_base}")
+            print(f"[DEBUG] Ejercicios base para {fecha.strftime('%Y-%m-%d')} (tipo: {self.modelo.ejercicios_type if self.modelo else 'None'}): {ejercicios_base}")
 
             fecha_str = fecha.strftime('%Y-%m-%d')
             if self.modelo and self.modelo.ejercicios_personalizados_por_fecha.get(fecha_str):
@@ -138,9 +153,9 @@ class Ejercicios:
             ciclo = (fecha.isocalendar()[1] - 1) % 16
             if ciclo < 4:
                 series, repeticiones, segundos = 3, 10, 60
-            elif cycle < 8:
+            elif ciclo < 8:
                 series, repeticiones, segundos = 3, 12, 70
-            elif cycle < 12:
+            elif ciclo < 12:
                 series, repeticiones, segundos = 4, 12, 70
             else:
                 series, repeticiones, segundos = 4, 15, 80
