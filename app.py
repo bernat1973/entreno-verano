@@ -84,7 +84,7 @@ def datos_personales():
             talla_sentada = float(request.form.get('talla_sentada', 0)) / 100  # Convertir cm a m
             envergadura = float(request.form.get('envergadura', 0)) / 100  # Convertir cm a m
             meta_km = float(request.form.get('meta_km', 0))
-            ejercicios_type = request.form.get('ejercicios_type', 'bodyweight')
+            ejercicios_type = request.form.get('ejercicios_type', 'bodyweight')  # Añadidas nuevas opciones
             mes_medicion = request.form.get('mes_medicion', date.today().strftime('%Y-%m'))
 
             if not nombre:
@@ -102,7 +102,7 @@ def datos_personales():
             modelo.talla_sentada = talla_sentada
             modelo.envergadura = envergadura
             modelo.meta_km[semana_ano] = meta_km
-            modelo.ejercicios_type = ejercicios_type
+            modelo.ejercicios_type = ejercicios_type  # Añadidas nuevas opciones
 
             modelo.historial_mediciones[mes_medicion] = {
                 'estatura': estatura, 'peso': peso,
@@ -122,9 +122,9 @@ def datos_personales():
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=estatura * 100, talla_sentada=talla_sentada * 100, envergadura=envergadura * 100, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje="¡Datos guardados correctamente!", semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior * 100, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=mes_medicion, datos_grafica=datos_grafica)
         
         except ValueError as e:
-            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error en los datos: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=[])
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error en los datos: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=mes_medicion, datos_grafica=[])
         except Exception as e:
-            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error interno: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=[])
+            return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, error=f"Error interno: {str(e)}", semana_actual=semana_actual, usuarios=usuarios, mes_medicion=mes_medicion, datos_grafica=[])
 
     else:  # GET
         segmento_inferior = (modelo.estatura - modelo.talla_sentada) * 100 if modelo.estatura and modelo.talla_sentada else 0
@@ -443,39 +443,37 @@ def informe_semanal():
                                 elif any(keyword in base_name_lower for keyword in ['abdominal', 'abdominales', 'crunch', 'elevación de piernas']):
                                     grupo = 'abdominales'
                                 # Hombros: elevaciones y presses
-                                elif any(keyword in base_name_lower for keyword in ['hombro', 'hombros', 'press militar', 'elevación lateral', 'elevación frontal']):
+                                elif any(keyword in base_name_lower for keyword in ['hombros', 'elevaciones', 'press militar', 'press de hombros']):
                                     grupo = 'hombros'
-                                # Brazos: enfocados en bíceps y tríceps
-                                elif any(keyword in base_name_lower for keyword in ['bíceps', 'tríceps', 'curl', 'extensión', 'press francés', 'dips', 'fondos', 'silla']):
+                                # Brazos: ejercicios de bíceps y tríceps
+                                elif any(keyword in base_name_lower for keyword in ['bíceps', 'tríceps', 'curl', 'extensiones', 'fondos']):
                                     grupo = 'brazos'
-                                # Piernas: movimientos de fuerza y peso corporal
-                                elif any(keyword in base_name_lower for keyword in ['pierna', 'piernas', 'sentadilla', 'zancada', 'peso muerto', 'prensa', 'squat', 'lunges']):
+                                # Piernas: movimientos de fuerza en piernas
+                                elif any(keyword in base_name_lower for keyword in ['piernas', 'sentadilla', 'zancadas', 'peso muerto']):
                                     grupo = 'piernas'
-                                # Core: estabilización y ejercicios globales
-                                elif any(keyword in base_name_lower for keyword in ['core', 'plancha', 'russian twist', 'mountain climbers', 'side plank']):
+                                # Core: ejercicios de estabilidad
+                                elif any(keyword in base_name_lower for keyword in ['plancha', 'core', 'escaladores', 'puente']):
                                     grupo = 'core'
                             informe[semana_str][grupo].append(base_name)
 
-            # Calcular puntos y kilómetros para esta semana
+            # Evaluar la semana para obtener puntos y km
             puntos_semana, km_semana, _, _, _, _, _, _, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
             km_semana_total = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
-            semanas_puntos.append({'semana': semana_str, 'puntos': puntos_semana})
-            semanas_km.append({'semana': semana_str, 'km': round(km_semana_total, 2)})
+            semanas_puntos.append({
+                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
+                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
+                'puntos': puntos_semana
+            })
+            semanas_km.append({
+                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
+                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
+                'km': round(km_semana_total, 2)
+            })
 
-        # Añadir datos de la gráfica de crecimiento
-        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
-
-        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), datos_grafica=datos_grafica, semanas_puntos=semanas_puntos, semanas_km=semanas_km)
-    except NameError as e:
-        print(f"[DEBUG] Error de nombre no definido: {str(e)}")
-        return render_template('error.html', error=f"Error al generar informe: función no definida ({str(e)}). Asegúrate de que el entorno sea compatible con Python estándar."), 500
+        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), semanas_puntos=semanas_puntos, semanas_km=semanas_km)
     except Exception as e:
         print(f"[DEBUG] Error en /informe_semanal: {str(e)}")
         return render_template('error.html', error=f"Error al generar informe: {str(e)}"), 500
 
-@app.route('/recompensas', methods=['GET'])
-def redirigir_recompensas():
-    return redirect(url_for('resumen'))
-
-if __name__ == '__main__':
-    app.run
+if __name__ == "__main__":
+    app.run(debug=True, host='0.0.0.0', port=8080)
