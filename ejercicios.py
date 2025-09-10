@@ -70,19 +70,19 @@ class Ejercicios:
         ]
         self.base_ejercicios_correccion = [
             # Lunes
-            ["Estiramientos de pecho en puerta", "Remo con banda elástica", "Elevaciones de hombros con peso ligero", "Plancha con rotación", "Cat-Cow", "Aperturas de pecho"],
+            ["Flexiones", "Sentadillas con pesas 4kg", "Pared", "Chin tucks", "Estiramiento pectorales", "Y-T-W"],
             # Martes
-            ["Estiramientos de espalda inclinada", "Pull-over ligero", "Rotaciones de hombros", "Plancha lateral", "Movilidad espinal", "Press de hombros suave"],
+            ["Plancha", "Flexiones", "Sentadillas con pesas 4kg", "Pared", "Chin tucks", "Estiramiento pectorales"],
             # Miércoles
-            ["Estiramientos de pecho", "Remo con mancuerna ligera", "Elevaciones frontales", "Plancha con apoyo", "Cat-Cow", "Aperturas de pecho con manos atrás"],
+            ["Y-T-W", "Plancha", "Flexiones", "Sentadillas con pesas 4kg", "Pared", "Chin tucks"],
             # Jueves
-            ["Estiramientos de espalda", "Pull-over con banda", "Rotaciones de hombros", "Plancha lateral", "Movilidad espinal", "Press de hombros ligero"],
+            ["Estiramiento pectorales", "Y-T-W", "Plancha", "Flexiones", "Sentadillas con pesas 4kg", "Pared"],
             # Viernes
-            ["Estiramientos de pecho en puerta", "Remo con banda", "Elevaciones laterales ligeras", "Plancha con rotación", "Cat-Cow", "Aperturas de pecho"],
+            ["Chin tucks", "Estiramiento pectorales", "Y-T-W", "Plancha", "Flexiones", "Sentadillas con pesas 4kg"],
             # Sábado
-            ["Estiramientos de espalda inclinada", "Pull-over ligero", "Rotaciones de hombros", "Plancha lateral", "Movilidad espinal", "Press de hombros suave"],
+            ["Pared", "Chin tucks", "Estiramiento pectorales", "Y-T-W", "Plancha", "Flexiones"],
             # Domingo
-            ["Estiramientos de pecho", "Remo con mancuerna", "Elevaciones frontales", "Plancha con apoyo", "Cat-Cow", "Aperturas de pecho con manos atrás"]
+            ["Sentadillas con pesas 4kg", "Pared", "Chin tucks", "Estiramiento pectorales", "Y-T-W", "Plancha"]
         ]
         print(f"[DEBUG] Inicializado Ejercicios con modelo.ejercicios_type: {self.modelo.ejercicios_type if self.modelo else 'None'}")
 
