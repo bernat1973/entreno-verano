@@ -6,19 +6,19 @@ class Ejercicios:
         self.modelo = modelo
         self.base_ejercicios_bodyweight = [
             # Lunes
-            ["Abdominales crunch con rodillas dobladas", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con aterrizaje controlado", "Puente de glúteos con rodillas dobladas"],
+            ["Flexiones", "Sentadillas con pesas 4kg", "Pared", "Chin tucks", "Estiramiento pectorales", "Y-T-W"],
             # Martes
-            ["Abdominales bicicleta lentos", "Elevaciones de piernas suaves", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Estiramientos dinámicos de cuerpo completo"],
+            ["Levantamiento lateral", "Apertura", "Press de hombros", "Bíceps", "Y-T-W", "Estiramiento pectorales"],
             # Miércoles
-            ["Plancha lateral con apoyo en antebrazo", "Abdominales crunch con rodillas dobladas", "Flexiones diamante para tríceps", "Rotaciones de hombros con brazos en L", "Escaladores pliométricos lentos", "Gato-vaca para movilidad espinal"],
+            ["Caminar ligero", "Estiramientos", "Plancha", "Pájaro-perro", "Estiramiento pectorales", "Y-T-W"],
             # Jueves
-            ["Abdominales bicicleta lentos", "Plancha frontal en antebrazos", "Aperturas de pecho con brazos en T", "Elevaciones laterales de hombros sin peso", "Saltos laterales suaves sobre línea", "Respiración diafragmática profunda"],
+            ["Flexiones", "Sentadillas con pesas 4kg", "Plancha", "Puente escapular", "Estiramiento isquiotibiales", "Pájaro-perro"],
             # Viernes
-            ["Elevaciones de piernas suaves", "Plancha lateral con apoyo en antebrazo", "Flexiones estándar con manos anchas", "Flexiones pica para hombros", "Saltos patinador con cambio lento", "Abdominales isométricos de contracción"],
+            ["Levantamiento lateral", "Apertura", "Press de hombros", "Bíceps", "Estiramiento pectorales", "Y-T-W"],
             # Sábado
-            ["Abdominales crunch con rodillas dobladas", "Abdominales bicicleta lentos", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Yoga suave con posturas básicas"],
+            ["Estiramientos suaves", "Plancha", "Pájaro-perro", "Estiramiento pectorales", "Y-T-W", "Rotaciones torácicas"],
             # Domingo
-            ["Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Flexiones diamante para tríceps", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con fuerza", "Movilidad articular de cadera"]
+            ["Estiramientos suaves", "Plancha", "Pájaro-perro", "Estiramiento pectorales", "Y-T-W", "Postura del niño"]
         ]
         self.base_ejercicios_weights = [
             # Lunes: Pectorales y hombros
