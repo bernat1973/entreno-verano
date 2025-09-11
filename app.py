@@ -1,3 +1,5 @@
+# app.py completo con depuración adicional y correcciones sugeridas
+
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime, date, timedelta
 from modelo import Modelo
@@ -146,12 +148,16 @@ def cambiar_usuario():
     fin_semana = inicio_semana + timedelta(days=6)
     semana_actual = f"Semana {semana_ano}: del {inicio_semana.strftime('%d/%m/%Y')} al {fin_semana.strftime('%d/%m/%Y')}"
     usuarios = modelo.get_usuarios()
+    print(f"[DEBUG] Usuarios disponibles en /cambiar_usuario: {usuarios}")
     try:
         nombre_usuario = request.form['usuario'].strip()
+        print(f"[DEBUG] Solicitud para cambiar a usuario: {nombre_usuario}")
         if not nombre_usuario or nombre_usuario not in usuarios:
             error = "Selecciona un usuario válido."
+            print(f"[DEBUG] Error: {error}")
             return render_template('datos_personales.html', nombre="", peso=0, estatura=0, talla_sentada=0, envergadura=0, meta_km=0, ejercicios_type='bodyweight', error=error, semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=[])
         
+        print(f"[DEBUG] Llamando a modelo.cambiar_usuario({nombre_usuario})")
         if modelo.cambiar_usuario(nombre_usuario):
             segmento_inferior = (modelo.estatura - modelo.talla_sentada) * 100 if modelo.estatura and modelo.talla_sentada else 0
             imc = modelo.peso / (modelo.estatura ** 2) if modelo.estatura and modelo.peso else 0
@@ -162,12 +168,15 @@ def cambiar_usuario():
                 crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales
                 velocidad_crecimiento_actual = crecimiento_total * 12  # Proyección anual
 
+            print(f"[DEBUG] Cambio exitoso a {nombre_usuario}. Estado: nombre={modelo.nombre}, peso={modelo.peso}, estatura={modelo.estatura}")
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=datos_grafica)
         else:
-            return render_template('datos_personales.html', error=f"Error al cambiar a usuario '{nombre_usuario}'.", semana_actual=semana_actual, usuarios=usuarios)
+            error = f"Error al cambiar a usuario '{nombre_usuario}'."
+            print(f"[DEBUG] Error: {error}")
+            return render_template('datos_personales.html', error=error, semana_actual=semana_actual, usuarios=usuarios)
 
     except Exception as e:
-        print(f"[DEBUG] Error al cambiar usuario: {str(e)}")
+        print(f"[DEBUG] Excepción en /cambiar_usuario: {str(e)}")
         return render_template('datos_personales.html', error=f"Error al cambiar usuario: {str(e)}", semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/nuevo_usuario', methods=['POST'])
@@ -483,4 +492,4 @@ def redirigir_recompensas():
     return redirect(url_for('resumen'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)  # Activa modo debug para más logs en consola
