@@ -1,15 +1,11 @@
-# modelo.py completo con correcciones: reinicio de estado, validación de campos, lock para concurrencia, depuración adicional
-
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import date, timedelta, datetime
 import os
 import random
-from threading import Lock
 
 class Modelo:
     def __init__(self, config_file='entreno_verano.json', use_auth=False):
-        self.lock = Lock()  # Inicializar lock para concurrencia
         try:
             project_id = os.getenv("FIREBASE_PROJECT_ID")
             client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
@@ -40,24 +36,110 @@ class Modelo:
             if app_project_id != 'entreno-verano':
                 print(f"[WARNING] Proyecto Firebase esperado: 'entreno-verano', encontrado: {app_project_id}")
 
+            # Consultar el usuario actual desde config/app al inicio
             config_ref = self.db.collection('config').document('app')
             config_data = config_ref.get()
             self.user_id = config_data.to_dict().get('usuario_actual', 'Juan') if config_data.exists else 'Juan'
             print(f"[DEBUG] Usuario inicial cargado desde config/app: {self.user_id}")
 
             self.use_auth = use_auth
-            self.reiniciar_estado()  # Inicializar atributos
+            self.nombre = ""
+            self.peso = 0.0
+            self.estatura = 0.0
+            self.talla_sentada = 0.0  # Nuevo campo
+            self.envergadura = 0.0    # Nuevo campo
+            self.meta_km = {}
+            self.ejercicios_type = "bodyweight"
+            self.km_corridos = {}
+            self.tiempo_corridos = {}
+            self.ejercicios_completados = {}
+            self.ejercicios_personalizados = []
+            self.ejercicios_personalizados_por_fecha = {}
+            self.historial_semanal = []
+            self.historial_mediciones = {}  # Nuevo diccionario para mediciones mensuales
+            self.record_puntos = 0
+            self.mensaje = ""
+            self.recompensas_usadas = {}
+            self.progreso_ciclo = 0  # Nuevo atributo para rastrear el ciclo de dificultad
             self.cargar_datos()
         except Exception as e:
             print(f"[DEBUG] Error al inicializar Modelo: {str(e)}")
             raise
 
-    def reiniciar_estado(self):
-        self.nombre = ""
+    def cargar_datos(self):
+        try:
+            print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
+            user_ref = self.db.collection('usuarios').document(self.user_id)
+            user_data = user_ref.get()
+            if user_data.exists:
+                data = user_data.to_dict()
+                self.nombre = data.get('nombre', '')
+                self.peso = float(data.get('peso', 0.0))
+                self.estatura = float(data.get('estatura', 0.0))
+                self.talla_sentada = float(data.get('talla_sentada', 0.0))  # Cargar nuevo campo
+                self.envergadura = float(data.get('envergadura', 0.0))     # Cargar nuevo campo
+                self.meta_km = data.get('meta_km', {})
+                self.ejercicios_type = data.get('ejercicios_type', 'bodyweight')
+                self.km_corridos = data.get('km_corridos', {})
+                self.tiempo_corridos = data.get('tiempo_corridos', {})
+                self.ejercicios_completados = data.get('ejercicios_completados', {})
+                self.ejercicios_personalizados = data.get('ejercicios_personalizados', [])
+                self.ejercicios_personalizados_por_fecha = data.get('ejercicios_personalizados_por_fecha', {})
+                self.historial_semanal = data.get('historial_semanal', [])
+                self.historial_mediciones = data.get('historial_mediciones', {})  # Cargar mediciones mensuales
+                self.record_puntos = data.get('record_puntos', 0)
+                self.mensaje = data.get('mensaje', '')
+                self.recompensas_usadas = data.get('recompensas_usadas', {})
+                self.progreso_ciclo = data.get('progreso_ciclo', 0)  # Cargar el ciclo de dificultad
+                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}, progreso_ciclo={self.progreso_ciclo}")
+            else:
+                print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando como nuevo usuario")
+                self.nuevo_usuario(self.user_id)
+            print(f"[DEBUG] Datos finales para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
+        except Exception as e:
+            print(f"[DEBUG] Error al cargar datos para {self.user_id}: {str(e)}")
+            raise
+
+    def guardar_datos(self):
+        try:
+            user_ref = self.db.collection('usuarios').document(self.user_id)
+            user_ref.set({
+                'nombre': self.nombre,
+                'peso': self.peso,
+                'estatura': self.estatura,
+                'talla_sentada': self.talla_sentada,  # Guardar nuevo campo
+                'envergadura': self.envergadura,      # Guardar nuevo campo
+                'meta_km': self.meta_km,
+                'ejercicios_type': self.ejercicios_type,
+                'km_corridos': self.km_corridos,
+                'tiempo_corridos': self.tiempo_corridos,
+                'ejercicios_completados': self.ejercicios_completados,
+                'ejercicios_personalizados': self.ejercicios_personalizados,
+                'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
+                'historial_semanal': self.historial_semanal,
+                'historial_mediciones': self.historial_mediciones,  # Guardar mediciones mensuales
+                'record_puntos': self.record_puntos,
+                'mensaje': self.mensaje,
+                'recompensas_usadas': self.recompensas_usadas,
+                'progreso_ciclo': self.progreso_ciclo  # Guardar el ciclo de dificultad
+            })
+            # Guardar el usuario actual en config/app
+            config_ref = self.db.collection('config').document('app')
+            config_ref.set({'usuario_actual': self.user_id}, merge=True)
+            print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
+        except Exception as e:
+            print(f"[DEBUG] Error al guardar datos: {str(e)}")
+            raise
+
+    def nuevo_usuario(self, nombre, uid=None):
+        self.user_id = nombre if not self.use_auth else uid
+        if not self.user_id:
+            raise ValueError("El ID de usuario no puede estar vacío")
+        self.nombre = nombre
         self.peso = 0.0
         self.estatura = 0.0
-        self.talla_sentada = 0.0
-        self.envergadura = 0.0
+        self.talla_sentada = 0.0  # Inicializar nuevo campo
+        self.envergadura = 0.0    # Inicializar nuevo campo
         self.meta_km = {}
         self.ejercicios_type = "bodyweight"
         self.km_corridos = {}
@@ -66,151 +148,35 @@ class Modelo:
         self.ejercicios_personalizados = []
         self.ejercicios_personalizados_por_fecha = {}
         self.historial_semanal = []
-        self.historial_mediciones = {}
+        self.historial_mediciones = {}  # Inicializar mediciones mensuales
         self.record_puntos = 0
         self.mensaje = ""
         self.recompensas_usadas = {}
-        self.progreso_ciclo = 0
-        print(f"[DEBUG] Estado reiniciado para user_id: {self.user_id}")
-
-    def cargar_datos(self):
-        with self.lock:
-            try:
-                print(f"[DEBUG] Cargando datos para user_id: {self.user_id}")
-                user_ref = self.db.collection('usuarios').document(self.user_id)
-                user_data = user_ref.get()
-                if user_data.exists:
-                    data = user_data.to_dict()
-                    print(f"[DEBUG] Datos crudos de Firebase para {self.user_id}: {data}")
-                    required_fields = [
-                        'nombre', 'peso', 'estatura', 'talla_sentada', 'envergadura',
-                        'meta_km', 'ejercicios_type', 'km_corridos', 'tiempo_corridos',
-                        'ejercicios_completados', 'ejercicios_personalizados',
-                        'ejercicios_personalizados_por_fecha', 'historial_semanal',
-                        'historial_mediciones', 'record_puntos', 'mensaje',
-                        'recompensas_usadas', 'progreso_ciclo'
-                    ]
-                    for field in required_fields:
-                        if field not in data:
-                            print(f"[DEBUG] Campo faltante en datos de {self.user_id}: {field}")
-                            data[field] = self._get_default_value(field)
-                    self.nombre = data['nombre']
-                    self.peso = float(data['peso'])
-                    self.estatura = float(data['estatura'])
-                    self.talla_sentada = float(data['talla_sentada'])
-                    self.envergadura = float(data['envergadura'])
-                    self.meta_km = data['meta_km']
-                    self.ejercicios_type = data['ejercicios_type']
-                    self.km_corridos = data['km_corridos']
-                    self.tiempo_corridos = data['tiempo_corridos']
-                    self.ejercicios_completados = data['ejercicios_completados']
-                    self.ejercicios_personalizados = data['ejercicios_personalizados']
-                    self.ejercicios_personalizados_por_fecha = data['ejercicios_personalizados_por_fecha']
-                    self.historial_semanal = data['historial_semanal']
-                    self.historial_mediciones = data['historial_mediciones']
-                    self.record_puntos = data['record_puntos']
-                    self.mensaje = data['mensaje']
-                    self.recompensas_usadas = data['recompensas_usadas']
-                    self.progreso_ciclo = data['progreso_ciclo']
-                    print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}, progreso_ciclo={self.progreso_ciclo}")
-                else:
-                    print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando como nuevo usuario")
-                    self.nuevo_usuario(self.user_id)
-                print(f"[DEBUG] Datos finales para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
-            except Exception as e:
-                print(f"[DEBUG] Error al cargar datos para {self.user_id}: {str(e)}")
-                raise
-
-    def _get_default_value(self, field):
-        defaults = {
-            'nombre': '',
-            'peso': 0.0,
-            'estatura': 0.0,
-            'talla_sentada': 0.0,
-            'envergadura': 0.0,
-            'meta_km': {},
-            'ejercicios_type': 'bodyweight',
-            'km_corridos': {},
-            'tiempo_corridos': {},
-            'ejercicios_completados': {},
-            'ejercicios_personalizados': [],
-            'ejercicios_personalizados_por_fecha': {},
-            'historial_semanal': [],
-            'historial_mediciones': {},
-            'record_puntos': 0,
-            'mensaje': '',
-            'recompensas_usadas': {},
-            'progreso_ciclo': 0
-        }
-        return defaults[field]
-
-    def guardar_datos(self):
-        with self.lock:
-            try:
-                user_ref = self.db.collection('usuarios').document(self.user_id)
-                user_ref.set({
-                    'nombre': self.nombre,
-                    'peso': self.peso,
-                    'estatura': self.estatura,
-                    'talla_sentada': self.talla_sentada,
-                    'envergadura': self.envergadura,
-                    'meta_km': self.meta_km,
-                    'ejercicios_type': self.ejercicios_type,
-                    'km_corridos': self.km_corridos,
-                    'tiempo_corridos': self.tiempo_corridos,
-                    'ejercicios_completados': self.ejercicios_completados,
-                    'ejercicios_personalizados': self.ejercicios_personalizados,
-                    'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
-                    'historial_semanal': self.historial_semanal,
-                    'historial_mediciones': self.historial_mediciones,
-                    'record_puntos': self.record_puntos,
-                    'mensaje': self.mensaje,
-                    'recompensas_usadas': self.recompensas_usadas,
-                    'progreso_ciclo': self.progreso_ciclo
-                })
-                config_ref = self.db.collection('config').document('app')
-                config_ref.set({'usuario_actual': self.user_id}, merge=True)
-                print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
-            except Exception as e:
-                print(f"[DEBUG] Error al guardar datos: {str(e)}")
-                raise
-
-    def nuevo_usuario(self, nombre, uid=None):
-        self.user_id = nombre if not self.use_auth else uid
-        if not self.user_id:
-            raise ValueError("El ID de usuario no puede estar vacío")
-        self.reiniciar_estado()  # Reiniciar estado antes de inicializar
-        self.nombre = nombre
+        self.progreso_ciclo = 0  # Inicializar el ciclo de dificultad
         self.guardar_datos()
 
     def cambiar_usuario(self, user_id):
-        with self.lock:
-            try:
-                print(f"[DEBUG] Intentando cambiar a usuario: {user_id}")
-                user_id = user_id.strip()
-                usuarios = self.get_usuarios()
-                user_id_normalized = user_id.lower()
-                usuarios_normalized = {u.lower(): u for u in usuarios}
-                if not user_id or user_id_normalized not in usuarios_normalized:
-                    print(f"[DEBUG] Usuario {user_id} no encontrado o inválido. Usuarios disponibles: {usuarios}")
-                    raise ValueError(f"Usuario '{user_id}' no encontrado en la lista: {usuarios}")
+        try:
+            print(f"[DEBUG] Intentando cambiar a usuario: {user_id}")
+            if not user_id or user_id not in self.get_usuarios():
+                print(f"[DEBUG] Usuario {user_id} no encontrado o inválido. Usuarios disponibles: {self.get_usuarios()}")
+                raise ValueError(f"Usuario '{user_id}' no encontrado en la lista: {self.get_usuarios()}")
 
-                old_user_id = self.user_id
-                self.user_id = usuarios_normalized[user_id_normalized]
-                print(f"[DEBUG] user_id actualizado a {self.user_id} antes de cargar datos")
+            old_user_id = self.user_id
+            self.user_id = user_id
+            print(f"[DEBUG] user_id actualizado a {self.user_id} antes de cargar datos")
 
-                self.reiniciar_estado()
-                self.cargar_datos()
-                print(f"[DEBUG] Datos recargados para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
+            self.cargar_datos()
+            print(f"[DEBUG] Datos recargados para {self.user_id}: nombre={self.nombre}, peso={self.peso}")
 
-                if self.user_id != old_user_id:
-                    print(f"[DEBUG] Cambio a usuario {self.user_id} realizado exitosamente")
-                self.guardar_datos()
-                return self.user_id != old_user_id
-            except Exception as e:
-                print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
-                self.user_id = old_user_id if 'old_user_id' in locals() else self.user_id
-                raise
+            if self.user_id != old_user_id:
+                print(f"[DEBUG] Cambio a usuario {self.user_id} realizado exitosamente")
+            self.guardar_datos()
+            return self.user_id != old_user_id
+        except Exception as e:
+            print(f"[DEBUG] Error al cambiar usuario {user_id}: {str(e)}")
+            self.user_id = old_user_id if 'old_user_id' in locals() else self.user_id
+            raise
 
     def registrar_km(self, fecha, km):
         self.km_corridos[fecha] = km
