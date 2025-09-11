@@ -1,5 +1,3 @@
-# app.py completo con depuración adicional y correcciones sugeridas
-
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime, date, timedelta
 from modelo import Modelo
@@ -115,7 +113,7 @@ def datos_personales():
             segmento_inferior = estatura - talla_sentada if estatura and talla_sentada else 0
             imc = peso / (estatura ** 2) if estatura and peso else 0
             
-            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
+            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
             velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
             if datos_grafica:
                 crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales (excluyendo el primer mes que es 0)
@@ -132,7 +130,7 @@ def datos_personales():
         segmento_inferior = (modelo.estatura - modelo.talla_sentada) * 100 if modelo.estatura and modelo.talla_sentada else 0
         imc = modelo.peso / (modelo.estatura ** 2) if modelo.estatura and modelo.peso else 0
         
-        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
         velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
         if datos_grafica:
             crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales (excluyendo el primer mes que es 0)
@@ -148,35 +146,28 @@ def cambiar_usuario():
     fin_semana = inicio_semana + timedelta(days=6)
     semana_actual = f"Semana {semana_ano}: del {inicio_semana.strftime('%d/%m/%Y')} al {fin_semana.strftime('%d/%m/%Y')}"
     usuarios = modelo.get_usuarios()
-    print(f"[DEBUG] Usuarios disponibles en /cambiar_usuario: {usuarios}")
     try:
         nombre_usuario = request.form['usuario'].strip()
-        print(f"[DEBUG] Solicitud para cambiar a usuario: {nombre_usuario}")
         if not nombre_usuario or nombre_usuario not in usuarios:
             error = "Selecciona un usuario válido."
-            print(f"[DEBUG] Error: {error}")
             return render_template('datos_personales.html', nombre="", peso=0, estatura=0, talla_sentada=0, envergadura=0, meta_km=0, ejercicios_type='bodyweight', error=error, semana_actual=semana_actual, usuarios=usuarios, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=[])
         
-        print(f"[DEBUG] Llamando a modelo.cambiar_usuario({nombre_usuario})")
         if modelo.cambiar_usuario(nombre_usuario):
             segmento_inferior = (modelo.estatura - modelo.talla_sentada) * 100 if modelo.estatura and modelo.talla_sentada else 0
             imc = modelo.peso / (modelo.estatura ** 2) if modelo.estatura and modelo.peso else 0
             
-            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
+            datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
             velocidad_crecimiento_actual = datos_grafica[-1]['velocidad'] if datos_grafica else 0
             if datos_grafica:
                 crecimiento_total = sum(d['velocidad'] for d in datos_grafica[1:])  # Suma de crecimientos mensuales
                 velocidad_crecimiento_actual = crecimiento_total * 12  # Proyección anual
 
-            print(f"[DEBUG] Cambio exitoso a {nombre_usuario}. Estado: nombre={modelo.nombre}, peso={modelo.peso}, estatura={modelo.estatura}")
             return render_template('datos_personales.html', nombre=modelo.nombre, peso=modelo.peso, estatura=modelo.estatura * 100 if modelo.estatura else 0, talla_sentada=modelo.talla_sentada * 100 if modelo.talla_sentada else 0, envergadura=modelo.envergadura * 100 if modelo.envergadura else 0, meta_km=modelo.meta_km.get(semana_ano, 0), ejercicios_type=modelo.ejercicios_type, mensaje=f"¡Cambiado a usuario '{nombre_usuario}'!", semana_actual=semana_actual, usuarios=usuarios, segmento_inferior=segmento_inferior, imc=imc, velocidad_crecimiento=velocidad_crecimiento_actual, mes_medicion=date.today().strftime('%Y-%m'), datos_grafica=datos_grafica)
         else:
-            error = f"Error al cambiar a usuario '{nombre_usuario}'."
-            print(f"[DEBUG] Error: {error}")
-            return render_template('datos_personales.html', error=error, semana_actual=semana_actual, usuarios=usuarios)
+            return render_template('datos_personales.html', error=f"Error al cambiar a usuario '{nombre_usuario}'.", semana_actual=semana_actual, usuarios=usuarios)
 
     except Exception as e:
-        print(f"[DEBUG] Excepción en /cambiar_usuario: {str(e)}")
+        print(f"[DEBUG] Error al cambiar usuario: {str(e)}")
         return render_template('datos_personales.html', error=f"Error al cambiar usuario: {str(e)}", semana_actual=semana_actual, usuarios=usuarios)
 
 @app.route('/nuevo_usuario', methods=['POST'])
@@ -400,7 +391,7 @@ def resumen():
             })
 
         # Añadir datos de la gráfica
-        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []  # Asegura lista vacía si no hay datos
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
 
         return render_template('resumen.html', resumen=resumen, imagen_ranking=imagen_ranking, estadisticas=estadisticas, fecha=f"{inicio_semana.strftime('%d/%m/%Y')} - {fin_semana.strftime('%d/%m/%Y')}", puntos=puntos, record_puntos=record_puntos, recompensas=recompensas, ranking=ranking, semanas_puntos=semanas_puntos, semanas_km=semanas_km, modelo=modelo, datos_grafica=datos_grafica, semanas_pasadas=semanas_pasadas, semana_seleccionada=semana_seleccionada)
     except Exception as e:
@@ -452,37 +443,32 @@ def informe_semanal():
                                 elif any(keyword in base_name_lower for keyword in ['abdominal', 'abdominales', 'crunch', 'elevación de piernas']):
                                     grupo = 'abdominales'
                                 # Hombros: elevaciones y presses
-                                elif any(keyword in base_name_lower for keyword in ['hombros', 'elevaciones', 'press militar', 'press de hombros']):
+                                elif any(keyword in base_name_lower for keyword in ['hombro', 'hombros', 'press militar', 'elevación lateral', 'elevación frontal']):
                                     grupo = 'hombros'
-                                # Brazos: ejercicios de bíceps y tríceps
-                                elif any(keyword in base_name_lower for keyword in ['bíceps', 'tríceps', 'curl', 'extensiones', 'fondos']):
+                                # Brazos: enfocados en bíceps y tríceps
+                                elif any(keyword in base_name_lower for keyword in ['bíceps', 'tríceps', 'curl', 'extensión', 'press francés', 'dips', 'fondos', 'silla']):
                                     grupo = 'brazos'
-                                # Piernas: movimientos de fuerza en piernas
-                                elif any(keyword in base_name_lower for keyword in ['piernas', 'sentadilla', 'zancadas', 'peso muerto']):
+                                # Piernas: movimientos de fuerza y peso corporal
+                                elif any(keyword in base_name_lower for keyword in ['pierna', 'piernas', 'sentadilla', 'zancada', 'peso muerto', 'prensa', 'squat', 'lunges']):
                                     grupo = 'piernas'
-                                # Core: ejercicios de estabilidad
-                                elif any(keyword in base_name_lower for keyword in ['plancha', 'core', 'escaladores', 'puente']):
+                                # Core: estabilización y ejercicios globales
+                                elif any(keyword in base_name_lower for keyword in ['core', 'plancha', 'russian twist', 'mountain climbers', 'side plank']):
                                     grupo = 'core'
                             informe[semana_str][grupo].append(base_name)
 
-            # Evaluar la semana para obtener puntos y km
+            # Calcular puntos y kilómetros para esta semana
             puntos_semana, km_semana, _, _, _, _, _, _, _ = modelo.evaluar_semana(ejercicios.get_ejercicios_dia, semana_inicio, ejercicios.get_puntos)
             km_semana_total = sum(float(km) for fecha_key, km in modelo.km_corridos.items() if semana_inicio.strftime('%Y-%m-%d') <= fecha_key <= semana_fin.strftime('%Y-%m-%d'))
-            semanas_puntos.append({
-                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
-                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
-                'puntos': puntos_semana
-            })
-            semanas_km.append({
-                'inicio_semana': semana_inicio.strftime('%Y-%m-%d'),
-                'fin_semana': semana_fin.strftime('%Y-%m-%d'),
-                'km': round(km_semana_total, 2)
-            })
+            semanas_puntos.append({'semana': semana_str, 'puntos': puntos_semana})
+            semanas_km.append({'semana': semana_str, 'km': round(km_semana_total, 2)})
 
-        # Calcular datos_grafica
-        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones) or []
+        # Añadir datos de la gráfica de crecimiento
+        datos_grafica = _calcular_datos_grafica(modelo.historial_mediciones)
 
-        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), semanas_puntos=semanas_puntos, semanas_km=semanas_km, datos_grafica=datos_grafica)
+        return render_template('informe_semanal.html', informe=informe, fecha=hoy.strftime('%d/%m/%Y'), datos_grafica=datos_grafica, semanas_puntos=semanas_puntos, semanas_km=semanas_km)
+    except NameError as e:
+        print(f"[DEBUG] Error de nombre no definido: {str(e)}")
+        return render_template('error.html', error=f"Error al generar informe: función no definida ({str(e)}). Asegúrate de que el entorno sea compatible con Python estándar."), 500
     except Exception as e:
         print(f"[DEBUG] Error en /informe_semanal: {str(e)}")
         return render_template('error.html', error=f"Error al generar informe: {str(e)}"), 500
@@ -492,4 +478,4 @@ def redirigir_recompensas():
     return redirect(url_for('resumen'))
 
 if __name__ == '__main__':
-    app.run(debug=True)  # Activa modo debug para más logs en consola
+    app.run
