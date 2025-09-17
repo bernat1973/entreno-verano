@@ -6,19 +6,19 @@ class Ejercicios:
         self.modelo = modelo
         self.base_ejercicios_bodyweight = [
             # Lunes
-            ["Abdominales crunch con rodillas dobladas", "Plancha frontal en antebrazos", "Flexiones estándar con manos anchas", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con aterrizaje controlado", "Puente de glúteos con rodillas dobladas"],
+            ["Flexiones estándar con manos anchas", "Fondos en silla para tríceps", "Plancha frontal en antebrazos", "Elevaciones frontales de hombros sin peso", "Aperturas de pecho con brazos en T", "Flexiones pica para hombros"],
             # Martes
-            ["Abdominales bicicleta lentos", "Elevaciones de piernas suaves", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Estiramientos dinámicos de cuerpo completo"],
+            ["Abdominales bicicleta lentos", "Flexiones diamante para tríceps", "Plancha con toques de hombros", "Elevaciones laterales de hombros sin peso", "Abdominales crunch con rodillas dobladas", "Plancha lateral con apoyo en antebrazo"],
             # Miércoles
-            ["Plancha lateral con apoyo en antebrazo", "Abdominales crunch con rodillas dobladas", "Flexiones diamante para tríceps", "Rotaciones de hombros con brazos en L", "Escaladores pliométricos lentos", "Gato-vaca para movilidad espinal"],
+            ["Respiración diafragmática profunda", "Gato-vaca para movilidad espinal", "Estiramientos dinámicos de cuerpo completo", "Elevaciones de piernas suaves", "Puente de glúteos con rodillas dobladas", "Movilidad articular de cadera"],
             # Jueves
-            ["Abdominales bicicleta lentos", "Plancha frontal en antebrazos", "Aperturas de pecho con brazos en T", "Elevaciones laterales de hombros sin peso", "Saltos laterales suaves sobre línea", "Respiración diafragmática profunda"],
+            ["Burpees modificados sin flexión", "Flexiones diamante para tríceps", "Escaladores pliométricos lentos", "Saltos verticales suaves con fuerza", "Fondos en silla para tríceps", "Abdominales isométricos de contracción"],
             # Viernes
-            ["Elevaciones de piernas suaves", "Plancha lateral con apoyo en antebrazo", "Flexiones estándar con manos anchas", "Flexiones pica para hombros", "Saltos patinador con cambio lento", "Abdominales isométricos de contracción"],
+            ["Plancha frontal en antebrazos", "Abdominales crunch con rodillas dobladas", "Flexiones pica para hombros", "Saltos laterales suaves sobre línea", "Elevaciones laterales de hombros sin peso", "Yoga suave con posturas básicas"],
             # Sábado
-            ["Abdominales crunch con rodillas dobladas", "Abdominales bicicleta lentos", "Fondos en silla para tríceps", "Plancha con toques de hombros", "Burpees modificados sin flexión", "Yoga suave con posturas básicas"],
+            ["Estiramientos dinámicos de cuerpo completo", "Saltos verticales suaves con aterrizaje controlado", "Rotaciones de hombros con brazos en L", "Movilidad articular de cadera", "Saltos patinador con cambio lento", "Respiración diafragmática profunda"],
             # Domingo
-            ["Plancha frontal en antebrazos", "Elevaciones de piernas suaves", "Flexiones diamante para tríceps", "Elevaciones frontales de hombros sin peso", "Saltos verticales suaves con fuerza", "Movilidad articular de cadera"]
+            ["Estiramientos dinámicos de cuerpo completo", "Gato-vaca para movilidad espinal", "Respiración diafragmática profunda", "Puente de glúteos con rodillas dobladas", "Aperturas de pecho con brazos en T", "Movilidad articular de cadera"]
         ]
         self.base_ejercicios_weights = [
             # Lunes: Pectorales y hombros
