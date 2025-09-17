@@ -10,7 +10,7 @@ class Ejercicios:
             # Martes
             ["Abdominales bicicleta lentos", "Flexiones diamante para tríceps", "Plancha con toques de hombros", "Elevaciones laterales de hombros sin peso", "Abdominales crunch con rodillas dobladas", "Plancha lateral con apoyo en antebrazo"],
             # Miércoles
-            ["Respiración diafragmática profunda", "Gato-vaca para movilidad espinal", "Estiramientos dinámicos de cuerpo completo", "Elevaciones de piernas suaves", "Puente de glúteos con rodillas dobladas", "Movilidad articular de cadera"],
+            ["Plancha frontal en antebrazos", "Abdominales crunch con rodillas dobladas", "Elevaciones de piernas suaves", "Rotaciones de hombros con brazos en L", "Gato-vaca para movilidad espinal", "Puente de glúteos con rodillas dobladas"],
             # Jueves
             ["Burpees modificados sin flexión", "Flexiones diamante para tríceps", "Escaladores pliométricos lentos", "Saltos verticales suaves con fuerza", "Fondos en silla para tríceps", "Abdominales isométricos de contracción"],
             # Viernes
