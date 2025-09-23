@@ -4,127 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resumen - Entreno Verano</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=2" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-            background-color: #ffffff;
-            color: #000000;
-        }
-
-        /* === CÓDIGO REFORZADO PARA LA NAVBAR === */
-        #main-navbar {
-            background-color: #1E90FF !important;
-        }
-        #main-navbar .nav-item {
-            background: none !important;
-        }
-        #main-navbar .nav-link {
-            background-color: transparent !important;
-            color: white !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-        #main-navbar .nav-link.active {
-            font-weight: bold;
-            background-color: transparent !important;
-        }
-        #main-navbar .nav-link:hover {
-            color: white !important;
-            background-color: #000080 !important;
-        }
-        #main-navbar .navbar-toggler {
-            border-color: rgba(255, 255, 255, 0.5) !important;
-        }
-        #main-navbar .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-        }
-        /* === FIN DEL CÓDIGO REFORZADO === */
-
-        h1 {
-            color: #000080;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 2.5em;
-            text-transform: uppercase;
-        }
-        .card {
-            background-color: #ffffff;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 128, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0, 0, 128, 0.2);
-        }
-        .summary {
-            background-color: #1E90FF;
-            color: #ffffff;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-size: 1.1em;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        body > .card li {
-            margin: 10px 0;
-            padding: 5px 10px;
-            background-color: #f0f8ff;
-            border-left: 4px solid #1E90FF;
-            border-radius: 5px;
-            color: #000000;
-        }
-        img {
-            max-width: 200px;
-            height: auto;
-            display: block;
-            margin: 10px auto;
-            border-radius: 5px;
-            border: 2px solid #1E90FF;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #1E90FF;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .button:hover {
-            background-color: #000080;
-        }
-        .grafica-container {
-            margin-top: 20px;
-            position: relative;
-            height: 40vh;
-            width: 100%;
-        }
-        .stats-table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        .stats-table th, .stats-table td {
-            padding: 10px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-        .stats-table th {
-            background-color: #1E90FF;
-            color: white;
-        }
-    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg" id="main-navbar">
@@ -145,110 +27,114 @@
         </div>
     </nav>
 
-    <h1>Resumen - {{ fecha }}</h1>
+    <div class="container">
+        <div class="main-content">
+            <h1>Resumen - {{ fecha }}</h1>
 
-    <!-- Formulario para seleccionar semana -->
-    <div class="card">
-        <h3>Seleccionar Semana</h3>
-        <form method="POST" action="{{ url_for('resumen') }}">
-            <div class="mb-3">
-                <label for="semana_seleccionada" class="form-label">Elige una semana:</label>
-                <select name="semana_seleccionada" id="semana_seleccionada" class="form-select" onchange="this.form.submit()">
-                    <option value="">Semana actual</option>
-                    {% for semana in semanas_pasadas %}
-                        <option value="{{ semana.inicio_semana }}" {% if semana_seleccionada == semana.inicio_semana %}selected{% endif %}>
-                            {{ semana.inicio_semana|datetimeformat('%d/%m/%Y') }} - {{ semana.fin_semana|datetimeformat('%d/%m/%Y') }}
-                        </option>
-                    {% endfor %}
-                </select>
+            <!-- Formulario para seleccionar semana -->
+            <div class="card">
+                <h3>Seleccionar Semana</h3>
+                <form method="POST" action="{{ url_for('resumen') }}">
+                    <div class="mb-3">
+                        <label for="semana_seleccionada" class="form-label">Elige una semana:</label>
+                        <select name="semana_seleccionada" id="semana_seleccionada" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semana actual</option>
+                            {% for semana in semanas_pasadas %}
+                                <option value="{{ semana.inicio_semana }}" {% if semana_seleccionada == semana.inicio_semana %}selected{% endif %}>
+                                    {{ semana.inicio_semana|datetimeformat('%d/%m/%Y') }} - {{ semana.fin_semana|datetimeformat('%d/%m/%Y') }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
             </div>
-        </form>
-    </div>
 
-    <div class="card">
-        {% if modelo %}
-            {% if resumen %}
-                <div class="summary">{{ resumen | safe }}</div>
-            {% else %}
-                <p style="text-align: center; color: #000080;">No hay resumen disponible. Por favor, intenta de nuevo.</p>
-            {% endif %}
-        {% else %}
-            <p style="text-align: center; color: #000080;">Error: No se cargaron los datos del modelo.</p>
-        {% endif %}
+            <div class="card">
+                {% if modelo %}
+                    {% if resumen %}
+                        <div class="summary">{{ resumen | safe }}</div>
+                    {% else %}
+                        <p class="no-data">No hay resumen disponible. Por favor, intenta de nuevo.</p>
+                    {% endif %}
+                {% else %}
+                    <p class="no-data">Error: No se cargaron los datos del modelo.</p>
+                {% endif %}
 
-        {% if imagen_ranking %}
-            <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
-        {% else %}
-            <p style="text-align: center; color: #000080;">No hay imagen de ranking disponible.</p>
-        {% endif %}
+                {% if imagen_ranking %}
+                    <img src="{{ url_for('static', filename=imagen_ranking) }}" alt="Imagen de ranking">
+                {% else %}
+                    <p class="no-image">No hay imagen de ranking disponible.</p>
+                {% endif %}
 
-        <p><strong>Ranking:</strong> {{ ranking | default('Sin ranking') }}</p>
-        <p><strong>Frase motivadora:</strong> {{ recompensas[0] if recompensas and recompensas|length > 0 else '¡Sigue esforzándote!' }}</p>
+                <p><strong>Ranking:</strong> {{ ranking | default('Sin ranking') }}</p>
+                <p><strong>Frase motivadora:</strong> {{ recompensas[0] if recompensas and recompensas|length > 0 else '¡Sigue esforzándote!' }}</p>
 
-        <h3>Recompensas Acumuladas</h3>
-        <ul>
-            {% for semana, usadas in modelo.recompensas_usadas.items() if modelo %}
-                {% for recompensa in usadas %}
-                    <li>{{ recompensa }}</li>
-                {% endfor %}
-            {% else %}
-                <li>No hay recompensas acumuladas.</li>
-            {% endfor %}
-        </ul>
+                <h3>Recompensas Acumuladas</h3>
+                <ul>
+                    {% for semana, usadas in modelo.recompensas_usadas.items() if modelo %}
+                        {% for recompensa in usadas %}
+                            <li>{{ recompensa }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>No hay recompensas acumuladas.</li>
+                    {% endfor %}
+                </ul>
 
-        <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
-        <p><strong>Récord de puntos:</strong> {{ record_puntos | default(0) }}</p>
+                <p><strong>Puntos:</strong> {{ puntos | default(0) }}</p>
+                <p><strong>Récord de puntos:</strong> {{ record_puntos | default(0) }}</p>
 
-        <!-- Nueva sección de estadísticas -->
-        <h3>Estadísticas</h3>
-        <table class="stats-table">
-            <tr>
-                <th>Métrica</th>
-                <th>Valor</th>
-            </tr>
-            <tr>
-                <td>Porcentaje de ejercicios completados</td>
-                <td>{{ '%.1f' % estadisticas.porcentaje_completados }}%</td>
-            </tr>
-            <tr>
-                <td>Porcentaje de meta de kilómetros</td>
-                <td>{{ '%.1f' % estadisticas.km_porcentaje }}%</td>
-            </tr>
-        </table>
+                <!-- Nueva sección de estadísticas -->
+                <h3>Estadísticas</h3>
+                <table class="stats-table">
+                    <tr>
+                        <th>Métrica</th>
+                        <th>Valor</th>
+                    </tr>
+                    <tr>
+                        <td>Porcentaje de ejercicios completados</td>
+                        <td>{{ '%.1f' % estadisticas.porcentaje_completados }}%</td>
+                    </tr>
+                    <tr>
+                        <td>Porcentaje de meta de kilómetros</td>
+                        <td>{{ '%.1f' % estadisticas.km_porcentaje }}%</td>
+                    </tr>
+                </table>
 
-        <!-- Ajuste de recompensa específica -->
-        <p><strong>Recompensa:</strong> {% if recompensas and recompensas|length > 1 %}{{ recompensas[1] }}{% else %}Sin recompensa disponible{% endif %}</p>
-    </div>
+                <!-- Ajuste de recompensa específica -->
+                <p><strong>Recompensa:</strong> {% if recompensas and recompensas|length > 1 %}{{ recompensas[1] }}{% else %}Sin recompensa disponible{% endif %}</p>
+            </div>
 
-    <div class="card">
-        <h3>Gráfica de Puntos por Semana</h3>
-        <div class="grafica-container">
-            <canvas id="pointsChart"></canvas>
+            <div class="card">
+                <h3>Gráfica de Puntos por Semana</h3>
+                <div class="grafica-container">
+                    <canvas id="pointsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Gráfica de Kilómetros por Semana</h3>
+                <div class="grafica-container">
+                    <canvas id="kmChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráficas de Datos Personales -->
+            <div class="card">
+                <h3>Evolución de Crecimiento</h3>
+                <div class="grafica-container">
+                    <canvas id="estaturaChart"></canvas>
+                </div>
+                <div class="grafica-container mt-4">
+                    <canvas id="velocidadChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Botón para informe detallado -->
+            <a href="{{ url_for('informe_semanal') }}" class="button">Generar Informe Detallado</a>
+
+            <a href="{{ url_for('index') }}" class="button">Volver al Menú</a>
         </div>
     </div>
-
-    <div class="card">
-        <h3>Gráfica de Kilómetros por Semana</h3>
-        <div class="grafica-container">
-            <canvas id="kmChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Gráficas de Datos Personales -->
-    <div class="card">
-        <h3>Evolución de Crecimiento</h3>
-        <div class="grafica-container">
-            <canvas id="estaturaChart"></canvas>
-        </div>
-        <div class="grafica-container mt-4">
-            <canvas id="velocidadChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Botón para informe detallado -->
-    <a href="{{ url_for('informe_semanal') }}" class="button">Generar Informe Detallado</a>
-
-    <a href="{{ url_for('index') }}" class="button">Volver al Menú</a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -351,7 +237,7 @@
                                     color: '#000080'
                                 },
                                 ticks: {
-                                    stepSize: 0.5  <!-- Restaurado a 0.5 -->
+                                    stepSize: 0.5
                                 }
                             }
                         }
@@ -385,7 +271,7 @@
                                     color: '#000080'
                                 },
                                 ticks: {
-                                    stepSize: 0.5  <!-- Restaurado a 0.5 -->
+                                    stepSize: 0.5
                                 }
                             }
                         }
