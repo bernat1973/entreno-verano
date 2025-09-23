@@ -4,50 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Añadir Ejercicio - Entreno Verano</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 600px;
-        }
-        .card {
-            border: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .card-header {
-            background-color: #007bff;
-            color: white;
-        }
-    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <div class="card">
-            <div class="card-header">
-                <h1 class="h4 mb-0">Añadir Ejercicio Personalizado</h1>
-            </div>
-            <div class="card-body">
-                {% if error %}
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ error }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h4 mb-0">Añadir Ejercicio Personalizado</h1>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+                    <form action="{{ url_for('anadir_ejercicio') }}?fecha={{ fecha }}" method="post">
+                        <div class="mb-3">
+                            <label for="fecha" class="form-label">Fecha</label>
+                            <input type="date" name="fecha" id="fecha" class="form-control" value="{{ fecha }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ejercicio" class="form-label">Nombre del Ejercicio</label>
+                            <input type="text" name="ejercicio" id="ejercicio" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Añadir Ejercicio</button>
+                    </form>
+                    <div class="mt-4">
+                        <a href="{{ url_for('entreno', fecha=fecha) }}" class="btn btn-secondary">Volver a Entreno</a>
                     </div>
-                {% endif %}
-                <form action="{{ url_for('anadir_ejercicio') }}?fecha={{ fecha }}" method="post">
-                    <div class="mb-3">
-                        <label for="fecha" class="form-label">Fecha</label>
-                        <input type="date" name="fecha" id="fecha" class="form-control" value="{{ fecha }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="ejercicio" class="form-label">Nombre del Ejercicio</label>
-                        <input type="text" name="ejercicio" id="ejercicio" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Añadir Ejercicio</button>
-                </form>
-                <div class="mt-4">
-                    <a href="{{ url_for('entreno', fecha=fecha) }}" class="btn btn-secondary">Volver a Entreno</a>
                 </div>
             </div>
         </div>
