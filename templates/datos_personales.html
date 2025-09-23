@@ -4,62 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datos Personales - Entreno Verano</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=2" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-            background-color: #ffffff;
-            color: #000000;
-        }
-        .container {
-            max-width: 800px;
-        }
-        .card {
-            border: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .card-header {
-            background-color: #1E90FF;
-            color: white;
-        }
-        .grafica-container {
-            margin-top: 20px;
-            position: relative;
-            height: 40vh;
-            width: 100%;
-        }
-
-        /* === CÓDIGO REFORZADO PARA LA NAVBAR === */
-        #main-navbar {
-            background-color: #1E90FF !important;
-        }
-        #main-navbar .nav-item {
-            background: none !important;
-        }
-        #main-navbar .nav-link {
-            background-color: transparent !important;
-            color: white !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-        #main-navbar .nav-link.active {
-            font-weight: bold;
-            background-color: transparent !important;
-        }
-        #main-navbar .nav-link:hover {
-            color: white !important;
-            background-color: #000080 !important;
-        }
-        #main-navbar .navbar-toggler {
-            border-color: rgba(255, 255, 255, 0.5) !important;
-        }
-        #main-navbar .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-        }
-        /* === FIN DEL CÓDIGO REFORZADO === */
-    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg" id="main-navbar">
@@ -81,109 +28,111 @@
     </nav>
 
     <div class="container mt-5">
-        <div class="card">
-            <div class="card-header">
-                <h1 class="h4 mb-0">Datos Personales</h1>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">{{ semana_actual }}</p>
-                {% if error %}
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ error }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endif %}
-                {% if mensaje %}
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ mensaje }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endif %}
-
-                <!-- Formulario para cambiar de usuario -->
-                <h3 class="h5 mt-4">Cambiar de Usuario</h3>
-                <form action="{{ url_for('cambiar_usuario') }}" method="post">
-                    <div class="mb-3">
-                        <label for="usuario" class="form-label">Seleccionar Usuario</label>
-                        <select name="usuario" id="usuario" class="form-select" required>
-                            <option value="">Selecciona un usuario</option>
-                            {% for usuario in usuarios %}
-                                <option value="{{ usuario }}" {% if usuario == nombre %}selected{% endif %}>{{ usuario }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Cambiar Usuario</button>
-                </form>
-
-                <!-- Formulario para actualizar datos personales y mediciones mensuales -->
-                <h3 class="h5 mt-4">Actualizar Datos Personales y Mediciones</h3>
-                <form action="{{ url_for('datos_personales') }}" method="post">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre</label>
-                        <input type="text" name="nombre" id="nombre" class="form-control" value="{{ nombre }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="peso" class="form-label">Peso (kg)</label>
-                        <input type="number" name="peso" id="peso" class="form-control" value="{{ peso }}" step="0.1" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="estatura" class="form-label">Estatura (cm)</label>
-                        <input type="number" name="estatura" id="estatura" class="form-control" value="{{ estatura }}" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="talla_sentada" class="form-label">Talla Sentada (cm)</label>
-                        <input type="number" name="talla_sentada" id="talla_sentada" class="form-control" value="{{ talla_sentada }}" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="envergadura" class="form-label">Envergadura (cm)</label>
-                        <input type="number" name="envergadura" id="envergadura" class="form-control" value="{{ envergadura }}" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="meta_km" class="form-label">Meta de Kilómetros Semanal</label>
-                        <input type="number" name="meta_km" id="meta_km" class="form-control" value="{{ meta_km }}" step="0.1" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="ejercicios_type" class="form-label">Tipo de Ejercicios</label>
-                        <select name="ejercicios_type" id="ejercicios_type" class="form-select" required>
-                            <option value="bodyweight" {% if ejercicios_type == 'bodyweight' %}selected{% endif %}>Sin Pesas (Bodyweight)</option>
-                            <option value="weights" {% if ejercicios_type == 'weights' %}selected{% endif %}>Con Pesas (Weights)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="mes_medicion" class="form-label">Mes de Medición</label>
-                        <input type="month" name="mes_medicion" id="mes_medicion" class="form-control" value="{{ mes_medicion }}" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Guardar Datos</button>
-                </form>
-
-                <!-- Mostrar métricas calculadas -->
-                <h3 class="h5 mt-4">Métricas Calculadas</h3>
-                <p><strong>Segmento Inferior:</strong> {{ segmento_inferior|round(2) }} cm</p>
-                <p><strong>Índice de Masa Corporal (IMC):</strong> {{ imc|round(2) }}</p>
-                <p><strong>Velocidad de Crecimiento Actual:</strong> {{ velocidad_crecimiento|round(2) }} cm/año</p>
-
-                <!-- Dos gráficas de evolución -->
-                <h3 class="h5 mt-4">Evolución de Crecimiento</h3>
-                <div class="grafica-container">
-                    <canvas id="estaturaChart"></canvas>
+        <div class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h4 mb-0">Datos Personales</h1>
                 </div>
-                <div class="grafica-container mt-4">
-                    <canvas id="velocidadChart"></canvas>
-                </div>
+                <div class="card-body">
+                    <p class="text-muted">{{ semana_actual }}</p>
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+                    {% if mensaje %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ mensaje }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
 
-                <!-- Formulario para crear nuevo usuario -->
-                <h3 class="h5 mt-4">Crear Nuevo Usuario</h3>
-                <form action="{{ url_for('nuevo_usuario') }}" method="post">
-                    <div class="mb-3">
-                        <label for="nuevo_usuario" class="form-label">Nombre del Nuevo Usuario</label>
-                        <input type="text" name="nuevo_usuario" id="nuevo_usuario" class="form-control" required>
+                    <!-- Formulario para cambiar de usuario -->
+                    <h3 class="h5 mt-4">Cambiar de Usuario</h3>
+                    <form action="{{ url_for('cambiar_usuario') }}" method="post">
+                        <div class="mb-3">
+                            <label for="usuario" class="form-label">Seleccionar Usuario</label>
+                            <select name="usuario" id="usuario" class="form-select" required>
+                                <option value="">Selecciona un usuario</option>
+                                {% for usuario in usuarios %}
+                                    <option value="{{ usuario }}" {% if usuario == nombre %}selected{% endif %}>{{ usuario }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cambiar Usuario</button>
+                    </form>
+
+                    <!-- Formulario para actualizar datos personales y mediciones mensuales -->
+                    <h3 class="h5 mt-4">Actualizar Datos Personales y Mediciones</h3>
+                    <form action="{{ url_for('datos_personales') }}" method="post">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" name="nombre" id="nombre" class="form-control" value="{{ nombre }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="peso" class="form-label">Peso (kg)</label>
+                            <input type="number" name="peso" id="peso" class="form-control" value="{{ peso }}" step="0.1" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="estatura" class="form-label">Estatura (cm)</label>
+                            <input type="number" name="estatura" id="estatura" class="form-control" value="{{ estatura }}" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="talla_sentada" class="form-label">Talla Sentada (cm)</label>
+                            <input type="number" name="talla_sentada" id="talla_sentada" class="form-control" value="{{ talla_sentada }}" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="envergadura" class="form-label">Envergadura (cm)</label>
+                            <input type="number" name="envergadura" id="envergadura" class="form-control" value="{{ envergadura }}" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="meta_km" class="form-label">Meta de Kilómetros Semanal</label>
+                            <input type="number" name="meta_km" id="meta_km" class="form-control" value="{{ meta_km }}" step="0.1" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ejercicios_type" class="form-label">Tipo de Ejercicios</label>
+                            <select name="ejercicios_type" id="ejercicios_type" class="form-select" required>
+                                <option value="bodyweight" {% if ejercicios_type == 'bodyweight' %}selected{% endif %}>Sin Pesas (Bodyweight)</option>
+                                <option value="weights" {% if ejercicios_type == 'weights' %}selected{% endif %}>Con Pesas (Weights)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mes_medicion" class="form-label">Mes de Medición</label>
+                            <input type="month" name="mes_medicion" id="mes_medicion" class="form-control" value="{{ mes_medicion }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Datos</button>
+                    </form>
+
+                    <!-- Mostrar métricas calculadas -->
+                    <h3 class="h5 mt-4">Métricas Calculadas</h3>
+                    <p><strong>Segmento Inferior:</strong> {{ segmento_inferior|round(2) }} cm</p>
+                    <p><strong>Índice de Masa Corporal (IMC):</strong> {{ imc|round(2) }}</p>
+                    <p><strong>Velocidad de Crecimiento Actual:</strong> {{ velocidad_crecimiento|round(2) }} cm/año</p>
+
+                    <!-- Dos gráficas de evolución -->
+                    <h3 class="h5 mt-4">Evolución de Crecimiento</h3>
+                    <div class="grafica-container">
+                        <canvas id="estaturaChart"></canvas>
                     </div>
-                    <button type="submit" class="btn btn-success">Crear Usuario</button>
-                </form>
+                    <div class="grafica-container mt-4">
+                        <canvas id="velocidadChart"></canvas>
+                    </div>
 
-                <!-- Enlace para volver al inicio -->
-                <div class="mt-4">
-                    <a href="{{ url_for('index') }}" class="btn btn-secondary">Volver al Inicio</a>
+                    <!-- Formulario para crear nuevo usuario -->
+                    <h3 class="h5 mt-4">Crear Nuevo Usuario</h3>
+                    <form action="{{ url_for('nuevo_usuario') }}" method="post">
+                        <div class="mb-3">
+                            <label for="nuevo_usuario" class="form-label">Nombre del Nuevo Usuario</label>
+                            <input type="text" name="nuevo_usuario" id="nuevo_usuario" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Crear Usuario</button>
+                    </form>
+
+                    <!-- Enlace para volver al inicio -->
+                    <div class="mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Volver al Inicio</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -267,4 +216,3 @@
     </script>
 </body>
 </html>
-
