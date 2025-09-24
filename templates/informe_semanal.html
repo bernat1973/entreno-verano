@@ -54,6 +54,7 @@
                     {% else %}
                         <p><strong>Total Kilómetros:</strong> 0 km</p>
                     {% endif %}
+                    <p><strong>Entrenamientos completados:</strong> {{ modelo.contador_progresion | default(0) }}</p>
                 {% endfor %}
             </div>
 
