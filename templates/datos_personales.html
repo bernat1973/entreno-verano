@@ -12,7 +12,7 @@
     <nav class="navbar navbar-expand-lg" id="main-navbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('index') }}">Entreno Verano</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Close">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -91,11 +91,32 @@
                             <input type="number" name="meta_km" id="meta_km" class="form-control" value="{{ meta_km }}" step="0.1" min="0" required>
                         </div>
                         <div class="mb-3">
-                            <label for="ejercicios_type" class="form-label">Tipo de Ejercicios</label>
-                            <select name="ejercicios_type" id="ejercicios_type" class="form-select" required>
-                                <option value="bodyweight" {% if ejercicios_type == 'bodyweight' %}selected{% endif %}>Sin Pesas (Bodyweight)</option>
-                                <option value="weights" {% if ejercicios_type == 'weights' %}selected{% endif %}>Con Pesas (Weights)</option>
+                            <label for="ejercicios_type" class="form-label">
+                                <strong>Tipo de ejercicios:</strong>
+                                <small class="text-muted">(Elige según tu objetivo)</small>
+                            </label>
+                            <select name="ejercicios_type" id="ejercicios_type" class="form-control">
+                                <option value="bodyweight" {% if ejercicios_type == 'bodyweight' %}selected{% endif %}>
+                                    🏃‍♂️ Sin pesas (Original)
+                                </option>
+                                <option value="futbol" {% if ejercicios_type == 'futbol' %}selected{% endif %}>
+                                    ⚽ Sin pesas - Fútbol (Juan y Nico)
+                                </option>
+                                <option value="weights" {% if ejercicios_type == 'weights' %}selected{% endif %}>
+                                    🏋️‍♂️ Con pesas
+                                </option>
+                                <option value="mixtos" {% if ejercicios_type == 'mixtos' %}selected{% endif %}>
+                                    💪 Mixtos (Combinación)
+                                </option>
                             </select>
+                            <div class="form-text">
+                                <ul style="font-size: 0.9em; margin-top: 10px;">
+                                    <li><strong>Sin pesas (Original):</strong> Ejercicios clásicos de peso corporal</li>
+                                    <li><strong>Sin pesas - Fútbol:</strong> Especial para jugadores de fútbol (explosividad, agilidad, core)</li>
+                                    <li><strong>Con pesas:</strong> Entrenamiento con mancuernas y barras</li>
+                                    <li><strong>Mixtos:</strong> Combinación de pesas y peso corporal</li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="mes_medicion" class="form-label">Mes de Medición</label>
@@ -103,6 +124,24 @@
                         </div>
                         <button type="submit" class="btn btn-primary">Guardar Datos</button>
                     </form>
+
+                    <!-- Sistema de Progresión -->
+                    <div class="alert alert-info mt-3">
+                        <h5>📈 Sistema de Progresión</h5>
+                        <p><strong>Días de entrenamiento completados:</strong> {{ modelo.contador_progresion|default(0) }}</p>
+                        <div class="progress" style="height: 25px;">
+                            {% set progreso_porcentaje = ((modelo.contador_progresion|default(0) / 30) * 100) %}
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ [progreso_porcentaje, 100]|min }}%"
+                                 aria-valuenow="{{ modelo.contador_progresion|default(0) }}" 
+                                 aria-valuemin="0" aria-valuemax="30">
+                                {{ modelo.contador_progresion|default(0) }}/30
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            La dificultad aumenta cada 10 entrenamientos completados (no por días calendario)
+                        </small>
+                    </div>
 
                     <!-- Mostrar métricas calculadas -->
                     <h3 class="h5 mt-4">Métricas Calculadas</h3>
@@ -146,9 +185,8 @@
                 const datosJSON = {{ datos_grafica|tojson|safe }};
                 const labels = datosJSON.map(d => d.mes);
                 const estaturaData = datosJSON.map(d => d.estatura);
-                const velocidadData = datosJSON.map(d => d.velocidad || 0); // Crecimiento mensual en cm
+                const velocidadData = datosJSON.map(d => d.velocidad || 0);
 
-                // Gráfica de Estatura
                 const estaturaCtx = document.getElementById('estaturaChart').getContext('2d');
                 new Chart(estaturaCtx, {
                     type: 'line',
@@ -173,14 +211,13 @@
                                     text: 'Estatura (cm)'
                                 },
                                 ticks: {
-                                    stepSize: 0.5 // Incremento de 0.5 en 0.5
+                                    stepSize: 0.5
                                 }
                             }
                         }
                     }
                 });
 
-                // Gráfica de Velocidad
                 const velocidadCtx = document.getElementById('velocidadChart').getContext('2d');
                 new Chart(velocidadCtx, {
                     type: 'line',
@@ -205,7 +242,7 @@
                                     text: 'Crecimiento Mensual (cm)'
                                 },
                                 ticks: {
-                                    stepSize: 0.5 // Incremento de 0.5 en 0.5
+                                    stepSize: 0.5
                                 }
                             }
                         }
