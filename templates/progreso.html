@@ -33,6 +33,7 @@
                     <div class="stat-item"><strong>Puntos:</strong> {{ puntos | default(0) }}</div>
                     <div class="stat-item"><strong>Kilómetros:</strong> {{ km | default(0) }}</div>
                     <div class="stat-item"><strong>Completados:</strong> {{ completados | default(0) }} / {{ totales | default(0) }} ({{ (estadisticas.porcentaje_completados | default(0)) | round(2) }}%)</div>
+                    <div class="stat-item"><strong>Entrenamientos completados:</strong> {{ modelo.contador_progresion | default(0) }}</div>
                     <div class="stat-item"><strong>Ranking:</strong> {{ ranking | default('Sin ranking') }}</div>
                     <div class="stat-item"><strong>Récord:</strong> {{ record_puntos | default(0) }}</div>
                 </div>
