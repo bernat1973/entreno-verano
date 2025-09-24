@@ -24,10 +24,12 @@ class Ejercicios:
              "Saltos laterales suaves sobre línea", "Elevaciones laterales de hombros sin peso", "Yoga suave con posturas básicas"],
             # Sábado
             ["Estiramientos dinámicos de cuerpo completo", "Rotaciones de hombros con brazos en L", 
-             "Movilidad articular de cadera", "Respiración diafragmática profunda"],
+             "Movilidad articular de cadera", "Respiración diafragmática profunda", "Estiramiento de isquiotibiales", 
+             "Movilidad de tobillos"],
             # Domingo
             ["Estiramientos dinámicos de cuerpo completo", "Gato-vaca para movilidad espinal", 
-             "Respiración diafragmática profunda", "Movilidad articular de cadera"]
+             "Respiración diafragmática profunda", "Movilidad articular de cadera", "Estiramiento de isquiotibiales", 
+             "Movilidad de tobillos"]
         ]
         
         # EJERCICIOS CON PESAS ORIGINALES
@@ -75,10 +77,12 @@ class Ejercicios:
              "Abdominales isométricos"],
             # Sábado - Baja (estiramientos, mismos que bodyweight)
             ["Estiramientos dinámicos de cuerpo completo", "Rotaciones de hombros con brazos en L", 
-             "Movilidad articular de cadera", "Respiración diafragmática profunda"],
+             "Movilidad articular de cadera", "Respiración diafragmática profunda", "Estiramiento de isquiotibiales", 
+             "Movilidad de tobillos"],
             # Domingo - Baja (estiramientos, mismos que bodyweight)
             ["Estiramientos dinámicos de cuerpo completo", "Gato-vaca para movilidad espinal", 
-             "Respiración diafragmática profunda", "Movilidad articular de cadera"]
+             "Respiración diafragmática profunda", "Movilidad articular de cadera", "Estiramiento de isquiotibiales", 
+             "Movilidad de tobillos"]
         ]
         
         # EJERCICIOS MIXTOS (Combinación de con y sin pesas, para Juan y Nico)
@@ -121,138 +125,7 @@ class Ejercicios:
     def get_puntos(self, ejercicio):
         try:
             base_name = self.get_base_exercise_name(ejercicio)
-            puntos = {
-                # Bodyweight originales
-                "Abdominales crunch con rodillas dobladas": 6,
-                "Plancha frontal en antebrazos": 8,
-                "Flexiones estándar con manos anchas": 10,
-                "Elevaciones frontales de hombros sin peso": 5,
-                "Saltos verticales suaves con aterrizaje controlado": 7,
-                "Puente de glúteos con rodillas dobladas": 6,
-                "Abdominales bicicleta lentos": 7,
-                "Elevaciones de piernas suaves": 6,
-                "Fondos en silla para tríceps": 8,
-                "Plancha con toques de hombros": 8,
-                "Burpees modificados sin flexión": 10,
-                "Estiramientos dinámicos de cuerpo completo": 5,
-                "Plancha lateral con apoyo en antebrazo": 8,
-                "Flexiones diamante para tríceps": 10,
-                "Rotaciones de hombros con brazos en L": 5,
-                "Escaladores pliométricos lentos": 7,
-                "Gato-vaca para movilidad espinal": 5,
-                "Aperturas de pecho con brazos en T": 6,
-                "Saltos laterales suaves sobre línea": 7,
-                "Respiración diafragmática profunda": 4,
-                "Flexiones pica para hombros": 10,
-                "Saltos patinador con cambio lento": 7,
-                "Abdominales isométricos de contracción": 6,
-                "Yoga suave con posturas básicas": 5,
-                "Movilidad articular de cadera": 5,
-                
-                # Nuevos ejercicios sin pesas para fútbol
-                "Tuck L-sit": 12,
-                "Russian Twist": 8,
-                "Up Wipers": 10,
-                "Handstand contra pared": 14,
-                "Tuck Front Lever": 15,
-                "Heel Toucher": 6,
-                "Rotacional Punch": 7,
-                "Plancha lateral": 8,
-                "Flexiones estándar": 9,
-                "Flexiones pica": 10,
-                "Saltos patinador": 8,
-                "Abdominales isométricos": 7,
-                "Plancha frontal": 8,
-                "Burpees modificados": 9,
-                "Escaladores pliométricos": 8,
-                "Gato-vaca": 5,
-                "Elevaciones laterales sin peso": 5,
-                "Saltos laterales suaves": 7,
-                "Respiración diafragmática": 4,
-                "Plancha con toques": 9,
-                "Yoga suave": 5,
-                "Movilidad articular": 5,
-                "Saltos verticales suaves": 7,
-                "Saltos verticales": 8,
-                "Puente de glúteos": 6,
-                "Estiramientos dinámicos": 5,
-                "Rotaciones de hombros": 5,
-                "Fondos en silla": 8,
-                "Flexiones diamante": 10,
-                
-                # Ejercicios mixtos
-                "Press de banca ligero": 10,
-                "Flexiones explosivas": 11,
-                "Sentadillas con salto": 10,
-                "Remo con mancuernas": 12,
-                "Saltos de caja": 9,
-                "Russian Twist con peso": 10,
-                "Mountain climbers": 8,
-                "Curl de bíceps": 8,
-                "Press militar ligero": 10,
-                "Peso muerto rumano": 14,
-                "Clean and press": 16,
-                "Saltos al cajón": 10,
-                "Dominadas asistidas": 14,
-                "Sprint en el sitio": 7,
-                "Medicine ball slams": 12,
-                "Battle ropes": 11,
-                "Sentadillas con mancuernas": 12,
-                "Elevaciones de gemelos": 6,
-                "Yoga con pesas ligeras": 7,
-                "Caminar con mancuernas": 6,
-                "Circuito de peso corporal": 10,
-                "Press ligero": 8,
-                "Jumping jacks": 5,
-                "Curl martillo ligero": 7,
-                "Abdominales": 6,
-                "Estiramientos estáticos": 4,
-                
-                # Weights (mantener los originales)
-                "Press de banca con barra": 15,
-                "Press inclinado con mancuernas": 14,
-                "Press militar con barra": 15,
-                "Elevaciones laterales con mancuernas": 12,
-                "Aperturas con mancuernas en banco plano": 12,
-                "Face pulls con polea": 10,
-                "Remo con barra inclinado": 15,
-                "Dominadas con peso asistido": 16,
-                "Curl de bíceps con mancuernas": 10,
-                "Extensiones de tríceps por encima de la cabeza con mancuerna": 10,
-                "Remo con mancuerna a una mano": 12,
-                "Curl martillo con mancuernas": 10,
-                "Press de banca declinado con barra": 15,
-                "Aperturas en banco inclinado con mancuernas": 12,
-                "Press Arnold con mancuernas": 14,
-                "Elevaciones frontales con barra": 12,
-                "Fondos en paralelas con peso": 15,
-                "Elevaciones traseras para deltoides con mancuernas": 12,
-                "Remo sentado en polea baja": 14,
-                "Pull-over con mancuerna": 12,
-                "Curl de bíceps en banco predicador": 10,
-                "Press francés con barra EZ": 10,
-                "Remo invertido con barra": 14,
-                "Extensiones de tríceps en polea alta": 10,
-                "Press de banca con mancuernas": 14,
-                "Cruces en polea para pecho": 12,
-                "Press de hombros con mancuernas": 14,
-                "Elevaciones laterales en banco inclinado": 12,
-                "Fondos en banco con peso": 12,
-                "Elevaciones frontales con disco": 12,
-                "Peso muerto con barra": 16,
-                "Remo con barra T": 14,
-                "Curl de bíceps con barra recta": 10,
-                "Extensiones de tríceps con mancuerna a una mano": 10,
-                "Dominadas supinas con peso": 16,
-                "Curl concentrado con mancuerna": 10,
-                "Press de banca ligero con mancuernas": 10,
-                "Elevaciones laterales ligeras con mancuernas": 8,
-                "Remo ligero con mancuernas": 10,
-                "Curl de bíceps ligero con mancuernas": 8,
-                "Extensiones de tríceps ligero en polea": 8,
-                "Face pulls ligeros con polea": 8
-            }
-            puntos = puntos.get(base_name, 5)  # 5 puntos por defecto para ejercicios personalizados
+            puntos = 5  # Todos los ejercicios valen 5 puntos
             print(f"[DEBUG] Puntos para {ejercicio} ({base_name}): {puntos}")
             return puntos
         except Exception as e:
@@ -300,13 +173,13 @@ class Ejercicios:
             
             # Progresión ajustada
             if contador < 10:  # Primeros 10 entrenamientos
-                series, repeticiones, segundos = 3, 10, 20
+                series, repeticiones, segundos = 3, 10, 30
             elif contador < 20:  # Entrenamientos 11-20
-                series, repeticiones, segundos = 3, 12, 25
+                series, repeticiones, segundos = 3, 12, 40
             elif contador < 30:  # Entrenamientos 21-30
-                series, repeticiones, segundos = 3, 15, 30
+                series, repeticiones, segundos = 3, 15, 50
             else:  # Más de 30 entrenamientos
-                series, repeticiones, segundos = 4, 12, 30
+                series, repeticiones, segundos = 4, 12, 60
 
             ejercicios_progresivos = []
             for ej in ejercicios_base:
