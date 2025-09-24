@@ -59,8 +59,8 @@ class Modelo:
             self.record_puntos = 0
             self.mensaje = ""
             self.recompensas_usadas = {}
-            self.contador_progresion = 0  # Nuevo: Contador de entrenamientos completados
-            self.dias_entrenados = []     # Nuevo: Lista de fechas de entrenamientos completados
+            self.contador_progresion = 0
+            self.dias_entrenados = []
 
             self.cargar_datos()
         except Exception as e:
@@ -86,7 +86,7 @@ class Modelo:
                 self.ejercicios_completados = data.get('ejercicios_completados', {})
                 self.ejercicios_personalizados = data.get('ejercicios_personalizados', [])
                 self.ejercicios_personalizados_por_fecha = data.get('ejercicios_personalizados_por_fecha', {})
-                self.historial_semanal = data.get('historial_semanal', {})
+                self.historial_semanal = data.get('historial_semanal', [])
                 self.historial_mediciones = data.get('historial_mediciones', {})
                 self.record_puntos = data.get('record_puntos', 0)
                 self.mensaje = data.get('mensaje', '')
@@ -94,12 +94,10 @@ class Modelo:
                 self.contador_progresion = data.get('contador_progresion', 0)
                 self.dias_entrenados = data.get('dias_entrenados', [])
                 
-                # Migrar progreso_ciclo a contador_progresion para compatibilidad con datos existentes
                 if 'progreso_ciclo' in data and data['progreso_ciclo'] > 0 and self.contador_progresion == 0:
                     self.contador_progresion = data['progreso_ciclo']
                     print(f"[DEBUG] Migrado progreso_ciclo={data['progreso_ciclo']} a contador_progresion={self.contador_progresion}")
                 
-                # Validar ejercicios_type
                 valid_types = ['bodyweight', 'weights', 'futbol', 'mixtos']
                 if self.ejercicios_type not in valid_types:
                     print(f"[WARNING] ejercicios_type inválido: {self.ejercicios_type}, estableciendo a 'bodyweight'")
@@ -215,12 +213,12 @@ class Modelo:
         # Contar cuántos ejercicios se completaron
         ejercicios_completados_hoy = sum(1 for v in ejercicios_dict.values() if v)
         
-        # Si completó al menos 3 ejercicios, cuenta como día de entrenamiento
+        # Umbral de 3 ejercicios para todos los días y modalidades
         if ejercicios_completados_hoy >= 3:
             if fecha_str not in self.dias_entrenados:
                 self.dias_entrenados.append(fecha_str)
                 self.contador_progresion += 1
-                print(f"[DEBUG] Día de entrenamiento completado en {fecha_str}")
+                print(f"[DEBUG] Día de entrenamiento completado en {fecha_str} (umbral 3 alcanzado)")
                 print(f"[DEBUG] Contador de progresión: {self.contador_progresion}")
                 print(f"[DEBUG] Total de días entrenados: {len(self.dias_entrenados)}")
         
@@ -343,7 +341,7 @@ class Modelo:
             texto += f"- Ejercicios completados: {completados}/{totales} ({porcentaje:.1f}%)\n"
             texto += f"- Kilómetros corridos: {km:.1f}/{meta_km:.1f} km\n"
             texto += f"- Ranking: {ranking}\n"
-            texto += f"- Entrenamientos completados: {self.contador_progresion}\n"  # Nuevo: Mostrar contador_progresion
+            texto += f"- Entrenamientos completados: {self.contador_progresion}\n"
             if recompensas:
                 texto += "- Recompensas:\n" + "\n".join([f"  * {r}" for r in recompensas])
             return texto
