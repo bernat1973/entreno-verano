@@ -23,12 +23,11 @@ class Ejercicios:
             ["Plancha frontal en antebrazos", "Abdominales crunch con rodillas dobladas", "Flexiones pica para hombros", 
              "Saltos laterales suaves sobre línea", "Elevaciones laterales de hombros sin peso", "Yoga suave con posturas básicas"],
             # Sábado
-            ["Estiramientos dinámicos de cuerpo completo", "Saltos verticales suaves con aterrizaje controlado", 
-             "Rotaciones de hombros con brazos en L", "Movilidad articular de cadera", "Saltos patinador con cambio lento", 
-             "Respiración diafragmática profunda"],
+            ["Estiramientos dinámicos de cuerpo completo", "Rotaciones de hombros con brazos en L", 
+             "Movilidad articular de cadera", "Respiración diafragmática profunda"],
             # Domingo
-            ["Estiramientos dinámicos de cuerpo completo", "Gato-vaca para movilidad espinal", "Respiración diafragmática profunda", 
-             "Puente de glúteos con rodillas dobladas", "Aperturas de pecho con brazos en T", "Movilidad articular de cadera"]
+            ["Estiramientos dinámicos de cuerpo completo", "Gato-vaca para movilidad espinal", 
+             "Respiración diafragmática profunda", "Movilidad articular de cadera"]
         ]
         
         # EJERCICIOS CON PESAS ORIGINALES
@@ -74,11 +73,12 @@ class Ejercicios:
             # Viernes - Media-alta (core, agilidad lateral, hombros)
             ["Rotacional Punch", "Plancha lateral", "Flexiones estándar", "Flexiones pica", "Saltos patinador", 
              "Abdominales isométricos"],
-            # Sábado - Baja (recuperación activa, yoga, movilidad ligera)
-            ["Tuck L-sit", "Russian Twist", "Fondos en silla", "Plancha con toques", "Burpees modificados", "Yoga suave"],
-            # Domingo - Baja (estiramientos, movilidad, recuperación suave)
-            ["Handstand contra pared", "Up Wipers", "Flexiones diamante", "Elevaciones frontales sin peso", 
-             "Saltos verticales", "Movilidad articular"]
+            # Sábado - Baja (estiramientos, mismos que bodyweight)
+            ["Estiramientos dinámicos de cuerpo completo", "Rotaciones de hombros con brazos en L", 
+             "Movilidad articular de cadera", "Respiración diafragmática profunda"],
+            # Domingo - Baja (estiramientos, mismos que bodyweight)
+            ["Estiramientos dinámicos de cuerpo completo", "Gato-vaca para movilidad espinal", 
+             "Respiración diafragmática profunda", "Movilidad articular de cadera"]
         ]
         
         # EJERCICIOS MIXTOS (Combinación de con y sin pesas, para Juan y Nico)
@@ -298,15 +298,15 @@ class Ejercicios:
             else:
                 contador = 0
             
-            # Progresión para un niño de 13 años (ajustada para menor intensidad)
+            # Progresión ajustada
             if contador < 10:  # Primeros 10 entrenamientos
-                series, repeticiones, segundos = 2, 8, 30
+                series, repeticiones, segundos = 3, 10, 20
             elif contador < 20:  # Entrenamientos 11-20
-                series, repeticiones, segundos = 2, 10, 40
+                series, repeticiones, segundos = 3, 12, 25
             elif contador < 30:  # Entrenamientos 21-30
-                series, repeticiones, segundos = 3, 10, 50
+                series, repeticiones, segundos = 3, 15, 30
             else:  # Más de 30 entrenamientos
-                series, repeticiones, segundos = 3, 12, 60
+                series, repeticiones, segundos = 4, 12, 30
 
             ejercicios_progresivos = []
             for ej in ejercicios_base:
@@ -326,7 +326,7 @@ if __name__ == "__main__":
     class Modelo:
         def __init__(self):
             self.ejercicios_type = 'futbol'
-            self.contador_progresion = 5
+            self.contador_progresion = 9
             self.ejercicios_personalizados_por_fecha = {}
 
     modelo = Modelo()
