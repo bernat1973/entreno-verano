@@ -36,7 +36,6 @@ class Modelo:
             if app_project_id != 'entreno-verano':
                 print(f"[WARNING] Proyecto Firebase esperado: 'entreno-verano', encontrado: {app_project_id}")
 
-            # Consultar el usuario actual desde config/app al inicio
             config_ref = self.db.collection('config').document('app')
             config_data = config_ref.get()
             self.user_id = config_data.to_dict().get('usuario_actual', 'Juan') if config_data.exists else 'Juan'
@@ -46,8 +45,8 @@ class Modelo:
             self.nombre = ""
             self.peso = 0.0
             self.estatura = 0.0
-            self.talla_sentada = 0.0  # Nuevo campo
-            self.envergadura = 0.0    # Nuevo campo
+            self.talla_sentada = 0.0
+            self.envergadura = 0.0
             self.meta_km = {}
             self.ejercicios_type = "bodyweight"
             self.km_corridos = {}
@@ -56,11 +55,13 @@ class Modelo:
             self.ejercicios_personalizados = []
             self.ejercicios_personalizados_por_fecha = {}
             self.historial_semanal = []
-            self.historial_mediciones = {}  # Nuevo diccionario para mediciones mensuales
+            self.historial_mediciones = {}
             self.record_puntos = 0
             self.mensaje = ""
             self.recompensas_usadas = {}
-            self.progreso_ciclo = 0  # Nuevo atributo para rastrear el ciclo de dificultad
+            self.contador_progresion = 0  # Nuevo: Contador de entrenamientos completados
+            self.dias_entrenados = []     # Nuevo: Lista de fechas de entrenamientos completados
+
             self.cargar_datos()
         except Exception as e:
             print(f"[DEBUG] Error al inicializar Modelo: {str(e)}")
@@ -76,8 +77,8 @@ class Modelo:
                 self.nombre = data.get('nombre', '')
                 self.peso = float(data.get('peso', 0.0))
                 self.estatura = float(data.get('estatura', 0.0))
-                self.talla_sentada = float(data.get('talla_sentada', 0.0))  # Cargar nuevo campo
-                self.envergadura = float(data.get('envergadura', 0.0))     # Cargar nuevo campo
+                self.talla_sentada = float(data.get('talla_sentada', 0.0))
+                self.envergadura = float(data.get('envergadura', 0.0))
                 self.meta_km = data.get('meta_km', {})
                 self.ejercicios_type = data.get('ejercicios_type', 'bodyweight')
                 self.km_corridos = data.get('km_corridos', {})
@@ -85,13 +86,26 @@ class Modelo:
                 self.ejercicios_completados = data.get('ejercicios_completados', {})
                 self.ejercicios_personalizados = data.get('ejercicios_personalizados', [])
                 self.ejercicios_personalizados_por_fecha = data.get('ejercicios_personalizados_por_fecha', {})
-                self.historial_semanal = data.get('historial_semanal', [])
-                self.historial_mediciones = data.get('historial_mediciones', {})  # Cargar mediciones mensuales
+                self.historial_semanal = data.get('historial_semanal', {})
+                self.historial_mediciones = data.get('historial_mediciones', {})
                 self.record_puntos = data.get('record_puntos', 0)
                 self.mensaje = data.get('mensaje', '')
                 self.recompensas_usadas = data.get('recompensas_usadas', {})
-                self.progreso_ciclo = data.get('progreso_ciclo', 0)  # Cargar el ciclo de dificultad
-                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}, progreso_ciclo={self.progreso_ciclo}")
+                self.contador_progresion = data.get('contador_progresion', 0)
+                self.dias_entrenados = data.get('dias_entrenados', [])
+                
+                # Migrar progreso_ciclo a contador_progresion para compatibilidad con datos existentes
+                if 'progreso_ciclo' in data and data['progreso_ciclo'] > 0 and self.contador_progresion == 0:
+                    self.contador_progresion = data['progreso_ciclo']
+                    print(f"[DEBUG] Migrado progreso_ciclo={data['progreso_ciclo']} a contador_progresion={self.contador_progresion}")
+                
+                # Validar ejercicios_type
+                valid_types = ['bodyweight', 'weights', 'futbol', 'mixtos']
+                if self.ejercicios_type not in valid_types:
+                    print(f"[WARNING] ejercicios_type inválido: {self.ejercicios_type}, estableciendo a 'bodyweight'")
+                    self.ejercicios_type = 'bodyweight'
+                
+                print(f"[DEBUG] Datos cargados para usuario {self.user_id}: nombre={self.nombre}, ejercicios_type={self.ejercicios_type}, contador_progresion={self.contador_progresion}")
             else:
                 print(f"[DEBUG] No se encontraron datos para {self.user_id}, inicializando como nuevo usuario")
                 self.nuevo_usuario(self.user_id)
@@ -107,8 +121,8 @@ class Modelo:
                 'nombre': self.nombre,
                 'peso': self.peso,
                 'estatura': self.estatura,
-                'talla_sentada': self.talla_sentada,  # Guardar nuevo campo
-                'envergadura': self.envergadura,      # Guardar nuevo campo
+                'talla_sentada': self.talla_sentada,
+                'envergadura': self.envergadura,
                 'meta_km': self.meta_km,
                 'ejercicios_type': self.ejercicios_type,
                 'km_corridos': self.km_corridos,
@@ -117,13 +131,13 @@ class Modelo:
                 'ejercicios_personalizados': self.ejercicios_personalizados,
                 'ejercicios_personalizados_por_fecha': self.ejercicios_personalizados_por_fecha,
                 'historial_semanal': self.historial_semanal,
-                'historial_mediciones': self.historial_mediciones,  # Guardar mediciones mensuales
+                'historial_mediciones': self.historial_mediciones,
                 'record_puntos': self.record_puntos,
                 'mensaje': self.mensaje,
                 'recompensas_usadas': self.recompensas_usadas,
-                'progreso_ciclo': self.progreso_ciclo  # Guardar el ciclo de dificultad
+                'contador_progresion': self.contador_progresion,
+                'dias_entrenados': self.dias_entrenados
             })
-            # Guardar el usuario actual en config/app
             config_ref = self.db.collection('config').document('app')
             config_ref.set({'usuario_actual': self.user_id}, merge=True)
             print(f"[DEBUG] Datos guardados para usuario {self.user_id}")
@@ -138,8 +152,8 @@ class Modelo:
         self.nombre = nombre
         self.peso = 0.0
         self.estatura = 0.0
-        self.talla_sentada = 0.0  # Inicializar nuevo campo
-        self.envergadura = 0.0    # Inicializar nuevo campo
+        self.talla_sentada = 0.0
+        self.envergadura = 0.0
         self.meta_km = {}
         self.ejercicios_type = "bodyweight"
         self.km_corridos = {}
@@ -148,11 +162,12 @@ class Modelo:
         self.ejercicios_personalizados = []
         self.ejercicios_personalizados_por_fecha = {}
         self.historial_semanal = []
-        self.historial_mediciones = {}  # Inicializar mediciones mensuales
+        self.historial_mediciones = {}
         self.record_puntos = 0
         self.mensaje = ""
         self.recompensas_usadas = {}
-        self.progreso_ciclo = 0  # Inicializar el ciclo de dificultad
+        self.contador_progresion = 0
+        self.dias_entrenados = []
         self.guardar_datos()
 
     def cambiar_usuario(self, user_id):
@@ -197,12 +212,17 @@ class Modelo:
         fecha_str = fecha.strftime('%Y-%m-%d') if isinstance(fecha, date) else fecha
         self.ejercicios_completados[fecha_str] = ejercicios_dict
         
-        # Verificar si todos los ejercicios se completaron para avanzar el ciclo (solo de lunes a sábado)
-        if 0 <= fecha.weekday() <= 5 and all(completado for completado in ejercicios_dict.values()):
-            self.progreso_ciclo += 1
-            if self.progreso_ciclo > 15:  # Reiniciar ciclo después de 16 fases
-                self.progreso_ciclo = 0
-            print(f"[DEBUG] Todos los ejercicios completados en {fecha_str}, progreso_ciclo aumentado a {self.progreso_ciclo}")
+        # Contar cuántos ejercicios se completaron
+        ejercicios_completados_hoy = sum(1 for v in ejercicios_dict.values() if v)
+        
+        # Si completó al menos 3 ejercicios, cuenta como día de entrenamiento
+        if ejercicios_completados_hoy >= 3:
+            if fecha_str not in self.dias_entrenados:
+                self.dias_entrenados.append(fecha_str)
+                self.contador_progresion += 1
+                print(f"[DEBUG] Día de entrenamiento completado en {fecha_str}")
+                print(f"[DEBUG] Contador de progresión: {self.contador_progresion}")
+                print(f"[DEBUG] Total de días entrenados: {len(self.dias_entrenados)}")
         
         self.guardar_datos()
 
@@ -275,10 +295,8 @@ class Modelo:
             if semana_actual not in self.recompensas_usadas:
                 self.recompensas_usadas[semana_actual] = []
 
-            # Limpiar recompensas de semanas antiguas (mantener solo la semana actual)
             self.recompensas_usadas = {semana_actual: self.recompensas_usadas.get(semana_actual, [])}
 
-            # Asignar categoría según puntos
             if puntos >= 150:
                 recompensa_categoria = "Semidios"
             elif puntos >= 100:
@@ -290,22 +308,19 @@ class Modelo:
             else:
                 recompensa_categoria = "Looser"
 
-            # Seleccionar una frase animadora única
             frases_disponibles = [f for f in frases_animadoras[recompensa_categoria] 
                                 if f not in self.recompensas_usadas[semana_actual]]
             frase_animadora = random.choice(frases_disponibles) if frases_disponibles else random.choice(frases_animadoras[recompensa_categoria])
 
-            # Seleccionar una recompensa única
             recompensas_disponibles = [r for r in recompensas_categoria[recompensa_categoria] 
                                     if r not in self.recompensas_usadas[semana_actual]]
             recompensa = random.choice(recompensas_disponibles) if recompensas_disponibles else random.choice(recompensas_categoria[recompensa_categoria])
 
-            # Añadir solo la frase y la recompensa seleccionadas
             self.recompensas_usadas[semana_actual].append(frase_animadora)
             self.recompensas_usadas[semana_actual].append(recompensa)
             self.guardar_datos()
 
-            recompensas = [frase_animadora, recompensa]  # Reemplazar en lugar de extender
+            recompensas = [frase_animadora, recompensa]
 
             imagen_ranking = f"recompensas/{recompensa_categoria.lower()}.png"
             ranking = recompensa_categoria
@@ -328,6 +343,7 @@ class Modelo:
             texto += f"- Ejercicios completados: {completados}/{totales} ({porcentaje:.1f}%)\n"
             texto += f"- Kilómetros corridos: {km:.1f}/{meta_km:.1f} km\n"
             texto += f"- Ranking: {ranking}\n"
+            texto += f"- Entrenamientos completados: {self.contador_progresion}\n"  # Nuevo: Mostrar contador_progresion
             if recompensas:
                 texto += "- Recompensas:\n" + "\n".join([f"  * {r}" for r in recompensas])
             return texto
